@@ -1,0 +1,98 @@
+{
+    "Resources": {
+      "AWSConfigRule": {
+        "Type": "AWS::Config::ConfigRule",
+        "Properties": {
+          "ConfigRuleName": {
+            "Ref": "ConfigRuleName"
+          },
+          "Description": "Checks whether the active access keys are rotated within the number of days specified in maxAccessKeyAge. The rule is non-compliant if the access keys have not been rotated for more than maxAccessKeyAge number of days.",
+          "InputParameters": {
+            "maxAccessKeyAge": {
+              "Fn::If": [
+                "maxAccessKeyAge",
+                {
+                  "Ref": "maxAccessKeyAge"
+                },
+                {
+                  "Ref": "AWS::NoValue"
+                }
+              ]
+            }
+          },
+          "Scope": {},
+          "Source": {
+            "Owner": "AWS",
+            "SourceIdentifier": "ACCESS_KEYS_ROTATED"
+          },
+          "MaximumExecutionFrequency": {
+            "Ref": "MaximumExecutionFrequency"
+          }
+        }
+      }
+    },
+    "Parameters": {
+      "ConfigRuleName": {
+        "Type": "String",
+        "Default": "access-keys-rotated",
+        "Description": "The name that you assign to the AWS Config rule.",
+        "MinLength": "1",
+        "ConstraintDescription": "This parameter is required."
+      },
+      "MaximumExecutionFrequency": {
+        "Type": "String",
+        "Default": "TwentyFour_Hours",
+        "Description": "The frequency that you want AWS Config to run evaluations for the rule.",
+        "MinLength": "1",
+        "ConstraintDescription": "This parameter is required.",
+        "AllowedValues": [
+          "One_Hour",
+          "Three_Hours",
+          "Six_Hours",
+          "Twelve_Hours",
+          "TwentyFour_Hours"
+        ]
+      },
+      "maxAccessKeyAge": {
+        "Type": "String",
+        "Default": "90",
+        "Description": "Maximum number of days without rotation. Default 90.",
+        "MinLength": "1",
+        "ConstraintDescription": "This parameter is required."
+      }
+    },
+    "Metadata": {
+      "AWS::CloudFormation::Interface": {
+        "ParameterGroups": [
+          {
+            "Label": {
+              "default": "Required"
+            },
+            "Parameters": [
+              "maxAccessKeyAge"
+            ]
+          },
+          {
+            "Label": {
+              "default": "Optional"
+            },
+            "Parameters": []
+          }
+        ]
+      }
+    },
+    "Conditions": {
+      "maxAccessKeyAge": {
+        "Fn::Not": [
+          {
+            "Fn::Equals": [
+              "",
+              {
+                "Ref": "maxAccessKeyAge"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }

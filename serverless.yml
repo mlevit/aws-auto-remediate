@@ -1,0 +1,94 @@
+service: auto-remediate
+
+custom:
+  company: servian          # change to your company name
+  # pythonRequirements:       # allows us to deploy a newer version of boto3
+  #   noDeploy: [
+  #     'docutils',
+  #     'jmespath',
+  #     'python-dateutil',
+  #     's3transfer',
+  #     'six',
+  #     'pip',
+  #     'setuptools']
+  # remover:
+  #   prompt: true
+  #   buckets:
+  #     - auto-remediate-${self:provider.stage}-resourcetreebucket-${self:custom.company}
+
+provider:
+  name: aws
+  runtime: python3.7
+  stage: dev
+  region: ap-southeast-2    # change to your region
+  profile: saml             # change to your profile  
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - cloudformation:CreateStack
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - config:PutConfigRule
+      Resource: "*"
+  tracing:
+    lambda: true
+
+package:
+  individually: true
+  exclude:
+    - node_modules/**
+    - .DS_Store
+
+functions:
+  AutoRemediate:
+    handler: auto-remediate.lambda_handler.lambda_handler
+    name: auto-remediate-${self:provider.stage}
+    description: Auto Remediate fixes common AWS security violations
+    memorySize: 128
+    timeout: 300
+    package:
+      exclude:
+        - auto-remediate-setup-config/**
+    environment:
+      LOGLEVEL: INFO       # change to DEBUG for testing
+      PYTHONPATH: "/var/task/auto-remediate:/var/task/dynamodb_json:/var/runtime"
+      REMEDIATIONBUCKET: auto-remediate-${self:provider.stage}-${self:custom.company}
+      SETTINGSTABLE: auto-remediate-settings-${self:provider.stage}
+  AutoRemediateSetupConfig:
+    handler: auto-remediate-setup-config.lambda_handler.lambda_handler
+    name: auto-remediate-setup-config-${self:provider.stage}
+    description: Auto Remediate Setup Config creates CloudFormation Stacks for AWS Config
+    memorySize: 128
+    timeout: 300
+    package:
+      exclude:
+        - auto-remediate/**
+    environment:
+      LOGLEVEL: INFO       # change to DEBUG for testing
+      PYTHONPATH: "/var/task/auto-remediate-setup-config:/var/runtime"
+
+# resources:
+#   Resources:
+#     SettingsTable:
+#       Type: AWS::DynamoDB::Table
+#       Properties:
+#         TableName: auto-remediate-settings-${self:provider.stage}
+#         AttributeDefinitions:
+#           - AttributeName: key
+#             AttributeType: S
+#         KeySchema:
+#           - AttributeName: key
+#             KeyType: HASH
+#         ProvisionedThroughput:
+#           ReadCapacityUnits: 1
+#           WriteCapacityUnits: 1
+#     RemediationBuckett:
+#       Type: AWS::S3::Bucket
+#       Properties:
+#         BucketName: auto-remediate-${self:provider.stage}-${self:custom.company}
+    
+
+plugins:
+  - serverless-python-requirements
+  - serverless-s3-remover
