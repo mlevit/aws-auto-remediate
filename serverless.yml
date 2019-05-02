@@ -22,15 +22,6 @@ provider:
   stage: dev
   region: ap-southeast-2    # change to your region
   profile: saml             # change to your profile  
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - cloudformation:CreateStack
-      Resource: "*"
-    - Effect: Allow
-      Action:
-        - config:PutConfigRule
-      Resource: "*"
   tracing:
     lambda: true
 
@@ -55,6 +46,8 @@ functions:
       PYTHONPATH: "/var/task/auto-remediate:/var/task/dynamodb_json:/var/runtime"
       REMEDIATIONBUCKET: auto-remediate-${self:provider.stage}-${self:custom.company}
       SETTINGSTABLE: auto-remediate-settings-${self:provider.stage}
+    events:
+      - sns: auto-remediate-compliance-${self:provider.stage}
   AutoRemediateSetupConfig:
     handler: auto-remediate-setup-config.lambda_handler.lambda_handler
     name: auto-remediate-setup-config-${self:provider.stage}
@@ -67,9 +60,23 @@ functions:
     environment:
       LOGLEVEL: INFO       # change to DEBUG for testing
       PYTHONPATH: "/var/task/auto-remediate-setup-config:/var/runtime"
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - cloudformation:CreateStack
+          - cloudformation:ListStacks
+        Resource: "*"
+      - Effect: Allow
+        Action:
+          - config:PutConfigRule
+        Resource: "*"
 
 # resources:
 #   Resources:
+#     SNSTopic:
+#        Type: AWS::SNS::Topic
+#        Properties:
+#          TopicName: auto-remediate-compliance-${self:provider.stage}
 #     SettingsTable:
 #       Type: AWS::DynamoDB::Table
 #       Properties:
@@ -90,5 +97,6 @@ functions:
     
 
 plugins:
+  - serverless-iam-roles-per-function
   - serverless-python-requirements
   - serverless-s3-remover

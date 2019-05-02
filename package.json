@@ -8,6 +8,7 @@
     "serverless-s3-remover": "^0.6.0"
   },
   "devDependencies": {
+    "serverless-iam-roles-per-function": "^2.0.0",
     "serverless-python-requirements": "^4.3.0"
   },
   "repository": {
