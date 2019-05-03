@@ -2,6 +2,7 @@ service: auto-remediate
 
 custom:
   company: servian          # change to your company name
+  region: ap-southeast-2
   # pythonRequirements:       # allows us to deploy a newer version of boto3
   #   noDeploy: [
   #     'docutils',
@@ -20,7 +21,7 @@ provider:
   name: aws
   runtime: python3.7
   stage: dev
-  region: ap-southeast-2    # change to your region
+  region: ${self:custom.region}    # change to your region
   profile: saml             # change to your profile  
   tracing:
     lambda: true
@@ -47,7 +48,7 @@ functions:
       REMEDIATIONBUCKET: auto-remediate-${self:provider.stage}-${self:custom.company}
       SETTINGSTABLE: auto-remediate-settings-${self:provider.stage}
     events:
-      - sns: auto-remediate-compliance-${self:provider.stage}
+      - sns: auto-remediate-config-compliance-${self:provider.stage}
   AutoRemediateSetupConfig:
     handler: auto-remediate-setup-config.lambda_handler.lambda_handler
     name: auto-remediate-setup-config-${self:provider.stage}
@@ -71,8 +72,25 @@ functions:
           - config:PutConfigRule
         Resource: "*"
 
-# resources:
-#   Resources:
+resources:
+  Resources:
+    CloudWatchComplianceEvent:
+      Type: AWS::Events::Rule
+      Properties:
+        Name: auto-remediate-config-compliance-only-${self:provider.stage}
+        EventPattern: "{\"source\":[\"aws.config\"],\"detail-type\":[\"Config Rules Compliance Change\"]}"
+        State: ENABLED
+        Targets:
+          - Arn: 
+              Fn::Join:
+                - ":"
+                - - arn
+                  - aws
+                  - sns
+                  - ${self:custom.region}
+                  - Ref: AWS::AccountId
+                  - auto-remediate-compliance-${self:provider.stage}
+            Id: Id12345
 #     SNSTopic:
 #        Type: AWS::SNS::Topic
 #        Properties:
