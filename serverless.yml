@@ -41,7 +41,7 @@ functions:
     timeout: 300
     package:
       exclude:
-        - auto-remediate-setup-config/**
+        - auto-remediate-setup/**
     environment:
       LOGLEVEL: INFO       # change to DEBUG for testing
       PYTHONPATH: "/var/task/auto-remediate:/var/task/dynamodb_json:/var/runtime"
@@ -60,9 +60,9 @@ functions:
         Resource: "*"
     events:
       - sns: auto-remediate-config-compliance-${self:provider.stage}
-  AutoRemediateSetupConfig:
-    handler: auto-remediate-setup-config.lambda_handler.lambda_handler
-    name: auto-remediate-setup-config-${self:provider.stage}
+  AutoRemediateSetup:
+    handler: auto-remediate-setup.lambda_handler.lambda_handler
+    name: auto-remediate-setup-${self:provider.stage}
     description: Auto Remediate Setup Config creates CloudFormation Stacks for AWS Config
     memorySize: 128
     timeout: 300
@@ -71,7 +71,7 @@ functions:
         - auto-remediate/**
     environment:
       LOGLEVEL: INFO       # change to DEBUG for testing
-      PYTHONPATH: "/var/task/auto-remediate-setup-config:/var/runtime"
+      PYTHONPATH: "/var/task/auto-remediate-setup:/var/runtime"
       SETTINGSTABLE: auto-remediate-settings-${self:provider.stage}
     iamRoleStatements:
       - Effect: Allow
