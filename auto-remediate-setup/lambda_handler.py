@@ -6,7 +6,7 @@ import logging
 import os
 import sys
 
-class SetupConfig:
+class Setup:
     def __init__(self, logging):
         self.logging = logging
         
@@ -130,4 +130,4 @@ def lambda_handler(event, context):
     logging.getLogger('urllib3').setLevel(logging.ERROR)
     logging.basicConfig(format="[%(levelname)s] %(message)s (%(filename)s, %(funcName)s(), line %(lineno)d)", level=os.environ.get('LOGLEVEL', 'WARNING').upper())
 
-    SetupConfig(logging)
+    Setup(logging)

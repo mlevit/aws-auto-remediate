@@ -1,28 +1,16 @@
 service: auto-remediate
 
 custom:
-  company: servian          # change to your company name
+  company: servian                  # change to your company name
   region: ap-southeast-2
-  # pythonRequirements:       # allows us to deploy a newer version of boto3
-  #   noDeploy: [
-  #     'docutils',
-  #     'jmespath',
-  #     'python-dateutil',
-  #     's3transfer',
-  #     'six',
-  #     'pip',
-  #     'setuptools']
-  # remover:
-  #   prompt: true
-  #   buckets:
-  #     - auto-remediate-${self:provider.stage}-resourcetreebucket-${self:custom.company}
+  log_level: INFO                   # change to DEBUG for dev/test
 
 provider:
   name: aws
   runtime: python3.7
   stage: dev
-  region: ${self:custom.region}    # change to your region
-  profile: saml             # change to your profile  
+  region: ${self:custom.region}     # change to your region
+  profile: saml                     # change to your profile  
   tracing:
     lambda: true
 
@@ -41,9 +29,10 @@ functions:
     timeout: 300
     package:
       exclude:
+        - auto-remediate-dlq/**
         - auto-remediate-setup/**
     environment:
-      LOGLEVEL: INFO       # change to DEBUG for testing
+      LOGLEVEL: ${self:custom.log_level}
       PYTHONPATH: "/var/task/auto-remediate:/var/task/dynamodb_json:/var/runtime"
       SETTINGSTABLE: auto-remediate-settings-${self:provider.stage}
     iamRoleStatements:
@@ -60,6 +49,33 @@ functions:
         Resource: "*"
     events:
       - sns: auto-remediate-config-compliance-${self:provider.stage}
+  AutoRemediateDLQ:
+    handler: auto-remediate-dlq.lambda_handler.lambda_handler
+    name: auto-remediate-dlq-${self:provider.stage}
+    description: Auto Remediate DLQ retries failed remediation attempts
+    memorySize: 128
+    timeout: 300
+    package:
+      exclude:
+        - auto-remediate/**
+        - auto-remediate-setup/**
+    environment:
+      DLQNAME: auto-remediate-dlq-${self:provider.stage}
+      LAMBDANAME: auto-remediate-${self:provider.stage}
+      LOGLEVEL: ${self:custom.log_level}
+      PYTHONPATH: "/var/task/auto-remediate-dlq:/var/runtime"
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - lambda:InvokeFunction
+          - sqs:DeleteMessage
+          - sqs:GetQueueUrl
+          - sqs:ReceiveMessage
+        Resource: "*"
+    events:
+      - schedule:
+          rate: rate(30 minutes)
+          enabled: true
   AutoRemediateSetup:
     handler: auto-remediate-setup.lambda_handler.lambda_handler
     name: auto-remediate-setup-${self:provider.stage}
@@ -69,8 +85,9 @@ functions:
     package:
       exclude:
         - auto-remediate/**
+        - auto-remediate-dlq/**
     environment:
-      LOGLEVEL: INFO       # change to DEBUG for testing
+      LOGLEVEL: ${self:custom.log_level}
       PYTHONPATH: "/var/task/auto-remediate-setup:/var/runtime"
       SETTINGSTABLE: auto-remediate-settings-${self:provider.stage}
     iamRoleStatements:
@@ -96,7 +113,7 @@ functions:
 
 resources:
   Resources:
-    SettingsTable:
+    DynamoDBSettingsTable:
       Type: AWS::DynamoDB::Table
       Properties:
         TableName: auto-remediate-settings-${self:provider.stage}
@@ -126,30 +143,12 @@ resources:
                   - Ref: AWS::AccountId
                   - auto-remediate-compliance-${self:provider.stage}
             Id: Id12345
-#     SNSTopic:
-#        Type: AWS::SNS::Topic
-#        Properties:
-#          TopicName: auto-remediate-compliance-${self:provider.stage}
-#     SettingsTable:
-#       Type: AWS::DynamoDB::Table
-#       Properties:
-#         TableName: auto-remediate-settings-${self:provider.stage}
-#         AttributeDefinitions:
-#           - AttributeName: key
-#             AttributeType: S
-#         KeySchema:
-#           - AttributeName: key
-#             KeyType: HASH
-#         ProvisionedThroughput:
-#           ReadCapacityUnits: 1
-#           WriteCapacityUnits: 1
-#     RemediationBuckett:
-#       Type: AWS::S3::Bucket
-#       Properties:
-#         BucketName: auto-remediate-${self:provider.stage}-${self:custom.company}
+    SNSdlqTopic:
+       Type: AWS::SQS::Queue
+       Properties:
+          QueueName: auto-remediate-dlq-${self:provider.stage}
     
 
 plugins:
   - serverless-iam-roles-per-function
   - serverless-python-requirements
-  - serverless-s3-remover
