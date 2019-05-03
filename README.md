@@ -4,12 +4,30 @@ Open source application to instantly remediate common security issues through th
 
 ## Table of Contents
 
+- [About](#about)
 - [Setup](#setup)
   - [Deployment](#deployment)
   - [Removal](#removal)
 - [Rules](#rules)
 
+## About
+
+### Auto Remediate
+
+The Auto Remediate function is triggered via an SNS Topic `auto-remediate-config-compliance-production`. The SNS Topic is populated with a compliance payload from AWS Config via a CloudWatch Event `auto-remediate-config-compliance-only-production`. The purpose of the CloudWatch Event is to filter out all non-compliance related messages that AWS Config generates.
+
+Once the Lambda function has been triggered it will attempt to remediate the security concern. If the remediation was unsuccessful, the event payload will be sent to the dead letter queue (DQL) SQS Queue `auto-remediate-dlq-production`.
+
+### Auto Remediate DLQ
+
+The Auto Remediate DLQ function is triggered on a schedule (defined in the `serverless.yml` file). When the function is run, it will retrieve messages from SQS Queue `auto-remediate-dlq-production` and invoke the Auto Remediate Lambda function.
+
+## Auto Remediate Setup
+
+The Auto Remediate Setup function is triggered manually by the user. The purpose of this function is to invoke CloudFormation Stacks for each of the AWS Config Rules that will monitor for security issues as well as create/insert records into the DynamoDB settings table used to control the actions of the Auto Remediate function.
+
 ## Setup
+
 ### Deployment
 
 To deploy this Auto Remediate to your AWS account, follow the below steps:
