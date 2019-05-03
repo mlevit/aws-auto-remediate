@@ -1,22 +1,16 @@
 import boto3
-import datetime
-import json
 import logging
-import os
-import sys
-import tempfile
-import threading
 
-from managed_config_rules import *
+from config_managed_rules import *
 
 class Remediate:
     def __init__(self, logging, event):
         self.logging = logging
         
         # instantiate classes with remediation function
-        self.config = ConfigManagedRules(self.logging)
-        # self.security_hub = ConfigManagedRules(self.logging)
-        # self.custom = ConfigManagedRules(self.logging)
+        self.config = ConfigRules(self.logging)
+        # self.security_hub = ConfigRules(self.logging)
+        # self.custom = ConfigRules(self.logging)
 
         self.parse_event(event)
     
@@ -50,12 +44,14 @@ class Remediate:
 
     
     def remediate(self, config_rule_name, record):
+        record_detail = record.get('Sns').get('Message').get('detail')
+
         if 'auto-remediate' in config_rule_name:
             # AWS Config Managed Rules
             if 'access-keys-rotated' in config_rule_name:
-                self.config.access_keys_rotated(record)
+                self.config.access_keys_rotated(record_detail)
             elif 'restricted-ssh' in config_rule_name:
-                self.config.restricted_ssh(record)
+                self.config.restricted_ssh(record_detail)
             else:
                 self.logging.warning("Auto Remediate has not been configured "
                                      "to remediate Config Rule '%s'." % config_rule_name)

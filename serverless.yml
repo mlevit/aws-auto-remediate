@@ -61,7 +61,18 @@ functions:
     environment:
       LOGLEVEL: INFO       # change to DEBUG for testing
       PYTHONPATH: "/var/task/auto-remediate-setup-config:/var/runtime"
+      SETTINGSTABLE: auto-remediate-settings-${self:provider.stage}
     iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:BatchWriteItem
+          - dynamodb:DeleteTable
+          - dynamodb:DescribeTable
+          - dynamodb:GetItem
+          - dynamodb:ListTables
+          - dynamodb:PutItem
+          - dynamodb:Scan
+        Resource: "*"
       - Effect: Allow
         Action:
           - cloudformation:CreateStack
@@ -74,6 +85,19 @@ functions:
 
 resources:
   Resources:
+    SettingsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: auto-remediate-settings-${self:provider.stage}
+        AttributeDefinitions:
+          - AttributeName: key
+            AttributeType: S
+        KeySchema:
+          - AttributeName: key
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
     CloudWatchComplianceEvent:
       Type: AWS::Events::Rule
       Properties:

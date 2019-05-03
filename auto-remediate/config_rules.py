@@ -1,14 +1,7 @@
 import boto3
-import datetime
-import json
-import logging
-import os
-import sys
-import tempfile
-import threading
 
 
-class ConfigManagedRules:
+class ConfigRules:
     def __init__(self, logging):
         self.logging = logging
     
@@ -27,4 +20,9 @@ class ConfigManagedRules:
             Port: 22
             Source: 0.0.0.0/0 or ::/0
         """
+
+        client = boto3.client('ec2')
+
+        security_group = record.get('resourceId')
+
         pass

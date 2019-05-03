@@ -17,22 +17,25 @@ class SetupConfig:
             self.client = boto3.client('cloudformation')
         except:
             self.logging.error(str(sys.exc_info()))
-
-        self.create_stacks()
+        
+        self.setup_dynamodb()
+        self.create_stacks('config_rules')
+        self.create_stacks('security_hub_rules')
+        self.create_stacks('custom_rules')
     
     
-    def create_stacks(self):
+    def create_stacks(self, stack_sub_dir):
         """
         
         """
         existing_stacks = self.get_current_stacks()
-        path = 'auto-remediate-setup-config/data'
+        path = 'auto-remediate-setup-config/data/%s' % stack_sub_dir
         
         print(existing_stacks)
 
         for file in os.listdir(path):
             if fnmatch.fnmatch(file, '*.json'):
-                stack_name = 'auto-remediate-%s' % file.replace('.json', '')
+                stack_name = file.replace('.json', '')
                 template_body = None
                 
                 with open(os.path.join(path, file)) as stack:
@@ -68,6 +71,54 @@ class SetupConfig:
                 existing_stacks.append(resource.get('StackName'))
 
         return existing_stacks
+    
+
+    def setup_dynamodb(self):
+        """
+        Inserts all the default settings into a DynamoDB table
+        """
+
+        try:
+            client = boto3.client('dynamodb')
+            settings_data = open('auto-remediate-setup-config/data/auto-remediate-settings.json')
+            settings_json = json.loads(settings_data.read())
+
+            update_settings = False
+            
+            # get current settings version
+            current_version = client.get_item(
+                TableName=os.environ['SETTINGSTABLE'],
+                Key={'key': {'S': 'version'}},
+                ConsistentRead=True)
+            
+            # get new settings version
+            new_version = float(settings_json[0].get('value', {}).get('N', 0.0))
+            
+            # check if settings exist and if they're older than current settings
+            if 'Item' in current_version:
+                current_version = float(current_version.get('Item').get('value').get('N'))
+                if current_version < new_version:
+                    update_settings = True
+                    self.logging.info("Existing settings with version %s are being updated to version %s in DynamoDB Table '%s'." % (str(current_version), str(new_version), os.environ['SETTINGSTABLE']))
+                else:
+                    self.logging.debug("Existing settings are at the lastest version %s in DynamoDB Table '%s'." % (str(current_version), os.environ['SETTINGSTABLE']))
+            else:
+                update_settings = True
+                self.logging.info("Settings are being inserted into DynamoDB Table '%s' for the first time." % os.environ['SETTINGSTABLE'])
+
+            if update_settings:
+                for setting in settings_json:
+                    try:
+                        client.put_item(
+                            TableName=os.environ['SETTINGSTABLE'],
+                            Item=setting)
+                    except:
+                        self.logging.critical(str(sys.exc_info()))
+                        continue
+        
+            settings_data.close()
+        except:
+            self.logging.critical(str(sys.exc_info()))
 
 
 def lambda_handler(event, context):

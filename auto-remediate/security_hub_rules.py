@@ -1,14 +1,7 @@
 import boto3
-import datetime
-import json
-import logging
-import os
-import sys
-import tempfile
-import threading
 
 
-class ConfigManagedRules:
+class ConfigRules:
     def __init__(self, logging):
         self.logging = logging
     
