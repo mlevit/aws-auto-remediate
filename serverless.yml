@@ -26,7 +26,7 @@ functions:
     name: auto-remediate-${self:provider.stage}
     description: Auto Remediate fixes common AWS security violations
     memorySize: 128
-    timeout: 300
+    timeout: 60
     package:
       exclude:
         - auto-remediate-dlq/**
@@ -54,7 +54,7 @@ functions:
     name: auto-remediate-dlq-${self:provider.stage}
     description: Auto Remediate DLQ retries failed remediation attempts
     memorySize: 128
-    timeout: 300
+    timeout: 60
     package:
       exclude:
         - auto-remediate/**
@@ -81,14 +81,14 @@ functions:
     name: auto-remediate-setup-${self:provider.stage}
     description: Auto Remediate Setup Config creates CloudFormation Stacks for AWS Config
     memorySize: 128
-    timeout: 300
+    timeout: 60
     package:
       exclude:
         - auto-remediate/**
         - auto-remediate-dlq/**
     environment:
       LOGLEVEL: ${self:custom.log_level}
-      PYTHONPATH: "/var/task/auto-remediate-setup:/var/runtime"
+      PYTHONPATH: "/var/task/auto-remediate-setup:/var/task/dynamodb_json:/var/runtime"
       SETTINGSTABLE: auto-remediate-settings-${self:provider.stage}
     iamRoleStatements:
       - Effect: Allow
@@ -147,7 +147,6 @@ resources:
        Type: AWS::SQS::Queue
        Properties:
           QueueName: auto-remediate-dlq-${self:provider.stage}
-    
 
 plugins:
   - serverless-iam-roles-per-function
