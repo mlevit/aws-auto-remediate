@@ -8,7 +8,7 @@ import tempfile
 import threading
 
 
-class ManagedConfigRules:
+class ConfigManagedRules:
     def __init__(self, logging):
         self.logging = logging
     

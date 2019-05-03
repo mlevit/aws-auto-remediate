@@ -13,10 +13,10 @@ class Remediate:
     def __init__(self, logging, event):
         self.logging = logging
         
-        # instantiate classes with remidiation function
-        self.managed = ManagedConfigRules(self.logging)
-        # self.security_hub = ManagedConfigRules(self.logging)
-        # self.custom = ManagedConfigRules(self.logging)
+        # instantiate classes with remediation function
+        self.config = ConfigManagedRules(self.logging)
+        # self.security_hub = ConfigManagedRules(self.logging)
+        # self.custom = ConfigManagedRules(self.logging)
 
         self.parse_event(event)
     
@@ -27,16 +27,16 @@ class Remediate:
             config_rule_compliance = self.get_config_rule_compliance(record)
 
             if config_rule_compliance == 'NON_COMPLIANT':
-                # TODO check if remidiation should occur
-                remidiate = True
-                if remidiate:
-                    self.remidiate(config_rule_name, record)
+                # TODO check if remediation should occur
+                remediate = True
+                if remediate:
+                    self.remediate(config_rule_name, record)
                     
                     self.logging.info("Config Rule '%s' is non-compliant "
-                                      "and has been sent for remidiation." % config_rule_name)
+                                      "and has been sent for remediation." % config_rule_name)
                 else:
                     self.logging.info("Config Rule '%s' is non-compliant and has "
-                                      "not been sent for remidiation based on user preferences." % config_rule_name)
+                                      "not been sent for remediation based on user preferences." % config_rule_name)
             else:
                 self.logging.info("Config Rule '%s' is now compliant." % config_rule_name)
     
@@ -49,28 +49,23 @@ class Remediate:
         return record.get('Sns').get('Message').get('detail').get('configRuleName').get('newEvaluationResult').get('complianceType')
 
     
-    def remidiate(self, config_rule_name, record):
-        remidation_function = self.get_remidiation_function(config_rule_name)
-
-        if 'auto-remidiate' in config_rule_name:
-            # managed config rules
-            pass
+    def remediate(self, config_rule_name, record):
+        if 'auto-remediate' in config_rule_name:
+            # AWS Config Managed Rules
+            if 'access-keys-rotated' in config_rule_name:
+                self.config.access_keys_rotated(record)
+            elif 'restricted-ssh' in config_rule_name:
+                self.config.restricted_ssh(record)
+            else:
+                self.logging.warning("Auto Remediate has not been configured "
+                                     "to remediate Config Rule '%s'." % config_rule_name)
         elif 'securityhub' in config_rule_name:
-            # security hub rules
-            pass
+            # AWS Security Hub Rules
+            self.logging.warning("Auto Remediate has not been configured "
+                                 "to remediate Config Rule '%s'." % config_rule_name)
         else:
-            # customer config rules
+            # Custom Config Rules
             pass
-    
-
-    def get_remidiation_function(self, config_rule_name):
-        replacements = {'auto-remidiate-': '', 'securityhub-': '', '-': '_'}
-        
-        remidation_function = config_rule_name
-        for old, new in replacements:
-            remidation_function = remidation_function.replace(old, new)
-        
-        return remidation_function
 
 
 def lambda_handler(event, context):
