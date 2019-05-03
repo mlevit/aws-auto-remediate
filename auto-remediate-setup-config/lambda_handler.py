@@ -5,9 +5,6 @@ import json
 import logging
 import os
 import sys
-import tempfile
-import threading
-
 
 class SetupConfig:
     def __init__(self, logging):

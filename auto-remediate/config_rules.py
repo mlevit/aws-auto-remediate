@@ -1,4 +1,5 @@
 import boto3
+import sys
 
 
 class ConfigRules:
@@ -22,7 +23,28 @@ class ConfigRules:
         """
 
         client = boto3.client('ec2')
+        security_group_id = record.get('detail').get('resourceId')
+        
+        try:
+            client.revoke_security_group_ingress(
+                GroupId=security_group_id,
+                IpPermissions=[
+                    {
+                        'FromPort': 22,
+                        'ToPort': 22,
+                        'IpProtocol': 'tcp',
+                        'IpRanges': [{'CidrIp': '0.0.0.0/0'},]
+                    },
+                    {
+                        'FromPort': 22,
+                        'ToPort': 22,
+                        'IpProtocol': 'tcp',
+                        'Ipv6Ranges': [{'CidrIpv6': '::/0'},]
+                    }
+                ]
+            )
 
-        security_group = record.get('resourceId')
-
-        pass
+            self.logging.info("Revoked public port 22 ingress rule for Security Group '%s'." % security_group_id)
+        except:
+            self.logging.error("Could not revoke public port 22 ingress rule for Security Group '%s'." % security_group_id)
+            self.logging.error(str(sys.exc_info()))
