@@ -17,8 +17,6 @@ class Remediate:
         # self.security_hub = ConfigRules(self.logging)
         # self.custom = ConfigRules(self.logging)
 
-        # TODO build settings dictionary
-
         self.remediate(event)
 
     

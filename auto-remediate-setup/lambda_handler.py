@@ -17,7 +17,6 @@ class SetupConfig:
         
         self.setup_dynamodb()
         self.create_stacks('config_rules')
-        self.create_stacks('security_hub_rules')
         self.create_stacks('custom_rules')
     
     
