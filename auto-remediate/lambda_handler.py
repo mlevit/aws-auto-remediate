@@ -12,8 +12,19 @@ class Remediate:
         self.logging = logging
         self.event = event
 
-        print(event)
+        for record in event.get('Records'):
+            config_rule_name = self.get_config_rule_name(record)
+            config_rule_compliance = self.get_config_rule_compliance(record)
 
+            
+
+    
+    def get_config_rule_name(self, record):
+        return record.get('Sns').get('Message').get('detail').get('configRuleName')
+    
+
+    def get_config_rule_compliance(self, record):
+        return record.get('Sns').get('Message').get('detail').get('configRuleName').get('newEvaluationResult').get('complianceType')
 
 def lambda_handler(event, context):
     # enable logging
