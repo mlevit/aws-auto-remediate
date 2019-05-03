@@ -67,7 +67,7 @@ To deploy this Auto Remediate to your AWS account, follow the below steps:
 
 ### Removal
 
-Auto Cleanup is deployed using the Serverless Framework which under the hood creates an AWS CloudFormation Stack. This means removal is clean and simple.
+Auto Remediate is deployed using the Serverless Framework which under the hood creates an AWS CloudFormation Stack. This means removal is clean and simple.
 
 To remove Auto Remediate from your AWS account, follow the below steps:
 
