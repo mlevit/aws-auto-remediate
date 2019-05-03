@@ -7,6 +7,7 @@ Open source application to instantly remediate common security issues through th
 - [Setup](#setup)
   - [Deployment](#deployment)
   - [Removal](#removal)
+- [Rules](#rules)
 
 ## Setup
 ### Deployment
@@ -38,7 +39,7 @@ To deploy this Auto Remediate to your AWS account, follow the below steps:
 06. Change the custom `company` attribute within the `serverless.yml` file to your company name in order to prevent S3 Bucket name collision
 
 07. Change into the Auto Remediate directory
-   `cd aws-auto-remediate`
+      `cd aws-auto-remediate`
 
 08. Install Serverless plugins
 
@@ -75,3 +76,25 @@ To remove Auto Remediate from your AWS account, follow the below steps:
    `cd aws-auto-remediate`
 2. Remove Auto Remediate 
    `serverless remove`
+
+## Rules
+
+The table below details the auto remediated rules and scenarios.
+
+### Compute
+
+| Rule                                                         |
+| :----------------------------------------------------------- |
+| [restricted-ssh](https://docs.aws.amazon.com/config/latest/developerguide/restricted-ssh.html)<br /><br />Checks whether the incoming SSH traffic for the security groups is accessible. The rule is COMPLIANT when the IP addresses of the incoming SSH traffic in the security groups are restricted. This rule applies only to IPv4. |
+
+### Database
+
+| Rule                                                         |
+| :----------------------------------------------------------- |
+| [rds-instance-public-access-check](https://docs.aws.amazon.com/config/latest/developerguide/rds-instance-public-access-check.html)<br /><br />Check whether the Amazon Relational Database Service instances are not publicly accessible. The rule is NON_COMPLIANT if the `publiclyAccessible` field is true in the instance configuration item. |
+
+### Security, Identity & Compliance
+
+| Rule                                                         |
+| :----------------------------------------------------------- |
+| [access-keys-rotated](https://docs.aws.amazon.com/config/latest/developerguide/access-keys-rotated.html)<br /><br />Checks whether the active access keys are rotated within the number of days specified in `maxAccessKeyAge`. The rule is NON_COMPLIANT if the access keys have not been rotated for more than `maxAccessKeyAge` number of days.`` |

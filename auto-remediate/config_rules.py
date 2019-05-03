@@ -23,11 +23,11 @@ class ConfigRules:
         """
 
         client = boto3.client('ec2')
-        security_group_id = record.get('detail').get('resourceId')
+        resource_id = record.get('detail').get('resourceId')
         
         try:
             client.revoke_security_group_ingress(
-                GroupId=security_group_id,
+                GroupId=resource_id,
                 IpPermissions=[
                     {
                         'FromPort': 22,
@@ -44,7 +44,35 @@ class ConfigRules:
                 ]
             )
 
-            self.logging.info("Revoked public port 22 ingress rule for Security Group '%s'." % security_group_id)
+            self.logging.info("Revoked public port 22 ingress rule for Security Group '%s'." % resource_id)
         except:
-            self.logging.error("Could not revoke public port 22 ingress rule for Security Group '%s'." % security_group_id)
+            self.logging.error("Could not revoke public port 22 ingress rule for Security Group '%s'." % resource_id)
+            self.logging.error(str(sys.exc_info()))
+    
+
+    def rds_instance_public_access_check(self, record):
+        """
+        Sets PubliclyAccessible field to false
+        """
+        
+        client = boto3.client('rds')
+        resource_id = record.get('detail').get('resourceId')
+
+        # unfortunately the resourceId provided by AWS Config is DbiResourceId
+        # and cannot be used in the modify_db_instance function
+        # we therefore need to search all RDS instances
+        try:
+            response = client.describe_db_instances()
+
+            for instance in response.get('DBInstances'):
+                if resource_id == instance.get('DbiResourceId'):
+                    # TODO need to validate state of instance
+                    client.modify_db_instance(
+                        DBInstanceIdentifier=instance.get('DBInstanceIdentifier'),
+                        PubliclyAccessible=False)
+                    break
+
+            self.logging.info("Disabled Public Accessibility for RDS Resource ID '%s'." % resource_id)
+        except:
+            self.logging.error("Could not disable Public Accessibility for RDS Resource ID '%s'." % resource_id)
             self.logging.error(str(sys.exc_info()))

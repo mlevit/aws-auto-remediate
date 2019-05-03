@@ -55,6 +55,8 @@ functions:
       - Effect: Allow
         Action:
           - ec2:RevokeSecurityGroupIngress
+          - rds:DescribeDBInstances
+          - rds:ModifyDBInstance
         Resource: "*"
     events:
       - sns: auto-remediate-config-compliance-${self:provider.stage}
