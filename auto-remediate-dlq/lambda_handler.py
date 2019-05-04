@@ -1,10 +1,6 @@
 import boto3
-import datetime
-import fnmatch
-import json
 import logging
 import os
-import sys
 
 class Retry:
     def __init__(self, logging):
@@ -74,7 +70,7 @@ class Retry:
         """
         Retrieves the SQS Queue URL from the SQS Queue Name
         """
-        
+
         client = boto3.client('sqs')
         
         try:
@@ -97,7 +93,7 @@ def lambda_handler(event, context):
     logging.getLogger('botocore').setLevel(logging.ERROR)
     logging.getLogger('urllib3').setLevel(logging.ERROR)
     logging.basicConfig(format="[%(levelname)s] %(message)s (%(filename)s, %(funcName)s(), line %(lineno)d)", level=os.environ.get('LOGLEVEL', 'WARNING').upper())
-    
+
     # instantiate class
     retry = Retry(logging)
 

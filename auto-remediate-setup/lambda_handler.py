@@ -1,5 +1,4 @@
 import boto3
-import datetime
 import fnmatch
 import json
 import logging

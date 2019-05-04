@@ -27,8 +27,8 @@ class Remediate:
         for record in self.event.get('Records'):
             config_message = json.loads(record.get('Sns').get('Message'))
             
-            config_rule_name = self.get_config_rule_name(config_message)
-            config_rule_compliance = self.get_config_rule_compliance(config_message)
+            config_rule_name = Remediate.get_config_rule_name(config_message)
+            config_rule_compliance = Remediate.get_config_rule_compliance(config_message)
             
             if config_rule_compliance == 'NON_COMPLIANT':
                 if 'auto-remediate' in config_rule_name:
@@ -65,14 +65,16 @@ class Remediate:
         return settings
     
     
-    def get_config_rule_name(self, record):
+    @staticmethod
+    def get_config_rule_name(record):
         return record.get('detail').get('configRuleName')
     
-
-    def get_config_rule_compliance(self, record):
+    
+    @staticmethod
+    def get_config_rule_compliance(record):
         return record.get('detail').get('newEvaluationResult').get('complianceType')
     
-
+    
     def intend_to_remediate(self, config_rule_name):
         return self.settings.get('rules').get(config_rule_name, {}).get('remediate', False)
 
