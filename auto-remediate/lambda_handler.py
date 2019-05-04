@@ -29,31 +29,34 @@ class Remediate:
             config_rule_compliance = Remediate.get_config_rule_compliance(config_message)
             
             if config_rule_compliance == 'NON_COMPLIANT':
-                if 'auto-remediate' in config_rule_name:
-                    # AWS Config Managed Rules
-                    if 'access-keys-rotated' in config_rule_name:
-                        self.config.access_keys_rotated(config_message)
-                    elif 'restricted-ssh' in config_rule_name:
-                        self.config.restricted_ssh(config_message)
-                    elif 'rds-instance-public-access-check' in config_rule_name:
-                        self.config.rds_instance_public_access_check(config_message)
-                    else:
-                        self.logging.warning("Auto Remediate has not been configured "
-                                             "to remediate Config Rule '%s' "
+                if self.intend_to_remediate(config_rule_name):
+                    if 'auto-remediate' in config_rule_name:
+                        # AWS Config Managed Rules
+                        if 'access-keys-rotated' in config_rule_name:
+                            self.config.access_keys_rotated(config_message)
+                        elif 'restricted-ssh' in config_rule_name:
+                            self.config.restricted_ssh(config_message)
+                        elif 'rds-instance-public-access-check' in config_rule_name:
+                            self.config.rds_instance_public_access_check(config_message)
+                        else:
+                            self.logging.warning("No remediation available for Config Rule '%s' "
+                                                 "with payload '%s'." % (config_rule_name, config_message))
+                    elif 'securityhub' in config_rule_name:
+                        # AWS Security Hub Rules
+                        self.logging.warning("No remediation available for Config Rule '%s' "
                                              "with payload '%s'." % (config_rule_name, config_message))
-                elif 'securityhub' in config_rule_name:
-                    # AWS Security Hub Rules
-                    self.logging.warning("Auto Remediate has not been configured "
-                                         "to remediate Config Rule '%s' "
-                                         "with payload '%s'." % (config_rule_name, config_message))
+                    else:
+                        # Custom Config Rules
+                        self.logging.warning("No remediation available for Config Rule '%s' "
+                                             "with payload '%s'." % (config_rule_name, config_message))
                 else:
-                    # Custom Config Rules
-                    self.logging.warning("Auto Remediate has not been configured "
-                                         "to remediate Config Rule '%s' "
-                                         "with payload '%s'." % (config_rule_name, config_message))
+                    self.logging.info("Config Rule '%s' was not remediated "
+                                      "based on user preferences." % config_rule_name)
+            else:
+                pass
 
     def intend_to_remediate(self, config_rule_name):
-        return self.settings.get('rules').get(config_rule_name, {}).get('remediate', False)
+        return self.settings.get('rules').get(config_rule_name, {}).get('remediate', True)
     
     def get_settings(self):
         settings = {}

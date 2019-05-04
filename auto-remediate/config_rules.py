@@ -40,13 +40,13 @@ class ConfigRules:
                         'FromPort': 22,
                         'ToPort': 22,
                         'IpProtocol': 'tcp',
-                        'IpRanges': [{'CidrIp': '0.0.0.0/0'},]
+                        'IpRanges': [{'CidrIp': '0.0.0.0/0'}]
                     },
                     {
                         'FromPort': 22,
                         'ToPort': 22,
                         'IpProtocol': 'tcp',
-                        'Ipv6Ranges': [{'CidrIpv6': '::/0'},]
+                        'Ipv6Ranges': [{'CidrIpv6': '::/0'}]
                     }
                 ]
             )
