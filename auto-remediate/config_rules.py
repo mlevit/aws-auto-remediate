@@ -6,13 +6,11 @@ class ConfigRules:
     def __init__(self, logging):
         self.logging = logging
     
-    
     def access_keys_rotated(self, record):
         """
         Deletes IAM User's access and secret key
         """
         pass
-    
 
     def restricted_ssh(self, record):
         """
@@ -48,7 +46,6 @@ class ConfigRules:
         except:
             self.logging.error("Could not revoke public port 22 ingress rule for Security Group '%s'." % resource_id)
             self.logging.error(str(sys.exc_info()))
-    
 
     def rds_instance_public_access_check(self, record):
         """

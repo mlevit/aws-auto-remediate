@@ -5,6 +5,7 @@ import logging
 import os
 import sys
 
+
 class Setup:
     def __init__(self, logging):
         # parameters
@@ -12,7 +13,6 @@ class Setup:
         
         # variables
         self.client = boto3.client('cloudformation')
-    
     
     def create_stacks(self, stack_sub_dir):
         """
@@ -48,7 +48,6 @@ class Setup:
                         continue
                 else:
                     self.logging.debug("Cloud Formation Stack '%s' already exists." % stack_name)
-    
 
     def get_current_stacks(self):
         """
@@ -68,7 +67,6 @@ class Setup:
                 existing_stacks.append(resource.get('StackName'))
 
         return existing_stacks
-    
 
     def setup_dynamodb(self):
         """

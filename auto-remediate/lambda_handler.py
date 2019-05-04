@@ -2,7 +2,6 @@ import boto3
 import json
 import logging
 import os
-import sys
 
 from dynamodb_json import json_util as dynamodb_json
 
@@ -21,7 +20,6 @@ class Remediate:
         self.config = ConfigRules(self.logging)
         # self.security_hub = ConfigRules(self.logging)
         # self.custom = ConfigRules(self.logging)
-
     
     def remediate(self):
         for record in self.event.get('Records'):
@@ -51,8 +49,10 @@ class Remediate:
                 else:
                     # Custom Config Rules
                     pass
-    
 
+    def intend_to_remediate(self, config_rule_name):
+        return self.settings.get('rules').get(config_rule_name, {}).get('remediate', False)
+    
     def get_settings(self):
         settings = {}
         try:
@@ -64,19 +64,13 @@ class Remediate:
         
         return settings
     
-    
     @staticmethod
     def get_config_rule_name(record):
         return record.get('detail').get('configRuleName')
     
-    
     @staticmethod
     def get_config_rule_compliance(record):
         return record.get('detail').get('newEvaluationResult').get('complianceType')
-    
-    
-    def intend_to_remediate(self, config_rule_name):
-        return self.settings.get('rules').get(config_rule_name, {}).get('remediate', False)
 
 
 def lambda_handler(event, context):

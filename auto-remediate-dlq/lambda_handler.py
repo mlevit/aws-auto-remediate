@@ -1,12 +1,12 @@
 import boto3
 import logging
 import os
+import sys
 
 class Retry:
     def __init__(self, logging):
         # parameters
         self.logging = logging
-
 
     def retry_security_events(self):
         client = boto3.client('sqs')
@@ -48,7 +48,6 @@ class Retry:
                 self.logging.error("Could not retrieve Messages from SQS Queue URL '%s'." % queue_url)
                 self.logging.error(str(sys.exc_info()))
 
-
     def invoke_function(self, message):
         """
         Invoke Auto Remediate function
@@ -64,7 +63,6 @@ class Retry:
             self.logging.error("Could not invoke Lambda Function '%s' "
                                "with payload '%s'." % (os.environ.get('LAMBDANAME'), message))
             self.logging.error(str(sys.exc_info()))
-    
 
     def get_queue_url(self):
         """

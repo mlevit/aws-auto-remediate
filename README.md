@@ -60,7 +60,7 @@ git clone https://github.com/servian/aws-auto-remediate
 
 07. Change into the Auto Remediate directory
 
-```
+```bash
 cd aws-auto-remediate
 ```
 
