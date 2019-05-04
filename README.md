@@ -1,5 +1,7 @@
 # AWS Auto Remediate
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/5bce55175d32494c89f0648b27719f43)](https://www.codacy.com/app/servian/aws-auto-remediate?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=servian/aws-auto-remediate&amp;utm_campaign=Badge_Grade)
+
 Open source application to instantly remediate common security issues through the use of AWS Config.
 
 ## Table of Contents
