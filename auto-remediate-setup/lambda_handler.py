@@ -97,7 +97,7 @@ class Setup:
                                                                                                str(new_version),
                                                                                                os.environ['SETTINGSTABLE']))
                 else:
-                    self.logging.debug("Existing settings are at the lastest
+                    self.logging.debug("Existing settings are at the lastest "
                                        "version %s in DynamoDB Table '%s'." % (str(current_version),
                                                                                os.environ['SETTINGSTABLE']))
             else:
