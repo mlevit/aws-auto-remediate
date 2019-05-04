@@ -89,7 +89,7 @@ def lambda_handler(event, context):
     
     # TODO Test SNS logging
     # add SNS logger
-    sns_logger = SNSLoggingHandler(os.environ.get('SNSLOGTOPIC'))
+    sns_logger = SNSLoggingHandler(os.environ.get('LOGTOPIC'))
     sns_logger.setLevel(logging.INFO)
     loggger.addHandler(sns_logger)
     

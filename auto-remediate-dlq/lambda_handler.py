@@ -54,17 +54,17 @@ class Retry:
         client = boto3.client('lambda')
         try:
             client.invoke(
-                FunctionName=os.environ.get('LAMBDANAME'),
+                FunctionName=os.environ.get('REMEDIATEFUNCTION'),
                 InvocationType='Event',
                 Payload=bytes(message, 'utf-8'))
 
             self.logging.info("Invoked Lambda Function '%s' for "
-                              "security event reprocessing." % os.environ.get('LAMBDANAME'))
+                              "security event reprocessing." % os.environ.get('REMEDIATEFUNCTION'))
             
             return True
         except:
             self.logging.error("Could not invoke Lambda Function '%s' "
-                               "with payload '%s'." % (os.environ.get('LAMBDANAME'), message))
+                               "with payload '%s'." % (os.environ.get('REMEDIATEFUNCTION'), message))
             self.logging.error(sys.exc_info())
             
             return False
@@ -93,11 +93,11 @@ class Retry:
         client = boto3.client('sqs')
         
         try:
-            response = client.get_queue_url(QueueName=os.environ.get('DLQNAME'))
+            response = client.get_queue_url(QueueName=os.environ.get('DLQ'))
             return response.get('QueueUrl')
         except:
             self.logging.error("Could not retrieve SQS Queue URL "
-                               "for SQS Queue '%s'." % os.environ.get('DLQNAME'))
+                               "for SQS Queue '%s'." % os.environ.get('DLQ'))
             self.logging.error(sys.exc_info())
 
 

@@ -33,9 +33,7 @@ functions:
         - auto-remediate-setup/**
     environment:
       LOGLEVEL: ${self:custom.log_level}
-      PYTHONPATH: "/var/task/auto-remediate:/var/task/dynamodb_json:/var/runtime"
-      SETTINGSTABLE: auto-remediate-settings-${self:provider.stage}
-      SNSLOGTOPIC: 
+      LOGTOPIC: 
         Fn::Join:
           - ":"
           - - arn
@@ -44,6 +42,8 @@ functions:
             - ${self:custom.region}
             - Ref: AWS::AccountId
             - auto-remediate-log-${self:provider.stage}
+      PYTHONPATH: "/var/task/auto-remediate:/var/task/dynamodb_json:/var/runtime"
+      SETTINGSTABLE: auto-remediate-settings-${self:provider.stage}
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -69,10 +69,10 @@ functions:
         - auto-remediate/**
         - auto-remediate-setup/**
     environment:
-      DLQNAME: auto-remediate-dlq-${self:provider.stage}
-      LAMBDANAME: auto-remediate-${self:provider.stage}
+      DLQ: auto-remediate-dlq-${self:provider.stage}
       LOGLEVEL: ${self:custom.log_level}
       PYTHONPATH: "/var/task/auto-remediate-dlq:/var/runtime"
+      REMEDIATEFUNCTION: auto-remediate-${self:provider.stage}
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -88,7 +88,7 @@ functions:
   AutoRemediateSetup:
     handler: auto-remediate-setup.lambda_handler.lambda_handler
     name: auto-remediate-setup-${self:provider.stage}
-    description: Auto Remediate Setup Config creates CloudFormation Stacks for AWS Config
+    description: Auto Remediate Setup creates CloudFormation Stacks for AWS Config
     memorySize: 128
     timeout: 60
     package:
@@ -152,7 +152,7 @@ resources:
                   - Ref: AWS::AccountId
                   - auto-remediate-compliance-${self:provider.stage}
             Id: Id12345
-    SQSDLQ:
+    SQSDeadLetterQueue:
       Type: AWS::SQS::Queue
       Properties:
         QueueName: auto-remediate-dlq-${self:provider.stage}
