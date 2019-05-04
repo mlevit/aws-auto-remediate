@@ -8,22 +8,19 @@ import sys
 
 class Setup:
     def __init__(self, logging):
+        # parameters
         self.logging = logging
         
-        try:
-            self.client = boto3.client('cloudformation')
-        except:
-            self.logging.error(str(sys.exc_info()))
-        
-        self.setup_dynamodb()
-        self.create_stacks('config_rules')
-        self.create_stacks('custom_rules')
+        # variables
+        self.client = boto3.client('cloudformation')
     
     
     def create_stacks(self, stack_sub_dir):
         """
-        
+        Parse a directory and create the CloudFormation Stacks
+        it contains.
         """
+
         existing_stacks = self.get_current_stacks()
         path = 'auto-remediate-setup-config/data/%s' % stack_sub_dir
         
@@ -55,6 +52,11 @@ class Setup:
     
 
     def get_current_stacks(self):
+        """
+        Retrieve a list of all CloudFormation Stacks
+        currently deployed your AWS accont and region.
+        """
+        
         try:
             resources = self.client.list_stacks().get('StackSummaries')
         except:
@@ -71,7 +73,7 @@ class Setup:
 
     def setup_dynamodb(self):
         """
-        Inserts all the default settings into a DynamoDB table
+        Inserts all the default settings into a DynamoDB table.
         """
 
         try:
@@ -109,12 +111,12 @@ class Setup:
                             TableName=os.environ['SETTINGSTABLE'],
                             Item=setting)
                     except:
-                        self.logging.critical(str(sys.exc_info()))
+                        self.logging.error(str(sys.exc_info()))
                         continue
         
             settings_data.close()
         except:
-            self.logging.critical(str(sys.exc_info()))
+            self.logging.error(str(sys.exc_info()))
 
 
 def lambda_handler(event, context):
@@ -130,4 +132,10 @@ def lambda_handler(event, context):
     logging.getLogger('urllib3').setLevel(logging.ERROR)
     logging.basicConfig(format="[%(levelname)s] %(message)s (%(filename)s, %(funcName)s(), line %(lineno)d)", level=os.environ.get('LOGLEVEL', 'WARNING').upper())
 
-    Setup(logging)
+    # instantiate class
+    setup = Setup(logging)
+
+    # run functions
+    setup.setup_dynamodb()
+    setup.create_stacks('config_rules')
+    setup.create_stacks('custom_rules')

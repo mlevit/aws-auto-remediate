@@ -10,18 +10,21 @@ from config_rules import *
 
 class Remediate:
     def __init__(self, logging, event):
+        # parameters
         self.logging = logging
+        self.event = event
+
+        # variables
         self.settings = self.get_settings()
 
+        # classes
         self.config = ConfigRules(self.logging)
         # self.security_hub = ConfigRules(self.logging)
         # self.custom = ConfigRules(self.logging)
 
-        self.remediate(event)
-
     
-    def remediate(self, event):
-        for record in event.get('Records'):
+    def remediate(self):
+        for record in self.event.get('Records'):
             config_message = json.loads(record.get('Sns').get('Message'))
             
             config_rule_name = self.get_config_rule_name(config_message)
@@ -89,4 +92,8 @@ def lambda_handler(event, context):
 
     # TODO logs should also be sent to an SNS Topic
 
-    Remediate(logging, event)
+    # instantiate class
+    remediate = Remediate(logging, event)
+
+    # run functions
+    remediate.remediate()

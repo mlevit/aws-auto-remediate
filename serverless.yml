@@ -2,15 +2,15 @@ service: auto-remediate
 
 custom:
   company: servian                  # change to your company name
-  region: ap-southeast-2
   log_level: INFO                   # change to DEBUG for dev/test
+  region: ap-southeast-2            # change to your AWS region
 
 provider:
   name: aws
   runtime: python3.7
   stage: dev
-  region: ${self:custom.region}     # change to your region
-  profile: saml                     # change to your profile  
+  region: ${self:custom.region}
+  profile: saml                     # change to your AWS login profile  
   tracing:
     lambda: true
 
@@ -143,7 +143,7 @@ resources:
                   - Ref: AWS::AccountId
                   - auto-remediate-compliance-${self:provider.stage}
             Id: Id12345
-    SNSdlqTopic:
+    SQSDLQ:
        Type: AWS::SQS::Queue
        Properties:
           QueueName: auto-remediate-dlq-${self:provider.stage}
