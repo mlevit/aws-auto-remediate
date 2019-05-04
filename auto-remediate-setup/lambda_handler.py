@@ -19,7 +19,6 @@ class Setup:
         Parse a directory and create the CloudFormation Stacks
         it contains.
         """
-
         existing_stacks = self.get_current_stacks()
         path = 'auto-remediate-setup-config/data/%s' % stack_sub_dir
         
@@ -44,7 +43,7 @@ class Setup:
                         self.logging.info("Creating CloudFormation Stack '%s'." % stack_name)
                     except:
                         self.logging.error("Could not create CloudFormation Stack '%s'." % stack_name)
-                        self.logging.error(str(sys.exc_info()))
+                        self.logging.error(sys.exc_info())
                         continue
                 else:
                     self.logging.debug("Cloud Formation Stack '%s' already exists." % stack_name)
@@ -54,11 +53,10 @@ class Setup:
         Retrieve a list of all CloudFormation Stacks
         currently deployed your AWS accont and region.
         """
-        
         try:
             resources = self.client.list_stacks().get('StackSummaries')
         except:
-            self.logging.error(str(sys.exc_info()))
+            self.logging.error(sys.exc_info())
             return None
 
         existing_stacks = []
@@ -72,7 +70,6 @@ class Setup:
         """
         Inserts all the default settings into a DynamoDB table.
         """
-
         try:
             client = boto3.client('dynamodb')
             settings_data = open('auto-remediate-setup-config/data/auto-remediate-settings.json')
@@ -108,12 +105,12 @@ class Setup:
                             TableName=os.environ['SETTINGSTABLE'],
                             Item=setting)
                     except:
-                        self.logging.error(str(sys.exc_info()))
+                        self.logging.error(sys.exc_info())
                         continue
         
             settings_data.close()
         except:
-            self.logging.error(str(sys.exc_info()))
+            self.logging.error(sys.exc_info())
 
 
 def lambda_handler(event, context):

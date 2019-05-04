@@ -19,7 +19,6 @@ class ConfigRules:
             Port: 22
             Source: 0.0.0.0/0 or ::/0
         """
-
         client = boto3.client('ec2')
         resource_id = record.get('detail').get('resourceId')
         
@@ -45,13 +44,12 @@ class ConfigRules:
             self.logging.info("Revoked public port 22 ingress rule for Security Group '%s'." % resource_id)
         except:
             self.logging.error("Could not revoke public port 22 ingress rule for Security Group '%s'." % resource_id)
-            self.logging.error(str(sys.exc_info()))
+            self.logging.error(sys.exc_info())
 
     def rds_instance_public_access_check(self, record):
         """
         Sets PubliclyAccessible field to false
         """
-        
         client = boto3.client('rds')
         resource_id = record.get('detail').get('resourceId')
 
@@ -72,4 +70,4 @@ class ConfigRules:
             self.logging.info("Disabled Public Accessibility for RDS Resource ID '%s'." % resource_id)
         except:
             self.logging.error("Could not disable Public Accessibility for RDS Resource ID '%s'." % resource_id)
-            self.logging.error(str(sys.exc_info()))
+            self.logging.error(sys.exc_info())

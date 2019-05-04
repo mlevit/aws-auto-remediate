@@ -35,6 +35,15 @@ functions:
       LOGLEVEL: ${self:custom.log_level}
       PYTHONPATH: "/var/task/auto-remediate:/var/task/dynamodb_json:/var/runtime"
       SETTINGSTABLE: auto-remediate-settings-${self:provider.stage}
+      SNSLOGTOPIC: 
+        Fn::Join:
+          - ":"
+          - - arn
+            - aws
+            - sns
+            - ${self:custom.region}
+            - Ref: AWS::AccountId
+            - auto-remediate-log-${self:provider.stage}
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -144,9 +153,13 @@ resources:
                   - auto-remediate-compliance-${self:provider.stage}
             Id: Id12345
     SQSDLQ:
-       Type: AWS::SQS::Queue
-       Properties:
-          QueueName: auto-remediate-dlq-${self:provider.stage}
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: auto-remediate-dlq-${self:provider.stage}
+    SNSLogTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: auto-remediate-log-${self:provider.stage}
 
 plugins:
   - serverless-iam-roles-per-function
