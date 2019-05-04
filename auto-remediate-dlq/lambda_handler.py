@@ -48,7 +48,7 @@ class Retry:
 
     def invoke_function(self, message):
         """
-        Invoke Auto Remediate function. Return True if 
+        Invoke Auto Remediate function. Return True if
         invocation was was successfull
         """
         client = boto3.client('lambda')
@@ -114,7 +114,7 @@ def lambda_handler(event, context):
     logging.getLogger('urllib3').setLevel(logging.ERROR)
     
     # set logging format
-    logging.basicConfig(format="[%(levelname)s] %(message)s (%(filename)s, %(funcName)s(), line %(lineno)d)", 
+    logging.basicConfig(format="[%(levelname)s] %(message)s (%(filename)s, %(funcName)s(), line %(lineno)d)",
                         level=os.environ.get('LOGLEVEL', 'WARNING').upper())
 
     # instantiate class

@@ -94,7 +94,7 @@ def lambda_handler(event, context):
     loggger.addHandler(sns_logger)
     
     # set logging format
-    logging.basicConfig(format="[%(levelname)s] %(message)s (%(filename)s, %(funcName)s(), line %(lineno)d)", 
+    logging.basicConfig(format="[%(levelname)s] %(message)s (%(filename)s, %(funcName)s(), line %(lineno)d)",
                         level=os.environ.get('LOGLEVEL', 'WARNING').upper())
 
     # instantiate class

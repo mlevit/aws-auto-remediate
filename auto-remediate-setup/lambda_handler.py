@@ -93,12 +93,12 @@ class Setup:
                 if current_version < new_version:
                     update_settings = True
                     self.logging.info("Existing settings with version %s are "
-                                      "being updated to version %s in DynamoDB Table '%s'." % (str(current_version), 
-                                                                                               str(new_version), 
+                                      "being updated to version %s in DynamoDB Table '%s'." % (str(current_version),
+                                                                                               str(new_version),
                                                                                                os.environ['SETTINGSTABLE']))
                 else:
-                    self.logging.debug("Existing settings are at the lastest 
-                                       "version %s in DynamoDB Table '%s'." % (str(current_version), 
+                    self.logging.debug("Existing settings are at the lastest
+                                       "version %s in DynamoDB Table '%s'." % (str(current_version),
                                                                                os.environ['SETTINGSTABLE']))
             else:
                 update_settings = True
@@ -133,7 +133,7 @@ def lambda_handler(event, context):
     logging.getLogger('urllib3').setLevel(logging.ERROR)
     
     # set logging format
-    logging.basicConfig(format="[%(levelname)s] %(message)s (%(filename)s, %(funcName)s(), line %(lineno)d)", 
+    logging.basicConfig(format="[%(levelname)s] %(message)s (%(filename)s, %(funcName)s(), line %(lineno)d)",
                         level=os.environ.get('LOGLEVEL', 'WARNING').upper())
 
     # instantiate class

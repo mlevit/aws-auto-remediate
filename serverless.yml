@@ -10,7 +10,7 @@ provider:
   runtime: python3.7
   stage: dev
   region: ${self:custom.region}
-  profile: saml                     # change to your AWS login profile  
+  profile: saml                     # change to your AWS login profile
   tracing:
     lambda: true
 
@@ -33,7 +33,7 @@ functions:
         - auto-remediate-setup/**
     environment:
       LOGLEVEL: ${self:custom.log_level}
-      LOGTOPIC: 
+      LOGTOPIC:
         Fn::Join:
           - ":"
           - - arn
@@ -49,9 +49,6 @@ functions:
         Action:
           - dynamodb:GetItem
           - dynamodb:Scan
-        Resource: "*"
-      - Effect: Allow
-        Action:
           - ec2:RevokeSecurityGroupIngress
           - rds:DescribeDBInstances
           - rds:ModifyDBInstance
@@ -102,6 +99,9 @@ functions:
     iamRoleStatements:
       - Effect: Allow
         Action:
+          - cloudformation:CreateStack
+          - cloudformation:ListStacks
+          - config:PutConfigRule
           - dynamodb:BatchWriteItem
           - dynamodb:DeleteTable
           - dynamodb:DescribeTable
@@ -110,18 +110,26 @@ functions:
           - dynamodb:PutItem
           - dynamodb:Scan
         Resource: "*"
-      - Effect: Allow
-        Action:
-          - cloudformation:CreateStack
-          - cloudformation:ListStacks
-        Resource: "*"
-      - Effect: Allow
-        Action:
-          - config:PutConfigRule
-        Resource: "*"
 
 resources:
   Resources:
+    CloudWatchComplianceEvent:
+      Type: AWS::Events::Rule
+      Properties:
+        Name: auto-remediate-config-compliance-${self:provider.stage}
+        EventPattern: "{\"source\":[\"aws.config\"],\"detail-type\":[\"Config Rules Compliance Change\"]}"
+        State: ENABLED
+        Targets:
+          - Arn:
+              Fn::Join:
+                - ":"
+                - - arn
+                  - aws
+                  - sns
+                  - ${self:custom.region}
+                  - Ref: AWS::AccountId
+                  - auto-remediate-config-compliance-${self:provider.stage}
+            Id: Id123
     DynamoDBSettingsTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -135,31 +143,14 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
-    CloudWatchComplianceEvent:
-      Type: AWS::Events::Rule
-      Properties:
-        Name: auto-remediate-config-compliance-only-${self:provider.stage}
-        EventPattern: "{\"source\":[\"aws.config\"],\"detail-type\":[\"Config Rules Compliance Change\"]}"
-        State: ENABLED
-        Targets:
-          - Arn: 
-              Fn::Join:
-                - ":"
-                - - arn
-                  - aws
-                  - sns
-                  - ${self:custom.region}
-                  - Ref: AWS::AccountId
-                  - auto-remediate-compliance-${self:provider.stage}
-            Id: Id12345
-    SQSDeadLetterQueue:
-      Type: AWS::SQS::Queue
-      Properties:
-        QueueName: auto-remediate-dlq-${self:provider.stage}
     SNSLogTopic:
       Type: AWS::SNS::Topic
       Properties:
         TopicName: auto-remediate-log-${self:provider.stage}
+    SQSDeadLetterQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: auto-remediate-dlq-${self:provider.stage}
 
 plugins:
   - serverless-iam-roles-per-function
