@@ -76,22 +76,22 @@ class Remediate:
 
 
 def lambda_handler(event, context):
-    log = logging.getLogger()
+    loggger = logging.getLogger()
 
-    if log.handlers:
-        for handler in log.handlers:
-            log.removeHandler(handler)
+    if loggger.handlers:
+        for handler in loggger.handlers:
+            loggger.removeHandler(handler)
     
     # change logging levels for boto and others
     logging.getLogger('boto3').setLevel(logging.ERROR)
     logging.getLogger('botocore').setLevel(logging.ERROR)
     logging.getLogger('urllib3').setLevel(logging.ERROR)
     
-    # TODO test SNS logging
+    # TODO Test SNS logging
     # add SNS logger
     sns_logger = SNSLoggingHandler(os.environ.get('SNSLOGTOPIC'))
     sns_logger.setLevel(logging.INFO)
-    log.addHandler(sns_logger)
+    loggger.addHandler(sns_logger)
     
     # set logging format
     logging.basicConfig(format="[%(levelname)s] %(message)s (%(filename)s, %(funcName)s(), line %(lineno)d)", 

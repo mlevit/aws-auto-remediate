@@ -16,11 +16,10 @@ class Setup:
     
     def create_stacks(self, stack_sub_dir):
         """
-        Parse a directory and create the CloudFormation Stacks
-        it contains.
+        Parse a directory and create the CloudFormation Stacks it contains.
         """
         existing_stacks = self.get_current_stacks()
-        path = 'auto-remediate-setup-config/data/%s' % stack_sub_dir
+        path = 'auto-remediate-setup/data/%s' % stack_sub_dir
         
         print(existing_stacks)
 
@@ -33,6 +32,7 @@ class Setup:
                     template_body = str(stack.read())
                     
                 if stack_name not in existing_stacks:
+                    # TODO Check if Stack deployment has been set to False
                     try:
                         self.client.create_stack(
                             StackName=stack_name,
@@ -46,6 +46,7 @@ class Setup:
                         self.logging.error(sys.exc_info())
                         continue
                 else:
+                    # TODO If Stack deployment has been set to False, delete stack
                     self.logging.debug("Cloud Formation Stack '%s' already exists." % stack_name)
 
     def get_current_stacks(self):
@@ -72,7 +73,7 @@ class Setup:
         """
         try:
             client = boto3.client('dynamodb')
-            settings_data = open('auto-remediate-setup-config/data/auto-remediate-settings.json')
+            settings_data = open('auto-remediate-setup/data/auto-remediate-settings.json')
             settings_json = json.loads(settings_data.read())
 
             update_settings = False
@@ -91,12 +92,18 @@ class Setup:
                 current_version = float(current_version.get('Item').get('value').get('N'))
                 if current_version < new_version:
                     update_settings = True
-                    self.logging.info("Existing settings with version %s are being updated to version %s in DynamoDB Table '%s'." % (str(current_version), str(new_version), os.environ['SETTINGSTABLE']))
+                    self.logging.info("Existing settings with version %s are "
+                                      "being updated to version %s in DynamoDB Table '%s'." % (str(current_version), 
+                                                                                               str(new_version), 
+                                                                                               os.environ['SETTINGSTABLE']))
                 else:
-                    self.logging.debug("Existing settings are at the lastest version %s in DynamoDB Table '%s'." % (str(current_version), os.environ['SETTINGSTABLE']))
+                    self.logging.debug("Existing settings are at the lastest 
+                                       "version %s in DynamoDB Table '%s'." % (str(current_version), 
+                                                                               os.environ['SETTINGSTABLE']))
             else:
                 update_settings = True
-                self.logging.info("Settings are being inserted into DynamoDB Table '%s' for the first time." % os.environ['SETTINGSTABLE'])
+                self.logging.info("Settings are being inserted into DynamoDB "
+                                  "Table '%s' for the first time." % os.environ['SETTINGSTABLE'])
 
             if update_settings:
                 for setting in settings_json:
@@ -114,17 +121,20 @@ class Setup:
 
 
 def lambda_handler(event, context):
-    # enable logging
-    root = logging.getLogger()
+    loggger = logging.getLogger()
 
-    if root.handlers:
-        for handler in root.handlers:
-            root.removeHandler(handler)
-
+    if loggger.handlers:
+        for handler in loggger.handlers:
+            loggger.removeHandler(handler)
+    
+    # change logging levels for boto and others
     logging.getLogger('boto3').setLevel(logging.ERROR)
     logging.getLogger('botocore').setLevel(logging.ERROR)
     logging.getLogger('urllib3').setLevel(logging.ERROR)
-    logging.basicConfig(format="[%(levelname)s] %(message)s (%(filename)s, %(funcName)s(), line %(lineno)d)", level=os.environ.get('LOGLEVEL', 'WARNING').upper())
+    
+    # set logging format
+    logging.basicConfig(format="[%(levelname)s] %(message)s (%(filename)s, %(funcName)s(), line %(lineno)d)", 
+                        level=os.environ.get('LOGLEVEL', 'WARNING').upper())
 
     # instantiate class
     setup = Setup(logging)

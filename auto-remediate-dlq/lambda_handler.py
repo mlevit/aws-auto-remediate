@@ -102,17 +102,20 @@ class Retry:
 
 
 def lambda_handler(event, context):
-    # enable logging
-    root = logging.getLogger()
+    logger = logging.getLogger()
 
-    if root.handlers:
-        for handler in root.handlers:
-            root.removeHandler(handler)
-
+    if logger.handlers:
+        for handler in logger.handlers:
+            logger.removeHandler(handler)
+    
+    # change logging levels for boto and others
     logging.getLogger('boto3').setLevel(logging.ERROR)
     logging.getLogger('botocore').setLevel(logging.ERROR)
     logging.getLogger('urllib3').setLevel(logging.ERROR)
-    logging.basicConfig(format="[%(levelname)s] %(message)s (%(filename)s, %(funcName)s(), line %(lineno)d)", level=os.environ.get('LOGLEVEL', 'WARNING').upper())
+    
+    # set logging format
+    logging.basicConfig(format="[%(levelname)s] %(message)s (%(filename)s, %(funcName)s(), line %(lineno)d)", 
+                        level=os.environ.get('LOGLEVEL', 'WARNING').upper())
 
     # instantiate class
     retry = Retry(logging)

@@ -8,13 +8,23 @@ class ConfigRules:
     
     def access_keys_rotated(self, record):
         """
-        Deletes IAM User's access and secret key
+        Deletes IAM User's access and secret key.
         """
-        pass
+        # TODO Access Keys Rotated rule needs testing
+        client = boto3.client('iam')
+        resource_id = None
+        
+        try:
+            client.delete_access_key(AccessKeyId=resource_id)
+            
+            self.logging.info("Deleted unrotated IAM Access Key '%s'." % resource_id)
+        except:
+            self.logging.info("Could not delete unrotated IAM Access Key '%s'." % resource_id)
+            self.logging.error(sys.exc_info())
 
     def restricted_ssh(self, record):
         """
-        Deletes inbound rules within Security Groyps that match:
+        Deletes inbound rules within Security Groups that match:
             Protocal: TCP
             Port: 22
             Source: 0.0.0.0/0 or ::/0
@@ -48,7 +58,7 @@ class ConfigRules:
 
     def rds_instance_public_access_check(self, record):
         """
-        Sets PubliclyAccessible field to false
+        Sets PubliclyAccessible field to False.
         """
         client = boto3.client('rds')
         resource_id = record.get('detail').get('resourceId')
