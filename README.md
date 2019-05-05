@@ -4,6 +4,8 @@
 
 Open source application to instantly remediate common security issues through the use of AWS Config.
 
+![auto-remediate](images/auto-remediate.svg)
+
 ## Table of Contents
 
 - [About](#about)
