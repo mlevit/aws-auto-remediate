@@ -18,9 +18,11 @@ class ConfigRules:
             client.delete_access_key(AccessKeyId=resource_id)
             
             self.logging.info("Deleted unrotated IAM Access Key '%s'." % resource_id)
+            return True
         except:
             self.logging.info("Could not delete unrotated IAM Access Key '%s'." % resource_id)
             self.logging.error(sys.exc_info())
+            return False
 
     def restricted_ssh(self, record):
         """
@@ -52,9 +54,11 @@ class ConfigRules:
             )
 
             self.logging.info("Revoked public port 22 ingress rule for Security Group '%s'." % resource_id)
+            return True
         except:
             self.logging.error("Could not revoke public port 22 ingress rule for Security Group '%s'." % resource_id)
             self.logging.error(sys.exc_info())
+            return False
 
     def rds_instance_public_access_check(self, record):
         """
@@ -78,6 +82,8 @@ class ConfigRules:
                     break
 
             self.logging.info("Disabled Public Accessibility for RDS Resource ID '%s'." % resource_id)
+            return True
         except:
             self.logging.error("Could not disable Public Accessibility for RDS Resource ID '%s'." % resource_id)
             self.logging.error(sys.exc_info())
+            return False

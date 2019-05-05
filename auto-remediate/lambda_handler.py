@@ -2,6 +2,7 @@ import boto3
 import json
 import logging
 import os
+import sys
 
 from dynamodb_json import json_util as dynamodb_json
 
@@ -13,6 +14,9 @@ class Remediate:
         # parameters
         self.logging = logging
         self.event = event
+        
+        # event payload
+        self.logging.debug("Event payload: %s" % self.event)
 
         # variables
         self.settings = self.get_settings()
@@ -24,7 +28,7 @@ class Remediate:
     
     def remediate(self):
         for record in self.event.get('Records'):
-            config_message = json.loads(record.get('Sns').get('Message'))
+            config_message = json.loads(record.get('body'))
             config_rule_name = Remediate.get_config_rule_name(config_message)
             config_rule_compliance = Remediate.get_config_rule_compliance(config_message)
             
@@ -33,11 +37,11 @@ class Remediate:
                     if 'auto-remediate' in config_rule_name:
                         # AWS Config Managed Rules
                         if 'access-keys-rotated' in config_rule_name:
-                            self.config.access_keys_rotated(config_message)
+                            remediation = self.config.access_keys_rotated(config_message)
                         elif 'restricted-ssh' in config_rule_name:
-                            self.config.restricted_ssh(config_message)
+                            remediation =  self.config.restricted_ssh(config_message)
                         elif 'rds-instance-public-access-check' in config_rule_name:
-                            self.config.rds_instance_public_access_check(config_message)
+                            remediation =  self.config.rds_instance_public_access_check(config_message)
                         else:
                             self.logging.warning("No remediation available for Config Rule '%s' "
                                                  "with payload '%s'." % (config_rule_name, config_message))
@@ -54,6 +58,10 @@ class Remediate:
                                       "based on user preferences." % config_rule_name)
             else:
                 pass
+            
+            if not remediation:
+                self.send_to_dlq(config_message)
+                
 
     def intend_to_remediate(self, config_rule_name):
         return self.settings.get('rules').get(config_rule_name, {}).get('remediate', True)
@@ -66,8 +74,39 @@ class Remediate:
                 settings[record_json.get('key')] = record_json.get('value')
         except:
             self.logging.error("Could not read DynamoDB table '%s'." % os.environ['SETTINGSTABLE'])
+            self.logging.error(sys.exc_info())
         
         return settings
+    
+    def send_to_dlq(self, body):
+        """
+        Sends a message to the DLQ
+        """
+        client = boto3.client('sqs')
+        
+        try:
+            client.send_message(
+                QueueUrl=self.get_queue_url(),
+                MessageBody=json.dumps(body))
+            
+            self.logging.info("Payload sent to DLQ.")
+        except:
+            self.logging.error("Could not send payload to DLQ.")
+            self.logging.error(sys.exc_info())
+
+    def get_queue_url(self):
+        """
+        Retrieves the SQS Queue URL from the SQS Queue Name
+        """
+        client = boto3.client('sqs')
+        
+        try:
+            response = client.get_queue_url(QueueName=os.environ.get('DLQ'))
+            return response.get('QueueUrl')
+        except:
+            self.logging.error("Could not retrieve SQS Queue URL "
+                               "for SQS Queue '%s'." % os.environ.get('DLQ'))
+            self.logging.error(sys.exc_info())
     
     @staticmethod
     def get_config_rule_name(record):
@@ -92,9 +131,11 @@ def lambda_handler(event, context):
     
     # TODO Test SNS logging
     # add SNS logger
-    sns_logger = SNSLoggingHandler(os.environ.get('LOGTOPIC'))
-    sns_logger.setLevel(logging.INFO)
-    loggger.addHandler(sns_logger)
+    # sns_logger = SNSLoggingHandler(os.environ.get('LOGTOPIC'))
+    # sns_logger.setLevel(logging.INFO)
+    # loggger.addHandler(sns_logger)
+    
+    # add console logger
     
     # set logging format
     logging.basicConfig(format="[%(levelname)s] %(message)s (%(filename)s, %(funcName)s(), line %(lineno)d)",

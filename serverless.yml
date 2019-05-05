@@ -2,7 +2,7 @@ service: auto-remediate
 
 custom:
   company: servian                  # change to your company name
-  log_level: INFO                   # change to DEBUG for dev/test
+  log_level: DEBUG                  # change to DEBUG for dev/test
   region: ap-southeast-2            # change to your AWS region
 
 provider:
@@ -11,8 +11,6 @@ provider:
   stage: dev
   region: ${self:custom.region}
   profile: saml                     # change to your AWS login profile
-  tracing:
-    lambda: true
 
 package:
   individually: true
@@ -32,6 +30,7 @@ functions:
         - auto-remediate-dlq/**
         - auto-remediate-setup/**
     environment:
+      DLQ: auto-remediate-dlq-${self:provider.stage}
       LOGLEVEL: ${self:custom.log_level}
       LOGTOPIC:
         Fn::Join:
@@ -52,9 +51,16 @@ functions:
           - ec2:RevokeSecurityGroupIngress
           - rds:DescribeDBInstances
           - rds:ModifyDBInstance
+          - sqs:GetQueueUrl
+          - sqs:SendMessage
         Resource: "*"
     events:
-      - sns: auto-remediate-config-compliance-${self:provider.stage}
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - SQSConfigCompliance
+              - Arn
+          batchSize: 1
   AutoRemediateDLQ:
     handler: auto-remediate-dlq.lambda_handler.lambda_handler
     name: auto-remediate-dlq-${self:provider.stage}
@@ -125,7 +131,7 @@ resources:
                 - ":"
                 - - arn
                   - aws
-                  - sns
+                  - sqs
                   - ${self:custom.region}
                   - Ref: AWS::AccountId
                   - auto-remediate-config-compliance-${self:provider.stage}
@@ -147,6 +153,11 @@ resources:
       Type: AWS::SNS::Topic
       Properties:
         TopicName: auto-remediate-log-${self:provider.stage}
+    SQSConfigCompliance:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: auto-remediate-config-compliance-${self:provider.stage}
+        VisibilityTimeout: 60
     SQSDeadLetterQueue:
       Type: AWS::SQS::Queue
       Properties:
