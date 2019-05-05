@@ -12,7 +12,8 @@ Open source application to instantly remediate common security issues through th
 - [Setup](#setup)
   - [Deployment](#deployment)
   - [Removal](#removal)
-- [Rules](#rules)
+- [AWS Resources](#aws-resources)
+- [Config Rules](#config-rules)
 
 ## About
 
@@ -26,7 +27,7 @@ Once the Lambda function has been triggered it will attempt to remediate the sec
 
 The Auto Remediate DLQ function is triggered on a schedule (defined in the `serverless.yml` file). When the function is run, it will retrieve messages from SQS Queue `auto-remediate-dlq` and invoke the Auto Remediate Lambda function.
 
-## Auto Remediate Setup
+### Auto Remediate Setup
 
 The Auto Remediate Setup function is triggered manually by the user. The purpose of this function is to invoke CloudFormation Stacks for each of the AWS Config Rules that will monitor for security issues as well as create/insert records into the DynamoDB settings table used to control the actions of the Auto Remediate function.
 
@@ -112,9 +113,25 @@ cd aws-auto-remediate
 serverless remove
 ```
 
-## Rules
+## AWS Resources
 
-The table below details the auto remediated rules and scenarios.
+The table below details all AWS resources created when deploying the application.
+
+| Service               | Resource ID                        |
+| --------------------- | ---------------------------------- |
+| CloudFormation Stack  | `auto-remediate`                   |
+| CloudWatch Event Rule | `auto-remediate-config-compliance` |
+| DynamoDB Table        | `auto-remediate-settings`          |
+| Lambda Function       | `auto-remediate`                   |
+|                       | `auto-remediate-dlq`               |
+|                       | `auto-remediate-setup`             |
+| SNS Topic             | `auto-remediate-config-compliance` |
+|                       | `auto-remediate-log`               |
+| SQS Queue             | `auto-remediate-dlq`               |
+
+## Config Rules
+
+The tables below detail the auto remediated rules and scenarios.
 
 ### AWS Config Managed Rules
 
@@ -134,4 +151,4 @@ The table below details the auto remediated rules and scenarios.
 
 | Rule                                                         |
 | :----------------------------------------------------------- |
-| [access-keys-rotated](https://docs.aws.amazon.com/config/latest/developerguide/access-keys-rotated.html)<br />Checks whether the active access keys are rotated within the number of days specified in `maxAccessKeyAge`. The rule is NON_COMPLIANT if the access keys have not been rotated for more than `maxAccessKeyAge` number of days.`` |
+| [access-keys-rotated](https://docs.aws.amazon.com/config/latest/developerguide/access-keys-rotated.html)<br />Checks whether the active access keys are rotated within the number of days specified in `maxAccessKeyAge`. The rule is NON_COMPLIANT if the access keys have not been rotated for more than `maxAccessKeyAge` number of days. |
