@@ -11,4 +11,4 @@ class SNSLoggingHandler(logging.Handler):
     def emit(self, record):
         self.client.publish(
             TopicArn=self.topic_arn,
-            Message=record.message)
+            Message="[%s] %s" % (record.levelname, record.getMessage()))

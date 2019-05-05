@@ -28,6 +28,7 @@ class Remediate:
     
     def remediate(self):
         for record in self.event.get('Records'):
+            remediation = True
             config_message = json.loads(record.get('body'))
             config_rule_name = Remediate.get_config_rule_name(config_message)
             config_rule_compliance = Remediate.get_config_rule_compliance(config_message)
@@ -60,7 +61,7 @@ class Remediate:
                 pass
             
             if not remediation:
-                self.send_to_dlq(config_message)
+                self.send_to_dlq()
                 
 
     def intend_to_remediate(self, config_rule_name):
@@ -74,11 +75,11 @@ class Remediate:
                 settings[record_json.get('key')] = record_json.get('value')
         except:
             self.logging.error("Could not read DynamoDB table '%s'." % os.environ['SETTINGSTABLE'])
-            self.logging.error(sys.exc_info())
+            self.logging.error(sys.exc_info()[1])
         
         return settings
     
-    def send_to_dlq(self, body):
+    def send_to_dlq(self):
         """
         Sends a message to the DLQ
         """
@@ -87,12 +88,12 @@ class Remediate:
         try:
             client.send_message(
                 QueueUrl=self.get_queue_url(),
-                MessageBody=json.dumps(body))
+                MessageBody=str(self.event))
             
             self.logging.info("Payload sent to DLQ.")
         except:
             self.logging.error("Could not send payload to DLQ.")
-            self.logging.error(sys.exc_info())
+            self.logging.error(sys.exc_info()[1])
 
     def get_queue_url(self):
         """
@@ -106,7 +107,7 @@ class Remediate:
         except:
             self.logging.error("Could not retrieve SQS Queue URL "
                                "for SQS Queue '%s'." % os.environ.get('DLQ'))
-            self.logging.error(sys.exc_info())
+            self.logging.error(sys.exc_info()[1])
     
     @staticmethod
     def get_config_rule_name(record):
@@ -131,11 +132,9 @@ def lambda_handler(event, context):
     
     # TODO Test SNS logging
     # add SNS logger
-    # sns_logger = SNSLoggingHandler(os.environ.get('LOGTOPIC'))
-    # sns_logger.setLevel(logging.INFO)
-    # loggger.addHandler(sns_logger)
-    
-    # add console logger
+    sns_logger = SNSLoggingHandler(os.environ.get('LOGTOPIC'))
+    sns_logger.setLevel(logging.INFO)
+    loggger.addHandler(sns_logger)
     
     # set logging format
     logging.basicConfig(format="[%(levelname)s] %(message)s (%(filename)s, %(funcName)s(), line %(lineno)d)",

@@ -43,7 +43,7 @@ class Setup:
                         self.logging.info("Creating CloudFormation Stack '%s'." % stack_name)
                     except:
                         self.logging.error("Could not create CloudFormation Stack '%s'." % stack_name)
-                        self.logging.error(sys.exc_info())
+                        self.logging.error(sys.exc_info()[1])
                         continue
                 else:
                     # TODO If Stack deployment has been set to False, delete stack
@@ -57,7 +57,7 @@ class Setup:
         try:
             resources = self.client.list_stacks().get('StackSummaries')
         except:
-            self.logging.error(sys.exc_info())
+            self.logging.error(sys.exc_info()[1])
             return None
 
         existing_stacks = []
@@ -112,12 +112,12 @@ class Setup:
                             TableName=os.environ['SETTINGSTABLE'],
                             Item=setting)
                     except:
-                        self.logging.error(sys.exc_info())
+                        self.logging.error(sys.exc_info()[1])
                         continue
         
             settings_data.close()
         except:
-            self.logging.error(sys.exc_info())
+            self.logging.error(sys.exc_info()[1])
 
 
 def lambda_handler(event, context):

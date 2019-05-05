@@ -18,7 +18,7 @@ class Retry:
                 MaxNumberOfMessages=10)
         except:
             self.logging.error("Could not retrieve Messages from SQS Queue URL '%s'." % queue_url)
-            self.logging.error(sys.exc_info())
+            self.logging.error(sys.exc_info()[1])
         
         while 'Messages' in response:
             for message in response.get('Messages'):
@@ -44,7 +44,7 @@ class Retry:
                     MaxNumberOfMessages=10)
             except:
                 self.logging.error("Could not retrieve Messages from SQS Queue URL '%s'." % queue_url)
-                self.logging.error(sys.exc_info())
+                self.logging.error(sys.exc_info()[1])
 
     def invoke_function(self, message):
         """
@@ -65,7 +65,7 @@ class Retry:
         except:
             self.logging.error("Could not invoke Lambda Function '%s' "
                                "with payload '%s'." % (os.environ.get('REMEDIATEFUNCTION'), message))
-            self.logging.error(sys.exc_info())
+            self.logging.error(sys.exc_info()[1])
             
             return False
     
@@ -84,7 +84,7 @@ class Retry:
         except:
             self.logging.error("Could not delete Message '%s' from "
                                "SQS Queue URL '%s'." % (receipt_handle, queue_url))
-            self.logging.error(sys.exc_info())
+            self.logging.error(sys.exc_info()[1])
 
     def get_queue_url(self):
         """
@@ -98,7 +98,7 @@ class Retry:
         except:
             self.logging.error("Could not retrieve SQS Queue URL "
                                "for SQS Queue '%s'." % os.environ.get('DLQ'))
-            self.logging.error(sys.exc_info())
+            self.logging.error(sys.exc_info()[1])
 
 
 def lambda_handler(event, context):

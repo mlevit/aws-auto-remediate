@@ -21,7 +21,7 @@ class ConfigRules:
             return True
         except:
             self.logging.info("Could not delete unrotated IAM Access Key '%s'." % resource_id)
-            self.logging.error(sys.exc_info())
+            self.logging.error(sys.exc_info()[1])
             return False
 
     def restricted_ssh(self, record):
@@ -57,7 +57,7 @@ class ConfigRules:
             return True
         except:
             self.logging.error("Could not revoke public port 22 ingress rule for Security Group '%s'." % resource_id)
-            self.logging.error(sys.exc_info())
+            self.logging.error(sys.exc_info()[1])
             return False
 
     def rds_instance_public_access_check(self, record):
@@ -85,5 +85,5 @@ class ConfigRules:
             return True
         except:
             self.logging.error("Could not disable Public Accessibility for RDS Resource ID '%s'." % resource_id)
-            self.logging.error(sys.exc_info())
+            self.logging.error(sys.exc_info()[1])
             return False

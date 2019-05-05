@@ -51,6 +51,7 @@ functions:
           - ec2:RevokeSecurityGroupIngress
           - rds:DescribeDBInstances
           - rds:ModifyDBInstance
+          - sns:Publish
           - sqs:GetQueueUrl
           - sqs:SendMessage
         Resource: "*"
@@ -127,14 +128,9 @@ resources:
         State: ENABLED
         Targets:
           - Arn:
-              Fn::Join:
-                - ":"
-                - - arn
-                  - aws
-                  - sqs
-                  - ${self:custom.region}
-                  - Ref: AWS::AccountId
-                  - auto-remediate-config-compliance-${self:provider.stage}
+              Fn::GetAtt:
+                - SQSConfigCompliance
+                - Arn
             Id: Id123
     DynamoDBSettingsTable:
       Type: AWS::DynamoDB::Table
