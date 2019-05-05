@@ -125,9 +125,9 @@ The table below details all AWS resources created when deploying the application
 | Lambda Function       | `auto-remediate`                   |
 |                       | `auto-remediate-dlq`               |
 |                       | `auto-remediate-setup`             |
-| SNS Topic             | `auto-remediate-config-compliance` |
-|                       | `auto-remediate-log`               |
-| SQS Queue             | `auto-remediate-dlq`               |
+| SNS Topic             | `auto-remediate-log`               |
+| SQS Queue             | `auto-remediate-config-compliance` |
+|                       | `auto-remediate-dlq`               |
 
 ## Config Rules
 
