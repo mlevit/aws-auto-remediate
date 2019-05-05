@@ -75,7 +75,6 @@ class ConfigRules:
 
             for instance in response.get('DBInstances'):
                 if resource_id == instance.get('DbiResourceId'):
-                    # TODO need to validate state of instance
                     client.modify_db_instance(
                         DBInstanceIdentifier=instance.get('DBInstanceIdentifier'),
                         PubliclyAccessible=False)

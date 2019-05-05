@@ -130,11 +130,12 @@ def lambda_handler(event, context):
     logging.getLogger('botocore').setLevel(logging.ERROR)
     logging.getLogger('urllib3').setLevel(logging.ERROR)
     
-    # TODO Test SNS logging
     # add SNS logger
     sns_logger = SNSLoggingHandler(os.environ.get('LOGTOPIC'))
     sns_logger.setLevel(logging.INFO)
     loggger.addHandler(sns_logger)
+    
+    # TODO Console logging is no longer working since enabling SNS
     
     # set logging format
     logging.basicConfig(format="[%(levelname)s] %(message)s (%(filename)s, %(funcName)s(), line %(lineno)d)",
