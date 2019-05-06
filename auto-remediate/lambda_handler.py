@@ -61,7 +61,7 @@ class Remediate:
                 pass
             
             if not remediation:
-                self.send_to_dlq()
+                self.send_to_dlq(config_message)
                 
 
     def intend_to_remediate(self, config_rule_name):
@@ -79,16 +79,17 @@ class Remediate:
         
         return settings
     
-    def send_to_dlq(self):
+    def send_to_dlq(self, message):
         """
         Sends a message to the DLQ
         """
         client = boto3.client('sqs')
         
         try:
+            # TODO Check how many times this message was retried, if 3 times then stop sending to DLQ
             client.send_message(
                 QueueUrl=self.get_queue_url(),
-                MessageBody=str(self.event))
+                MessageBody=json.dumps(message))
             
             self.logging.debug("Remediation failed. Payload has been sent to DLQ '%s'." % os.environ.get('DLQ'))
         except:

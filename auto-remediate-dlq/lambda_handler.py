@@ -11,6 +11,10 @@ class Retry:
         self.logging = logging
 
     def retry_security_events(self):
+        """
+        Retrieves messages from the DLQ and sends them back into the 
+        compliance SQS Queue for reprocessing.
+        """
         client = boto3.client('sqs')
         queue_url = self.get_queue_url(os.environ.get('DLQ'))
         
@@ -25,11 +29,10 @@ class Retry:
         while 'Messages' in response:
             for message in response.get('Messages'):
                 receipt_handle = message.get('ReceiptHandle')
-                body = ast.literal_eval(message.get('Body'))
+                body = message.get('Body')
                 
-                for record in body.get('Records'):
-                    if self.send_to_queue(record.get('body')):
-                        self.delete_from_queue(queue_url, receipt_handle)
+                if self.send_to_queue(body):
+                    self.delete_from_queue(queue_url, receipt_handle)
             
             # get the next 10 messages
             try:
@@ -50,7 +53,7 @@ class Retry:
     
     def send_to_queue(self, message):
         """
-        Sends a message to an SQS Queue.
+        Sends a message to the Config Compliance SQS Queue.
         """
         client = boto3.client('sqs')
         queue_url = self.get_queue_url(os.environ.get('COMPLIANCEQUEUE'))
@@ -69,7 +72,7 @@ class Retry:
     
     def delete_from_queue(self, queue_url, receipt_handle):
         """
-        Delete Message from SQS Queue
+        Delete a Message from an SQS Queue.
         """
         client = boto3.client('sqs')
         try:
@@ -86,7 +89,7 @@ class Retry:
 
     def get_queue_url(self, queue_name):
         """
-        Retrieves the SQS Queue URL from the SQS Queue Name
+        Retrieves the SQS Queue URL from the SQS Queue Name.
         """
         client = boto3.client('sqs')
         
