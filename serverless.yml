@@ -73,6 +73,7 @@ functions:
         - auto-remediate/**
         - auto-remediate-setup/**
     environment:
+      COMPLIANCEQUEUE: auto-remediate-config-compliance-${self:provider.stage}
       DLQ: auto-remediate-dlq-${self:provider.stage}
       LOGLEVEL: ${self:custom.log_level}
       PYTHONPATH: "/var/task/auto-remediate-dlq:/var/runtime"
@@ -80,10 +81,10 @@ functions:
     iamRoleStatements:
       - Effect: Allow
         Action:
-          - lambda:InvokeFunction
           - sqs:DeleteMessage
           - sqs:GetQueueUrl
           - sqs:ReceiveMessage
+          - sqs:SendMessage
         Resource: "*"
     events:
       - schedule:
