@@ -61,8 +61,7 @@ class Remediate:
                 pass
             
             if not remediation:
-                self.send_to_dlq(config_message)
-                
+                self.send_to_dlq(config_message)  
 
     def intend_to_remediate(self, config_rule_name):
         return self.settings.get('rules').get(config_rule_name, {}).get('remediate', True)
@@ -98,7 +97,7 @@ class Remediate:
 
     def get_queue_url(self):
         """
-        Retrieves the SQS Queue URL from the SQS Queue Name
+        Retrieves the SQS Queue URL from the SQS Queue Name.
         """
         client = boto3.client('sqs')
         

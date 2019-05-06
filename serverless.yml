@@ -8,7 +8,7 @@ custom:
 provider:
   name: aws
   runtime: python3.7
-  stage: dev
+  stage: dev                        # change to dev or production based on deployment type
   region: ${self:custom.region}
   profile: saml                     # change to your AWS login profile
 
