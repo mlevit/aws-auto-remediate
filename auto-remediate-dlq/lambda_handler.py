@@ -1,6 +1,4 @@
-import ast
 import boto3
-import json
 import logging
 import os
 import sys
