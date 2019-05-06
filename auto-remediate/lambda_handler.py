@@ -90,9 +90,9 @@ class Remediate:
                 QueueUrl=self.get_queue_url(),
                 MessageBody=str(self.event))
             
-            self.logging.info("Payload sent to DLQ.")
+            self.logging.debug("Remediation failed. Payload has been sent to DLQ '%s'." % os.environ.get('DLQ'))
         except:
-            self.logging.error("Could not send payload to DLQ.")
+            self.logging.error("Could not send payload to DLQ '%s'." % os.environ.get('DLQ'))
             self.logging.error(sys.exc_info()[1])
 
     def get_queue_url(self):
@@ -130,17 +130,15 @@ def lambda_handler(event, context):
     logging.getLogger('botocore').setLevel(logging.ERROR)
     logging.getLogger('urllib3').setLevel(logging.ERROR)
     
+    # set logging format
+    logging.basicConfig(format="[%(levelname)s] %(message)s (%(filename)s, %(funcName)s(), line %(lineno)d)",
+                        level=os.environ.get('LOGLEVEL', 'WARNING'))
+    
     # add SNS logger
     sns_logger = SNSLoggingHandler(os.environ.get('LOGTOPIC'))
     sns_logger.setLevel(logging.INFO)
     loggger.addHandler(sns_logger)
     
-    # TODO Console logging is no longer working since enabling SNS
-    
-    # set logging format
-    logging.basicConfig(format="[%(levelname)s] %(message)s (%(filename)s, %(funcName)s(), line %(lineno)d)",
-                        level=os.environ.get('LOGLEVEL', 'WARNING').upper())
-
     # instantiate class
     remediate = Remediate(logging, event)
 
