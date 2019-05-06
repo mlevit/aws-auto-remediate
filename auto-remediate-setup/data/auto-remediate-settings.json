@@ -1,0 +1,61 @@
+[
+  {
+    "key": {
+      "S": "version"
+    },
+    "value": {
+      "N": "0.1"
+    }
+  },
+  {
+    "key": {
+      "S": "general"
+    },
+    "value": {
+      "M": {
+        "dry_run": {
+          "BOOL": true
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "S": "rules"
+    },
+    "value": {
+      "M": {
+        "auto-remediate-access-keys-rotated": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            },
+            "deploy": {
+              "BOOL": true
+            }
+          }
+        },
+        "auto-remediate-restricted-ssh": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            },
+            "deploy": {
+              "BOOL": true
+            }
+          }
+        },
+        "auto-remediate-rds-instance-public-access-check": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            },
+            "deploy": {
+              "BOOL": true
+            }
+          }
+        }
+      }
+    }
+  }
+]

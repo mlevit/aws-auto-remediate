@@ -102,3 +102,28 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# logs
+logs
+*.log
+npm-debug.log
+
+# os
+.DS_Store
+.tmp
+
+# node
+node_modules
+package-lock.json
+
+# runtime data
+pids
+*.pid
+*.seed
+dist
+
+# serverless
+admin.env
+.env
+_meta
+.serverless/
