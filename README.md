@@ -1,6 +1,6 @@
 # AWS Auto Remediate
 
-![Pre-release](https://img.shields.io/github/release-pre/servian/aws-auto-remediate.svg?label=pre-release)![Pre-release Date](https://img.shields.io/github/release-date-pre/servian/aws-auto-remediate.svg)![Serverless](https://img.shields.io/github/package-json/dependency-version/servian/aws-auto-cleanup/serverless.svg)![Language](https://img.shields.io/github/languages/top/servian/aws-auto-remediate.svg)[![Codacy Badge](https://api.codacy.com/project/badge/Grade/5bce55175d32494c89f0648b27719f43)](https://www.codacy.com/app/servian/aws-auto-remediate?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=servian/aws-auto-remediate&amp;utm_campaign=Badge_Grade)
+![Pre-release](https://img.shields.io/github/release-pre/servian/aws-auto-remediate.svg?label=pre-release) ![Pre-release Date](https://img.shields.io/github/release-date-pre/servian/aws-auto-remediate.svg) ![Serverless](https://img.shields.io/github/package-json/dependency-version/servian/aws-auto-cleanup/serverless.svg) ![Language](https://img.shields.io/github/languages/top/servian/aws-auto-remediate.svg) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5bce55175d32494c89f0648b27719f43)](https://www.codacy.com/app/servian/aws-auto-remediate?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=servian/aws-auto-remediate&amp;utm_campaign=Badge_Grade)
 
 Open source application to instantly remediate common security issues through the use of AWS Config.
 
