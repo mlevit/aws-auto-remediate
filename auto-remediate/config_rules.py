@@ -11,18 +11,19 @@ class ConfigRules:
         Deletes IAM User's access and secret key.
         """
         # TODO Access Keys Rotated rule needs testing
-        client = boto3.client('iam')
-        resource_id = None
+        # client = boto3.client('iam')
+        # resource_id = None
         
-        try:
-            client.delete_access_key(AccessKeyId=resource_id)
+        # try:
+        #     client.delete_access_key(AccessKeyId=resource_id)
             
-            self.logging.info("Deleted unrotated IAM Access Key '%s'." % resource_id)
-            return True
-        except:
-            self.logging.info("Could not delete unrotated IAM Access Key '%s'." % resource_id)
-            self.logging.error(sys.exc_info()[1])
-            return False
+        #     self.logging.info("Deleted unrotated IAM Access Key '%s'." % resource_id)
+        #     return True
+        # except:
+        #     self.logging.info("Could not delete unrotated IAM Access Key '%s'." % resource_id)
+        #     self.logging.error(sys.exc_info()[1])
+        #     return False
+        pass
 
     def restricted_ssh(self, record):
         """

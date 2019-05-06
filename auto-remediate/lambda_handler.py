@@ -23,8 +23,8 @@ class Remediate:
 
         # classes
         self.config = ConfigRules(self.logging)
-        # self.security_hub = ConfigRules(self.logging)
-        # self.custom = ConfigRules(self.logging)
+        self.security_hub = SecurityHubRules(self.logging)
+        self.custom = CustomRules(self.logging)
     
     def remediate(self):
         for record in self.event.get('Records'):
@@ -40,9 +40,9 @@ class Remediate:
                         if 'access-keys-rotated' in config_rule_name:
                             remediation = self.config.access_keys_rotated(config_message)
                         elif 'restricted-ssh' in config_rule_name:
-                            remediation =  self.config.restricted_ssh(config_message)
+                            remediation = self.config.restricted_ssh(config_message)
                         elif 'rds-instance-public-access-check' in config_rule_name:
-                            remediation =  self.config.rds_instance_public_access_check(config_message)
+                            remediation = self.config.rds_instance_public_access_check(config_message)
                         else:
                             self.logging.warning("No remediation available for Config Rule '%s' "
                                                  "with payload '%s'." % (config_rule_name, config_message))
@@ -57,9 +57,8 @@ class Remediate:
                 else:
                     self.logging.info("Config Rule '%s' was not remediated "
                                       "based on user preferences." % config_rule_name)
-            else:
-                pass
             
+            # if remediation was not successful, send message to DLQ
             if not remediation:
                 self.send_to_dlq(config_message)  
 
