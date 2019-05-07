@@ -54,6 +54,8 @@ class Remediate:
                             remediation = self.security_hub.restricted_ssh(config_rule_resource_id)
                         elif 's3-bucket-public-read-prohibited' in config_rule_name:
                             remediation = self.security_hub.s3_bucket_public_read_prohibited(config_rule_resource_id)
+                        elif 's3-bucket-public-write-prohibited' in config_rule_name:
+                            remediation = self.security_hub.s3_bucket_public_write_prohibited(config_rule_resource_id)
                         else:
                             self.logging.warning("No remediation available for Config Rule '%s' "
                                                  "with payload '%s'." % (config_rule_name, config_message))
