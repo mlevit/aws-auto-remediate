@@ -147,10 +147,11 @@ The tables below detail the auto remediated rules and scenarios.
 
 | Rule                                                         |
 | :----------------------------------------------------------- |
-| [restricted-ssh](https://docs.aws.amazon.com/config/latest/developerguide/restricted-ssh.html)<br />Checks whether the incoming SSH traffic for the security groups is accessible. The rule is compliant when the IP addresses of the incoming SSH traffic in the security groups are restricted. This rule applies only to IPv4. |
+| **securityhub-restricted-rdp**<br />Checks whether the incoming RDP traffic is Allowed from 0.0.0.0/0. This rule is compliant when incoming RDP traffic is restricted. |
+| **securityhub-restricted-ssh**<br />Checks whether the incoming SSH traffic for the security groups is accessible. The rule is compliant when the IP addresses of the incoming SSH traffic in the security groups are restricted. This rule applies only to IPv4. |
 
 #### Security, Identity & Compliance
 
 | Rule                                                         |
 | :----------------------------------------------------------- |
-| [access-keys-rotated](https://docs.aws.amazon.com/config/latest/developerguide/access-keys-rotated.html) (NOT IMPLEMENTED)<br />Checks whether the active access keys are rotated within the number of days specified in `maxAccessKeyAge`. The rule is NON_COMPLIANT if the access keys have not been rotated for more than `maxAccessKeyAge` number of days. |
+| **securityhub-access-keys-rotated** (NOT IMPLEMENTED)<br />Checks whether the active access keys are rotated within the number of days specified in `maxAccessKeyAge`. The rule is NON_COMPLIANT if the access keys have not been rotated for more than `maxAccessKeyAge` number of days. |

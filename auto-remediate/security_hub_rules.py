@@ -25,6 +25,42 @@ class SecurityHubRules:
         #     return False
         pass
     
+    def restricted_rdp(self, record):
+        """
+        Deletes inbound rules within Security Groups that match:
+            Protocal: TCP
+            Port: 3389
+            Source: 0.0.0.0/0 or ::/0
+        """
+        client = boto3.client('ec2')
+        resource_id = record.get('detail').get('resourceId')
+        
+        try:
+            client.revoke_security_group_ingress(
+                GroupId=resource_id,
+                IpPermissions=[
+                    {
+                        'FromPort': 3389,
+                        'ToPort': 3389,
+                        'IpProtocol': 'tcp',
+                        'IpRanges': [{'CidrIp': '0.0.0.0/0'}]
+                    },
+                    {
+                        'FromPort': 3389,
+                        'ToPort': 3389,
+                        'IpProtocol': 'tcp',
+                        'Ipv6Ranges': [{'CidrIpv6': '::/0'}]
+                    }
+                ]
+            )
+
+            self.logging.info("Revoked public port 3389 ingress rule for Security Group '%s'." % resource_id)
+            return True
+        except:
+            self.logging.error("Could not revoke public port 3389 ingress rule for Security Group '%s'." % resource_id)
+            self.logging.error(sys.exc_info()[1])
+            return False
+    
     def restricted_ssh(self, record):
         """
         Deletes inbound rules within Security Groups that match:

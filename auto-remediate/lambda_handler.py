@@ -47,8 +47,10 @@ class Remediate:
                                                  "with payload '%s'." % (config_rule_name, config_message))
                     elif 'securityhub' in config_rule_name:
                         # AWS Security Hub Rules
-                        if 'restricted-ssh' in config_rule_name:
-                            remediation = self.config.restricted_ssh(config_message)
+                        if 'restricted-rdp' in config_rule_name:
+                            remediation = self.security_hub.restricted_rdp(config_message)
+                        elif 'restricted-ssh' in config_rule_name:
+                            remediation = self.security_hub.restricted_ssh(config_message)
                         else:
                             self.logging.warning("No remediation available for Config Rule '%s' "
                                                  "with payload '%s'." % (config_rule_name, config_message))
@@ -59,6 +61,8 @@ class Remediate:
                 else:
                     self.logging.info("Config Rule '%s' was not remediated "
                                       "based on user preferences." % config_rule_name)
+            else:
+                self.logging.debug("Config Rule '%s' is complaint." % config_rule_name)
             
             # if remediation was not successful, send message to DLQ
             if not remediation:
