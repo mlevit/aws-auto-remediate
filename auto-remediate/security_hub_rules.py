@@ -112,3 +112,21 @@ class SecurityHubRules:
             self.logging.info("Could not set ACL set to 'private' for S3 Bucket '%s'." % resource_id)
             self.logging.error(sys.exc_info()[1])
             return False
+    
+    def s3_bucket_public_write_prohibited(self, resource_id):
+        """
+        Sets the S3 Bucket ACL to private to prevent public write.
+        """
+        client = boto3.client('s3')
+        
+        try:
+            client.put_bucket_acl(
+                ACL='private',
+                Bucket=resource_id)
+
+            self.logging.info("ACL set to 'private' for S3 Bucket '%s'." % resource_id)
+            return True
+        except:
+            self.logging.info("Could not set ACL set to 'private' for S3 Bucket '%s'." % resource_id)
+            self.logging.error(sys.exc_info()[1])
+            return False
