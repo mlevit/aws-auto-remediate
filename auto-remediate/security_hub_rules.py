@@ -5,7 +5,40 @@ import sys
 class SecurityHubRules:
     def __init__(self, logging):
         self.logging = logging
-    
+
+    def apply_cis_password_policy(self, resource_id):
+        """
+        Applies a sensible IAM password policy, as per CIS AWS Foundations Standard Checks Supported in Security Hub
+        1.5 - Ensure IAM password policy requires at least one uppercase letter
+        1.6 - Ensure IAM password policy requires at least one lowercase letter
+        1.7 - Ensure IAM password policy requires at least one symbol
+        1.8 - Ensure IAM password policy requires at least one number
+        1.9 - Ensure IAM password policy requires a minimum length of 14 or greater
+        1.10 - Ensure IAM password policy prevents password reuse
+        1.11 - Ensure IAM password policy expires passwords within 90 days or less
+        """
+        client = boto3.client('iam')
+
+        # TODO: better exception handling
+        try:
+            response = client.update_account_password_policy(
+                MinimumPasswordLength=14,  # 14 characters
+                RequireSymbols=True,
+                RequireNumbers=True,
+                RequireUppercaseCharacters=True,
+                RequireLowercaseCharacters=True,
+                AllowUsersToChangePassword=True,
+                MaxPasswordAge=90,  # days
+                PasswordReusePrevention=24,  # last 24 passwords
+                HardExpiry=False
+            )
+            self.logging.info("Updated IAM password policy with CIS AWS Foundations requirements.")
+            return True
+        except:
+            self.logging.error("Could not update IAM password policy for {resource}.".format(resource=resource_id))
+            self.logging.error(sys.exc_info()[1])
+            return False
+
     def access_keys_rotated(self, record):
         """
         Deletes IAM User's access and secret key.
@@ -16,7 +49,7 @@ class SecurityHubRules:
         
         # try:
         #     client.delete_access_key(AccessKeyId=resource_id)
-            
+
         #     self.logging.info("Deleted unrotated IAM Access Key '%s'." % resource_id)
         #     return True
         # except:
