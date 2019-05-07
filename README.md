@@ -135,17 +135,19 @@ The tables below detail the auto remediated rules and scenarios.
 
 ### AWS Config Managed Rules
 
-#### Compute
-
-| Rule                                                         |
-| :----------------------------------------------------------- |
-| [restricted-ssh](https://docs.aws.amazon.com/config/latest/developerguide/restricted-ssh.html)<br />Checks whether the incoming SSH traffic for the security groups is accessible. The rule is COMPLIANT when the IP addresses of the incoming SSH traffic in the security groups are restricted. This rule applies only to IPv4. |
-
 #### Database
 
 | Rule                                                         |
 | :----------------------------------------------------------- |
 | [rds-instance-public-access-check](https://docs.aws.amazon.com/config/latest/developerguide/rds-instance-public-access-check.html)<br />Check whether the Amazon Relational Database Service instances are not publicly accessible. The rule is NON_COMPLIANT if the `publiclyAccessible` field is true in the instance configuration item. |
+
+### Security Hub
+
+#### Compute
+
+| Rule                                                         |
+| :----------------------------------------------------------- |
+| [restricted-ssh](https://docs.aws.amazon.com/config/latest/developerguide/restricted-ssh.html)<br />Checks whether the incoming SSH traffic for the security groups is accessible. The rule is compliant when the IP addresses of the incoming SSH traffic in the security groups are restricted. This rule applies only to IPv4. |
 
 #### Security, Identity & Compliance
 
