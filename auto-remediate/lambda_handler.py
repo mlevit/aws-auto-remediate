@@ -86,9 +86,8 @@ class Remediate:
         """
         client = boto3.client('sqs')
         
-        try_count = int(try_count)
+        try_count = int(try_count) + 1
         if try_count < int(os.environ.get('RETRYCOUNT', 3)):
-            try_count += 1
             try:
                 client.send_message(
                     QueueUrl=self.get_queue_url(),
