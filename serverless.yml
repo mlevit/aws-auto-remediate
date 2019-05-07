@@ -47,6 +47,7 @@ functions:
     iamRoleStatements:
       - Effect: Allow
         Action:
+          - iam:UpdateAccountPasswordPolicy
           - dynamodb:GetItem
           - dynamodb:Scan
           - ec2:RevokeSecurityGroupIngress
