@@ -25,15 +25,14 @@ class SecurityHubRules:
         #     return False
         pass
     
-    def restricted_rdp(self, record):
+    def restricted_rdp(self, resource_id):
         """
         Deletes inbound rules within Security Groups that match:
-            Protocal: TCP
+            Protocol: TCP
             Port: 3389
             Source: 0.0.0.0/0 or ::/0
         """
         client = boto3.client('ec2')
-        resource_id = record.get('detail').get('resourceId')
         
         try:
             client.revoke_security_group_ingress(
@@ -61,15 +60,14 @@ class SecurityHubRules:
             self.logging.error(sys.exc_info()[1])
             return False
     
-    def restricted_ssh(self, record):
+    def restricted_ssh(self, resource_id):
         """
         Deletes inbound rules within Security Groups that match:
-            Protocal: TCP
+            Protocol: TCP
             Port: 22
             Source: 0.0.0.0/0 or ::/0
         """
         client = boto3.client('ec2')
-        resource_id = record.get('detail').get('resourceId')
         
         try:
             client.revoke_security_group_ingress(
@@ -94,5 +92,23 @@ class SecurityHubRules:
             return True
         except:
             self.logging.error("Could not revoke public port 22 ingress rule for Security Group '%s'." % resource_id)
+            self.logging.error(sys.exc_info()[1])
+            return False
+    
+    def s3_bucket_public_read_prohibited(self, resource_id):
+        """
+        Sets the S3 Bucket ACL to private to prevent public read.
+        """
+        client = boto3.client('s3')
+        
+        try:
+            client.put_bucket_acl(
+                ACL='private',
+                Bucket=resource_id)
+
+            self.logging.info("ACL set to 'private' for S3 Bucket '%s'." % resource_id)
+            return True
+        except:
+            self.logging.info("Could not set ACL set to 'private' for S3 Bucket '%s'." % resource_id)
             self.logging.error(sys.exc_info()[1])
             return False
