@@ -19,7 +19,10 @@ class Retry:
         try:
             response = client.receive_message(
                 QueueUrl=queue_url,
+                MessageAttributeNames=['try_count'],
                 MaxNumberOfMessages=10)
+            
+            self.logging.debug("SQS payload: %s" % response)
         except:
             self.logging.error("Could not retrieve Messages from SQS Queue URL '%s'." % queue_url)
             self.logging.error(sys.exc_info()[1])
@@ -28,14 +31,16 @@ class Retry:
             for message in response.get('Messages'):
                 receipt_handle = message.get('ReceiptHandle')
                 body = message.get('Body')
+                try_count = message.get('MessageAttributes', {}).get('try_count', {}).get('StringValue', '1')
                 
-                if self.send_to_queue(body):
+                if self.send_to_queue(body, try_count):
                     self.delete_from_queue(queue_url, receipt_handle)
             
             # get the next 10 messages
             try:
                 response = client.receive_message(
                     QueueUrl=queue_url,
+                    MessageAttributeNames=['try_count'],
                     MaxNumberOfMessages=10)
             except:
                 self.logging.error("Could not retrieve Messages from SQS Queue URL '%s'." % queue_url)
@@ -49,7 +54,7 @@ class Retry:
     def get_config_rule_compliance(record):
         return record.get('detail').get('newEvaluationResult').get('complianceType')
     
-    def send_to_queue(self, message):
+    def send_to_queue(self, message, try_count):
         """
         Sends a message to the Config Compliance SQS Queue.
         """
@@ -59,7 +64,14 @@ class Retry:
         try:
             client.send_message(
                 QueueUrl=queue_url,
-                MessageBody=message)
+                MessageBody=message,
+                MessageAttributes={
+                    'try_count': {
+                        'StringValue': try_count,
+                        'DataType': 'Number'
+                        }
+                    }
+                )
             
             self.logging.debug("Message payload sent to SQS Queue '%s'." % os.environ.get('COMPLIANCEQUEUE'))
             return True

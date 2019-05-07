@@ -42,6 +42,7 @@ functions:
             - Ref: AWS::AccountId
             - auto-remediate-log-${self:provider.stage}
       PYTHONPATH: "/var/task/auto-remediate:/var/task/dynamodb_json:/var/runtime"
+      RETRYCOUNT: 3
       SETTINGSTABLE: auto-remediate-settings-${self:provider.stage}
     iamRoleStatements:
       - Effect: Allow
