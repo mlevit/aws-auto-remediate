@@ -40,19 +40,18 @@ class Remediate:
                 if self.intend_to_remediate(config_rule_name):
                     if 'auto-remediate' in config_rule_name:
                         # AWS Config Managed Rules
-                        if 'access-keys-rotated' in config_rule_name:
-                            remediation = self.config.access_keys_rotated(config_message)
-                        elif 'restricted-ssh' in config_rule_name:
-                            remediation = self.config.restricted_ssh(config_message)
-                        elif 'rds-instance-public-access-check' in config_rule_name:
+                        if 'rds-instance-public-access-check' in config_rule_name:
                             remediation = self.config.rds_instance_public_access_check(config_message)
                         else:
                             self.logging.warning("No remediation available for Config Rule '%s' "
                                                  "with payload '%s'." % (config_rule_name, config_message))
                     elif 'securityhub' in config_rule_name:
                         # AWS Security Hub Rules
-                        self.logging.warning("No remediation available for Config Rule '%s' "
-                                             "with payload '%s'." % (config_rule_name, config_message))
+                        if 'restricted-ssh' in config_rule_name:
+                            remediation = self.config.restricted_ssh(config_message)
+                        else:
+                            self.logging.warning("No remediation available for Config Rule '%s' "
+                                                 "with payload '%s'." % (config_rule_name, config_message))
                     else:
                         # Custom Config Rules
                         self.logging.warning("No remediation available for Config Rule '%s' "
