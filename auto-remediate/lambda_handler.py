@@ -69,7 +69,7 @@ class Remediate:
                     self.logging.info("Config Rule '%s' was not remediated "
                                       "based on user preferences." % config_rule_name)
             else:
-                self.logging.info("Resource '%s' is complaint "
+                self.logging.info("Resource '%s' is compliant "
                                   "for Config Rule '%s'." % (config_rule_resource_id, config_rule_name))
             
             # if remediation was not successful, send message to DLQ
