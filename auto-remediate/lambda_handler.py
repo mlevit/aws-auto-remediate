@@ -31,26 +31,29 @@ class Remediate:
     def remediate(self):
         for record in self.event.get('Records'):
             remediation = True
-            config_message = json.loads(record.get('body'))
             try_count = record.get('messageAttributes', {}).get('try_count', {}).get('stringValue', '0')
+            config_message = json.loads(record.get('body'))
             config_rule_name = Remediate.get_config_rule_name(config_message)
             config_rule_compliance = Remediate.get_config_rule_compliance(config_message)
+            config_rule_resource_id = Remediate.get_config_rule_resource_id(config_message)
             
             if config_rule_compliance == 'NON_COMPLIANT':
                 if self.intend_to_remediate(config_rule_name):
                     if 'auto-remediate' in config_rule_name:
                         # AWS Config Managed Rules
                         if 'rds-instance-public-access-check' in config_rule_name:
-                            remediation = self.config.rds_instance_public_access_check(config_message)
+                            remediation = self.config.rds_instance_public_access_check(config_rule_resource_id)
                         else:
                             self.logging.warning("No remediation available for Config Rule '%s' "
                                                  "with payload '%s'." % (config_rule_name, config_message))
                     elif 'securityhub' in config_rule_name:
                         # AWS Security Hub Rules
                         if 'restricted-rdp' in config_rule_name:
-                            remediation = self.security_hub.restricted_rdp(config_message)
+                            remediation = self.security_hub.restricted_rdp(config_rule_resource_id)
                         elif 'restricted-ssh' in config_rule_name:
-                            remediation = self.security_hub.restricted_ssh(config_message)
+                            remediation = self.security_hub.restricted_ssh(config_rule_resource_id)
+                        elif 's3-bucket-public-read-prohibited' in config_rule_name:
+                            remediation = self.security_hub.s3_bucket_public_read_prohibited(config_rule_resource_id)
                         else:
                             self.logging.warning("No remediation available for Config Rule '%s' "
                                                  "with payload '%s'." % (config_rule_name, config_message))
@@ -62,7 +65,8 @@ class Remediate:
                     self.logging.info("Config Rule '%s' was not remediated "
                                       "based on user preferences." % config_rule_name)
             else:
-                self.logging.debug("Config Rule '%s' is complaint." % config_rule_name)
+                self.logging.info("Resource '%s' is complaint "
+                                  "for Config Rule '%s'." % (config_rule_resource_id, config_rule_name))
             
             # if remediation was not successful, send message to DLQ
             if not remediation:
@@ -133,6 +137,10 @@ class Remediate:
     def get_config_rule_compliance(record):
         return record.get('detail').get('newEvaluationResult').get('complianceType')
 
+    @staticmethod
+    def get_config_rule_resource_id(record):
+        return record.get('detail').get('resourceId')
+
 
 def lambda_handler(event, context):
     loggger = logging.getLogger()
@@ -151,9 +159,9 @@ def lambda_handler(event, context):
                         level=os.environ.get('LOGLEVEL', 'WARNING'))
     
     # add SNS logger
-    sns_logger = SNSLoggingHandler(os.environ.get('LOGTOPIC'))
-    sns_logger.setLevel(logging.INFO)
-    loggger.addHandler(sns_logger)
+    # sns_logger = SNSLoggingHandler(os.environ.get('LOGTOPIC'))
+    # sns_logger.setLevel(logging.INFO)
+    # loggger.addHandler(sns_logger)
     
     # instantiate class
     remediate = Remediate(logging, event)

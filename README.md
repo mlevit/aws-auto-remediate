@@ -155,3 +155,9 @@ The tables below detail the auto remediated rules and scenarios.
 | Rule                                                         |
 | :----------------------------------------------------------- |
 | **securityhub-access-keys-rotated** (NOT IMPLEMENTED)<br />Checks whether the active access keys are rotated within the number of days specified in `maxAccessKeyAge`. The rule is NON_COMPLIANT if the access keys have not been rotated for more than `maxAccessKeyAge` number of days. |
+
+#### Storage
+
+| Rule                                                         |
+| :----------------------------------------------------------- |
+| **s3-bucket-public-read-prohibited**<br />Checks to see if S3 buckets are publicly readable. |

@@ -6,12 +6,11 @@ class ConfigRules:
     def __init__(self, logging):
         self.logging = logging
 
-    def rds_instance_public_access_check(self, record):
+    def rds_instance_public_access_check(self, resource_id):
         """
         Sets PubliclyAccessible field to False.
         """
         client = boto3.client('rds')
-        resource_id = record.get('detail').get('resourceId')
 
         # unfortunately the resourceId provided by AWS Config is DbiResourceId
         # and cannot be used in the modify_db_instance function
