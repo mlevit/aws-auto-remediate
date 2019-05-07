@@ -35,7 +35,7 @@ class SecurityHubRules:
             self.logging.info("Updated IAM password policy with CIS AWS Foundations requirements.")
             return True
         except:
-            self.logging.error("Could not update IAM password policy for {resource}.".format(resource=resource_id))
+            self.logging.error(f"Could not update IAM password policy for {resource_id}.")
             self.logging.error(sys.exc_info()[1])
             return False
 
@@ -86,10 +86,10 @@ class SecurityHubRules:
                 ]
             )
 
-            self.logging.info("Revoked public port 3389 ingress rule for Security Group '%s'." % resource_id)
+            self.logging.info(f"Revoked public port 3389 ingress rule for Security Group '{resource_id}'.")
             return True
         except:
-            self.logging.error("Could not revoke public port 3389 ingress rule for Security Group '%s'." % resource_id)
+            self.logging.error(f"Could not revoke public port 3389 ingress rule for Security Group '{resource_id}'.")
             self.logging.error(sys.exc_info()[1])
             return False
     
@@ -121,10 +121,10 @@ class SecurityHubRules:
                 ]
             )
 
-            self.logging.info("Revoked public port 22 ingress rule for Security Group '%s'." % resource_id)
+            self.logging.info(f"Revoked public port 22 ingress rule for Security Group '{resource_id}'.")
             return True
         except:
-            self.logging.error("Could not revoke public port 22 ingress rule for Security Group '%s'." % resource_id)
+            self.logging.error(f"Could not revoke public port 22 ingress rule for Security Group '{resource_id}'.")
             self.logging.error(sys.exc_info()[1])
             return False
     
@@ -139,10 +139,10 @@ class SecurityHubRules:
                 ACL='private',
                 Bucket=resource_id)
 
-            self.logging.info("ACL set to 'private' for S3 Bucket '%s'." % resource_id)
+            self.logging.info(f"ACL set to 'private' for S3 Bucket '{resource_id}'.")
             return True
         except:
-            self.logging.info("Could not set ACL set to 'private' for S3 Bucket '%s'." % resource_id)
+            self.logging.info(f"Could not set ACL set to 'private' for S3 Bucket '{resource_id}'.")
             self.logging.error(sys.exc_info()[1])
             return False
     
@@ -157,9 +157,9 @@ class SecurityHubRules:
                 ACL='private',
                 Bucket=resource_id)
 
-            self.logging.info("ACL set to 'private' for S3 Bucket '%s'." % resource_id)
+            self.logging.info(f"ACL set to 'private' for S3 Bucket '{resource_id}'.")
             return True
         except:
-            self.logging.info("Could not set ACL set to 'private' for S3 Bucket '%s'." % resource_id)
+            self.logging.info(f"Could not set ACL set to 'private' for S3 Bucket '{resource_id}'.")
             self.logging.error(sys.exc_info()[1])
             return False

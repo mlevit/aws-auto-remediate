@@ -19,7 +19,7 @@ class Setup:
         Parse a directory and create the CloudFormation Stacks it contains.
         """
         existing_stacks = self.get_current_stacks()
-        path = 'auto-remediate-setup/data/%s' % stack_sub_dir
+        path = f'auto-remediate-setup/data/{stack_sub_dir}'
         
         print(existing_stacks)
 
@@ -40,14 +40,14 @@ class Setup:
                             OnFailure='DELETE',
                             EnableTerminationProtection=True)
                         
-                        self.logging.info("Creating CloudFormation Stack '%s'." % stack_name)
+                        self.logging.info(f"Creating CloudFormation Stack '{stack_name}'.")
                     except:
-                        self.logging.error("Could not create CloudFormation Stack '%s'." % stack_name)
+                        self.logging.error(f"Could not create CloudFormation Stack '{stack_name}'.")
                         self.logging.error(sys.exc_info()[1])
                         continue
                 else:
                     # TODO If Stack deployment has been set to False, delete stack
-                    self.logging.debug("Cloud Formation Stack '%s' already exists." % stack_name)
+                    self.logging.debug(f"Cloud Formation Stack '{stack_name}' already exists.")
 
     def get_current_stacks(self):
         """
@@ -92,18 +92,17 @@ class Setup:
                 current_version = float(current_version.get('Item').get('value').get('N'))
                 if current_version < new_version:
                     update_settings = True
-                    self.logging.info("Existing settings with version %s are "
-                                      "being updated to version %s in DynamoDB Table '%s'." % (str(current_version),
-                                                                                               str(new_version),
-                                                                                               os.environ['SETTINGSTABLE']))
+                    self.logging.info(
+                        f"Existing settings with version {str(current_version)} are being updated to version "
+                        f"{str(new_version)} in DynamoDB Table '{os.environ['SETTINGSTABLE']}'.")
                 else:
-                    self.logging.debug("Existing settings are at the lastest "
-                                       "version %s in DynamoDB Table '%s'." % (str(current_version),
-                                                                               os.environ['SETTINGSTABLE']))
+                    self.logging.debug(
+                        f"Existing settings are at the lastest version {str(current_version)} in DynamoDB Table "
+                        f"'{os.environ['SETTINGSTABLE']}'.")
             else:
                 update_settings = True
-                self.logging.info("Settings are being inserted into DynamoDB "
-                                  "Table '%s' for the first time." % os.environ['SETTINGSTABLE'])
+                self.logging.info(f"Settings are being inserted into DynamoDB Table "
+                                  f"'{os.environ['SETTINGSTABLE']}' for the first time.")
 
             if update_settings:
                 for setting in settings_json:

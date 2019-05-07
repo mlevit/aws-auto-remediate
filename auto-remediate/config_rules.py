@@ -25,9 +25,9 @@ class ConfigRules:
                         PubliclyAccessible=False)
                     break
 
-            self.logging.info("Disabled Public Accessibility for RDS Resource ID '%s'." % resource_id)
+            self.logging.info(f"Disabled Public Accessibility for RDS Resource ID '{resource_id}'.")
             return True
         except:
-            self.logging.error("Could not disable Public Accessibility for RDS Resource ID '%s'." % resource_id)
+            self.logging.error(f"Could not disable Public Accessibility for RDS Resource ID '{resource_id}'.")
             self.logging.error(sys.exc_info()[1])
             return False
