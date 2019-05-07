@@ -1,4 +1,6 @@
 import boto3
+import datetime
+import dateutil.parser
 import sys
 
 
@@ -24,6 +26,59 @@ class SecurityHubRules:
         #     self.logging.error(sys.exc_info()[1])
         #     return False
         pass
+    
+    def iam_user_unused_credentials_check(self, resource_id):
+        """
+        Deletes unused Access Keys and Login Profiles.
+        """
+        client = boto3.client('iam')
+        
+        response = client.list_users()
+        
+        for user in response.get('Users'):
+            if resource_id == user.get('UserId'):
+                user_name = user.get('UserName')
+                
+                # check password usage
+                try:
+                    login_profile = client.get_login_profile(UserName=user_name)
+                    login_profile_date = login_profile.get('LoginProfile').get('CreateDate')
+                except:
+                    self.logging.error("Could not retrieve IAM Login Profile for User '%s'." % user_name)
+                    self.logging.error(sys.exc_info()[1])
+                    return False
+                
+                if SecurityHubRules.get_day_delta(login_profile_date) > 90:
+                    try:
+                        client.delete_login_profile(UserName=user_name)
+                        self.logging.info("Deleted IAM Login Profile for User '%s'." % user_name)
+                    except:
+                        self.logging.error("Could not delete IAM Login Profile for User '%s'." % user_name)
+                        self.logging.error(sys.exc_info()[1])
+                        return False
+                
+                # check access keys usage
+                try:
+                    list_access_keys = client.list_access_keys(UserName=user_name)
+                except:
+                    self.logging.error("Could not list IAM Access Keys for User '%s'." % user_name)
+                    self.logging.error(sys.exc_info()[1])
+                    return False
+                
+                for access_key in list_access_keys.get('AccessKeyMetadata'):
+                    access_key_id = access_key.get('AccessKeyId')
+                    access_key_date = access_key.get('CreateDate')
+                    
+                    if SecurityHubRules.get_day_delta(access_key_date) > 90:
+                        try:
+                            client.delete_access_key(AccessKeyId=access_key_id)
+                            self.logging.info("Deleted IAM Access Key '%s' for User '%s'." % (access_key_id, user_name))
+                        except:
+                            self.logging.error("Could not delete IAM Access Key for User '%s'." % user_name)
+                            self.logging.error(sys.exc_info()[1])
+                            return False
+                
+                return True
     
     def restricted_rdp(self, resource_id):
         """
@@ -130,3 +185,18 @@ class SecurityHubRules:
             self.logging.info("Could not set ACL set to 'private' for S3 Bucket '%s'." % resource_id)
             self.logging.error(sys.exc_info()[1])
             return False
+    
+    @staticmethod
+    def convert_to_datetime(date):
+        return dateutil.parser.isoparse(str(date)).replace(tzinfo=None)
+    
+    @staticmethod
+    def get_day_delta(date):
+        if date is not None:
+            from_datetime = SecurityHubRules.convert_to_datetime(datetime.datetime.now().isoformat())
+            to_datetime = SecurityHubRules.convert_to_datetime(date)
+            delta = from_datetime - to_datetime
+            
+            return delta.days
+        else:
+            return 0

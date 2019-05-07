@@ -48,7 +48,9 @@ class Remediate:
                                                  "with payload '%s'." % (config_rule_name, config_message))
                     elif 'securityhub' in config_rule_name:
                         # AWS Security Hub Rules
-                        if 'restricted-rdp' in config_rule_name:
+                        if 'iam-user-unused-credentials-check' in config_rule_name:
+                            remediation = self.security_hub.iam_user_unused_credentials_check(config_rule_resource_id)
+                        elif 'restricted-rdp' in config_rule_name:
                             remediation = self.security_hub.restricted_rdp(config_rule_resource_id)
                         elif 'restricted-ssh' in config_rule_name:
                             remediation = self.security_hub.restricted_ssh(config_rule_resource_id)
