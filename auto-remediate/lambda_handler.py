@@ -48,7 +48,9 @@ class Remediate:
                                                  "with payload '%s'." % (config_rule_name, config_message))
                     elif 'securityhub' in config_rule_name:
                         # AWS Security Hub Rules
-                        if 'restricted-rdp' in config_rule_name:
+                        if 'iam-password-policy' in config_rule_name:
+                            remediation = self.security_hub.iam_password_policy(config_rule_resource_id)
+                        elif 'restricted-rdp' in config_rule_name:
                             remediation = self.security_hub.restricted_rdp(config_rule_resource_id)
                         elif 'restricted-ssh' in config_rule_name:
                             remediation = self.security_hub.restricted_ssh(config_rule_resource_id)
@@ -56,8 +58,6 @@ class Remediate:
                             remediation = self.security_hub.s3_bucket_public_read_prohibited(config_rule_resource_id)
                         elif 's3-bucket-public-write-prohibited' in config_rule_name:
                             remediation = self.security_hub.s3_bucket_public_write_prohibited(config_rule_resource_id)
-                        elif 'iam-password-policy' in config_rule_name:
-                            remediation = self.security_hub.apply_cis_password_policy(config_rule_resource_id)
                         else:
                             self.logging.warning("No remediation available for Config Rule '%s' "
                                                  "with payload '%s'." % (config_rule_name, config_message))
