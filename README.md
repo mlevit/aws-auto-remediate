@@ -160,4 +160,5 @@ The tables below detail the auto remediated rules and scenarios.
 
 | Rule                                                         |
 | :----------------------------------------------------------- |
-| **s3-bucket-public-read-prohibited**<br />Checks to see if S3 buckets are publicly readable. |
+| **securityhub-s3-bucket-public-read-prohibited**<br />Checks to see if S3 buckets are publicly readable. |
+| **securityhub-s3-bucket-public-write-prohibited**<br />Checks to see if S3 buckets allow public write. |
