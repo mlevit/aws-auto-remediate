@@ -68,15 +68,17 @@ class SecurityHubRules:
                 for access_key in list_access_keys.get('AccessKeyMetadata'):
                     access_key_id = access_key.get('AccessKeyId')
                     access_key_date = access_key.get('CreateDate')
+                    access_key_status = access_key.get('Status')
                     
-                    if SecurityHubRules.get_day_delta(access_key_date) > 90:
-                        try:
-                            client.delete_access_key(AccessKeyId=access_key_id)
-                            self.logging.info("Deleted IAM Access Key '%s' for User '%s'." % (access_key_id, user_name))
-                        except:
-                            self.logging.error("Could not delete IAM Access Key for User '%s'." % user_name)
-                            self.logging.error(sys.exc_info()[1])
-                            return False
+                    if access_key_status == 'Active':
+                        if SecurityHubRules.get_day_delta(access_key_date) > 90:
+                            try:
+                                client.delete_access_key(AccessKeyId=access_key_id)
+                                self.logging.info("Deleted IAM Access Key '%s' for User '%s'." % (access_key_id, user_name))
+                            except:
+                                self.logging.error("Could not delete IAM Access Key for User '%s'." % user_name)
+                                self.logging.error(sys.exc_info()[1])
+                                return False
                 
                 return True
     

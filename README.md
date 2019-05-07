@@ -154,7 +154,8 @@ The tables below detail the auto remediated rules and scenarios.
 
 | Rule                                                         |
 | :----------------------------------------------------------- |
-| **securityhub-access-keys-rotated** (NOT IMPLEMENTED)<br />Checks whether the active access keys are rotated within the number of days specified in `maxAccessKeyAge`. The rule is NON_COMPLIANT if the access keys have not been rotated for more than `maxAccessKeyAge` number of days. |
+| **securityhub-access-keys-rotated** (NOT IMPLEMENTED)<br />Checks whether the active access keys are rotated within the number of days specified in 90 days. |
+| **securityhub-iam-user-unused-credentials-check**<br />Checks whether AWS Identity and Access Management (IAM) users have passwords or active access keys that have not been used within 90 days. |
 
 #### Storage
 
