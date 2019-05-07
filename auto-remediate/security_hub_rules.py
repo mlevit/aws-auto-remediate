@@ -6,7 +6,7 @@ class SecurityHubRules:
     def __init__(self, logging):
         self.logging = logging
 
-    def apply_cis_password_policy(self, resource_id):
+    def iam_password_policy(self, resource_id):
         """
         Applies a sensible IAM password policy, as per CIS AWS Foundations Standard Checks Supported in Security Hub
         1.5 - Ensure IAM password policy requires at least one uppercase letter
