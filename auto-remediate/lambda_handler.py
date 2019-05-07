@@ -48,9 +48,9 @@ class Remediate:
                     elif 'securityhub' in config_rule_name:
                         # AWS Security Hub Rules
                         if 'restricted-rdp' in config_rule_name:
-                            remediation = self.config.restricted_rdp(config_message)
+                            remediation = self.security_hub.restricted_rdp(config_message)
                         elif 'restricted-ssh' in config_rule_name:
-                            remediation = self.config.restricted_ssh(config_message)
+                            remediation = self.security_hub.restricted_ssh(config_message)
                         else:
                             self.logging.warning("No remediation available for Config Rule '%s' "
                                                  "with payload '%s'." % (config_rule_name, config_message))
