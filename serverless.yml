@@ -50,6 +50,11 @@ functions:
           - dynamodb:GetItem
           - dynamodb:Scan
           - ec2:RevokeSecurityGroupIngress
+          - iam:DeleteAccessKey
+          - iam:DeleteLoginProfile
+          - iam:GetLoginProfile
+          - iam:ListAccessKeys
+          - iam:ListUsers
           - iam:UpdateAccountPasswordPolicy
           - rds:DescribeDBInstances
           - rds:ModifyDBInstance

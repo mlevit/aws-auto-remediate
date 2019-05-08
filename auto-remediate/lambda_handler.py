@@ -51,6 +51,8 @@ class Remediate:
                         # AWS Security Hub Rules
                         if 'iam-password-policy' in config_rule_name:
                             remediation = self.security_hub.iam_password_policy(config_rule_resource_id)
+                        elif 'iam-user-unused-credentials-check' in config_rule_name:
+                            remediation = self.security_hub.iam_user_unused_credentials_check(config_rule_resource_id)
                         elif 'restricted-rdp' in config_rule_name:
                             remediation = self.security_hub.restricted_rdp(config_rule_resource_id)
                         elif 'restricted-ssh' in config_rule_name:

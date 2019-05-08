@@ -35,6 +35,69 @@
             }
           }
         },
+        "securityhub-access-keys-rotated": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            }
+          }
+        },
+        "securityhub-iam-password-policy-ensure-expires": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            }
+          }
+        },
+        "securityhub-iam-password-policy-lowercase-letter-check": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            }
+          }
+        },
+        "securityhub-iam-password-policy-minimum-length-check": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            }
+          }
+        },
+        "securityhub-iam-password-policy-number-check": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            }
+          }
+        },
+        "securityhub-iam-password-policy-prevent-reuse-check": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            }
+          }
+        },
+        "securityhub-iam-password-policy-symbol-check": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            }
+          }
+        },
+        "securityhub-iam-password-policy-uppercase-letter-check": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            }
+          }
+        },
+        "securityhub-iam-user-unused-credentials-check": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            }
+          }
+        },
         "securityhub-restricted-rdp": {
           "M": {
             "remediate": {
