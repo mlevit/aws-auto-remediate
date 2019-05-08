@@ -21,7 +21,7 @@ class SecurityHubRules:
 
         # TODO: better exception handling
         try:
-            response = client.update_account_password_policy(
+            client.update_account_password_policy(
                 MinimumPasswordLength=14,  # 14 characters
                 RequireSymbols=True,
                 RequireNumbers=True,
