@@ -22,9 +22,9 @@ class Retry:
                 MessageAttributeNames=['try_count'],
                 MaxNumberOfMessages=10)
             
-            self.logging.debug("SQS payload: %s" % response)
+            self.logging.debug(f"SQS payload: {response}")
         except:
-            self.logging.error("Could not retrieve Messages from SQS Queue URL '%s'." % queue_url)
+            self.logging.error(f"Could not retrieve Messages from SQS Queue URL '{queue_url}'.")
             self.logging.error(sys.exc_info()[1])
         
         while 'Messages' in response:
@@ -43,7 +43,7 @@ class Retry:
                     MessageAttributeNames=['try_count'],
                     MaxNumberOfMessages=10)
             except:
-                self.logging.error("Could not retrieve Messages from SQS Queue URL '%s'." % queue_url)
+                self.logging.error(f"Could not retrieve Messages from SQS Queue URL '{queue_url}'.")
                 self.logging.error(sys.exc_info()[1])
     
     @staticmethod
@@ -73,10 +73,10 @@ class Retry:
                     }
                 )
             
-            self.logging.debug("Message payload sent to SQS Queue '%s'." % os.environ.get('COMPLIANCEQUEUE'))
+            self.logging.debug(f"Message payload sent to SQS Queue '{os.environ.get('COMPLIANCEQUEUE')}'.")
             return True
         except:
-            self.logging.error("Could not send payload to SQS Queue '%s'." % os.environ.get('COMPLIANCEQUEUE'))
+            self.logging.error(f"Could not send payload to SQS Queue '{os.environ.get('COMPLIANCEQUEUE')}'.")
             self.logging.error(sys.exc_info()[1])
             return False
     
@@ -90,11 +90,9 @@ class Retry:
                 QueueUrl=queue_url,
                 ReceiptHandle=receipt_handle)
             
-            self.logging.info("Deleted Message '%s' from "
-                              "SQS Queue URL '%s'." % (receipt_handle, queue_url))
+            self.logging.info(f"Deleted Message '{receipt_handle}' from SQS Queue URL '{queue_url}'.")
         except:
-            self.logging.error("Could not delete Message '%s' from "
-                               "SQS Queue URL '%s'." % (receipt_handle, queue_url))
+            self.logging.error(f"Could not delete Message '{receipt_handle}' from SQS Queue URL '{queue_url}'.")
             self.logging.error(sys.exc_info()[1])
 
     def get_queue_url(self, queue_name):
@@ -107,8 +105,7 @@ class Retry:
             response = client.get_queue_url(QueueName=queue_name)
             return response.get('QueueUrl')
         except:
-            self.logging.error("Could not retrieve SQS Queue URL "
-                               "for SQS Queue '%s'." % queue_name)
+            self.logging.error(f"Could not retrieve SQS Queue URL for SQS Queue '{queue_name}'.")
             self.logging.error(sys.exc_info()[1])
 
 

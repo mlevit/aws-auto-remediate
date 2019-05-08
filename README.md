@@ -147,6 +147,12 @@ The tables below detail the auto remediated rules and scenarios.
 
 | Rule                                                         |
 | :----------------------------------------------------------- |
+| **securityhub-iam-password-policy-ensure-expires**<br /> Checks whether the IAM password policy ensures that passwords expire. |
+| **securityhub-iam-password-policy-lowercase-letter-check**<br /> Checks whether the IAM password policy enforces the inclusion of a lowercase letter. |
+| **securityhub-iam-password-policy-minimum-length-check**<br /> Checks whether the IAM password policy enforces a minimum length. |
+| **securityhub-iam-password-policy-number-check**<br /> Checks whether the IAM password policy enforces the inclusion of a number . |
+| **securityhub-iam-password-policy-prevent-reuse-check**<br /> Checks whether the IAM password policy prevents password reuse. |
+| **securityhub-iam-password-policy-symbol-check**<br /> Checks whether the IAM password policy enforces the inclusion of a symbol. |
 | **securityhub-restricted-rdp**<br />Checks whether the incoming RDP traffic is Allowed from 0.0.0.0/0. This rule is compliant when incoming RDP traffic is restricted. |
 | **securityhub-restricted-ssh**<br />Checks whether the incoming SSH traffic for the security groups is accessible. The rule is compliant when the IP addresses of the incoming SSH traffic in the security groups are restricted. This rule applies only to IPv4. |
 
