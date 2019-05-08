@@ -8,6 +8,25 @@ class SecurityHubRules:
     def __init__(self, logging):
         self.logging = logging
 
+    def access_keys_rotated(self, record):
+        """
+        Deletes IAM User's access and secret key.
+        """
+        # TODO Access Keys Rotated rule needs testing
+        # client = boto3.client('iam')
+        # resource_id = None
+        
+        # try:
+        #     client.delete_access_key(AccessKeyId=resource_id)
+
+        #     self.logging.info("Deleted unrotated IAM Access Key '%s'." % resource_id)
+        #     return True
+        # except:
+        #     self.logging.info("Could not delete unrotated IAM Access Key '%s'." % resource_id)
+        #     self.logging.error(sys.exc_info()[1])
+        #     return False
+        pass
+    
     def iam_password_policy(self, resource_id):
         """
         Applies a sensible IAM password policy, as per CIS AWS Foundations Standard Checks Supported in Security Hub
@@ -40,25 +59,6 @@ class SecurityHubRules:
             self.logging.error(f"Could not update IAM password policy for {resource_id}.")
             self.logging.error(sys.exc_info()[1])
             return False
-
-    def access_keys_rotated(self, record):
-        """
-        Deletes IAM User's access and secret key.
-        """
-        # TODO Access Keys Rotated rule needs testing
-        # client = boto3.client('iam')
-        # resource_id = None
-        
-        # try:
-        #     client.delete_access_key(AccessKeyId=resource_id)
-
-        #     self.logging.info("Deleted unrotated IAM Access Key '%s'." % resource_id)
-        #     return True
-        # except:
-        #     self.logging.info("Could not delete unrotated IAM Access Key '%s'." % resource_id)
-        #     self.logging.error(sys.exc_info()[1])
-        #     return False
-        pass
     
     def iam_user_unused_credentials_check(self, resource_id):
         """
