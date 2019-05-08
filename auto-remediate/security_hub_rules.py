@@ -112,7 +112,7 @@ class SecurityHubRules:
                         if SecurityHubRules.get_day_delta(access_key_date) > 90:
                             try:
                                 client.delete_access_key(AccessKeyId=access_key_id)
-                                self.logging.info(f"Deleted IAM Access Key '{access_key_id}' for User '{user_name}'."
+                                self.logging.info(f"Deleted IAM Access Key '{access_key_id}' for User '{user_name}'.")
                             except:
                                 self.logging.error(f"Could not delete IAM Access Key for User '{user_name}'.")
                                 self.logging.error(sys.exc_info()[1])
