@@ -66,7 +66,12 @@ class SecurityHubRules:
         """
         client = boto3.client('iam')
         
-        response = client.list_users()
+        try:
+            response = client.list_users()
+        except:
+            self.logging.error("Could not list all IAM users.")
+            self.logging.error(sys.exc_info()[1])
+            return False
         
         for user in response.get('Users'):
             if resource_id == user.get('UserId'):
@@ -77,16 +82,16 @@ class SecurityHubRules:
                     login_profile = client.get_login_profile(UserName=user_name)
                     login_profile_date = login_profile.get('LoginProfile').get('CreateDate')
                 except:
-                    self.logging.error("Could not retrieve IAM Login Profile for User '%s'." % user_name)
+                    self.logging.error(f"Could not retrieve IAM Login Profile for User '{user_name}'.")
                     self.logging.error(sys.exc_info()[1])
                     return False
                 
                 if SecurityHubRules.get_day_delta(login_profile_date) > 90:
                     try:
                         client.delete_login_profile(UserName=user_name)
-                        self.logging.info("Deleted IAM Login Profile for User '%s'." % user_name)
+                        self.logging.info(f"Deleted IAM Login Profile for User '{user_name}'.")
                     except:
-                        self.logging.error("Could not delete IAM Login Profile for User '%s'." % user_name)
+                        self.logging.error(f"Could not delete IAM Login Profile for User '{user_name}'.")
                         self.logging.error(sys.exc_info()[1])
                         return False
                 
@@ -94,7 +99,7 @@ class SecurityHubRules:
                 try:
                     list_access_keys = client.list_access_keys(UserName=user_name)
                 except:
-                    self.logging.error("Could not list IAM Access Keys for User '%s'." % user_name)
+                    self.logging.error(f"Could not list IAM Access Keys for User '{user_name}'.")
                     self.logging.error(sys.exc_info()[1])
                     return False
                 
@@ -107,9 +112,9 @@ class SecurityHubRules:
                         if SecurityHubRules.get_day_delta(access_key_date) > 90:
                             try:
                                 client.delete_access_key(AccessKeyId=access_key_id)
-                                self.logging.info("Deleted IAM Access Key '%s' for User '%s'." % (access_key_id, user_name))
+                                self.logging.info(f"Deleted IAM Access Key '{access_key_id}' for User '{user_name}'."
                             except:
-                                self.logging.error("Could not delete IAM Access Key for User '%s'." % user_name)
+                                self.logging.error(f"Could not delete IAM Access Key for User '{user_name}'.")
                                 self.logging.error(sys.exc_info()[1])
                                 return False
                 
