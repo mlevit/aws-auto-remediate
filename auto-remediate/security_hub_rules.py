@@ -226,6 +226,45 @@ class SecurityHubRules:
             self.logging.error(sys.exc_info()[1])
             return False
     
+    def s3_bucket_logging_enabled(self, resource_id):
+        """
+        Enables server access logginf for an S3 Bucket.
+        """
+        client = boto3.client('s3')
+        log_bucket = f'{resource_id}-access-logs'
+        
+        try:
+            client.create_bucket(
+                ACL='private',
+                Bucket=log_bucket,
+                CreateBucketConfiguration={'LocationConstraint': client.meta.region_name})
+
+            self.logging.info(f"Created new S3 Bucket '{log_bucket}' "
+                              f"for storing server access logs for S3 Bucket '{resource_id}'.")
+        except:
+            self.logging.info(f"Could not create new S3 Bucket '{log_bucket}' "
+                              f"for storing server access logs for S3 Bucket '{resource_id}'.")
+            return False
+        
+        try:
+            client.put_bucket_logging(
+                Bucket=resource_id,
+                BucketLoggingStatus={
+                    'LoggingEnabled': {
+                        'TargetBucket': log_bucket
+                    }
+                }
+            )
+
+            self.logging.info(f"Server access logging enabled for "
+                              f"S3 Bucket '{resource_id}' to S3 Bucket '{log_bucket}'.")
+            return True
+        except:
+            self.logging.info(f"Could not enable server access logging enabled for "
+                              f"S3 Bucket '{resource_id}' to S3 Bucket '{log_bucket}'.")
+            self.logging.error(sys.exc_info()[1])
+            return False
+    
     @staticmethod
     def convert_to_datetime(date):
         return dateutil.parser.isoparse(str(date)).replace(tzinfo=None)

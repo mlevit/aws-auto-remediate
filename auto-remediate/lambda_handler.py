@@ -61,6 +61,8 @@ class Remediate:
                             remediation = self.security_hub.s3_bucket_public_read_prohibited(config_rule_resource_id)
                         elif 's3-bucket-public-write-prohibited' in config_rule_name:
                             remediation = self.security_hub.s3_bucket_public_write_prohibited(config_rule_resource_id)
+                        elif 's3-bucket-logging-enabled' in config_rule_name:
+                            remediation = self.security_hub.s3_bucket_logging_enabled(config_rule_resource_id)
                         else:
                             self.logging.warning(
                                 f"No remediation available for Config Rule "
