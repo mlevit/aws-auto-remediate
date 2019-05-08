@@ -50,6 +50,7 @@ functions:
           - dynamodb:GetItem
           - dynamodb:Scan
           - ec2:RevokeSecurityGroupIngress
+          - iam:UpdateAccountPasswordPolicy
           - rds:DescribeDBInstances
           - rds:ModifyDBInstance
           - s3:PutBucketAcl

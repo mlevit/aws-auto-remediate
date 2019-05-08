@@ -18,7 +18,7 @@ class Remediate:
         self.event = event
         
         # event payload
-        self.logging.debug("Event payload: %s" % self.event)
+        self.logging.debug(f"Event payload: {self.event}")
 
         # variables
         self.settings = self.get_settings()
@@ -44,11 +44,14 @@ class Remediate:
                         if 'rds-instance-public-access-check' in config_rule_name:
                             remediation = self.config.rds_instance_public_access_check(config_rule_resource_id)
                         else:
-                            self.logging.warning("No remediation available for Config Rule '%s' "
-                                                 "with payload '%s'." % (config_rule_name, config_message))
+                            self.logging.warning(
+                                f"No remediation available for Config Rule "
+                                f"'{config_rule_name}' with payload '{config_message}'.")
                     elif 'securityhub' in config_rule_name:
                         # AWS Security Hub Rules
-                        if 'restricted-rdp' in config_rule_name:
+                        if 'iam-password-policy' in config_rule_name:
+                            remediation = self.security_hub.iam_password_policy(config_rule_resource_id)
+                        elif 'restricted-rdp' in config_rule_name:
                             remediation = self.security_hub.restricted_rdp(config_rule_resource_id)
                         elif 'restricted-ssh' in config_rule_name:
                             remediation = self.security_hub.restricted_ssh(config_rule_resource_id)
@@ -57,18 +60,19 @@ class Remediate:
                         elif 's3-bucket-public-write-prohibited' in config_rule_name:
                             remediation = self.security_hub.s3_bucket_public_write_prohibited(config_rule_resource_id)
                         else:
-                            self.logging.warning("No remediation available for Config Rule '%s' "
-                                                 "with payload '%s'." % (config_rule_name, config_message))
+                            self.logging.warning(
+                                f"No remediation available for Config Rule "
+                                f"'{config_rule_name}' with payload '{config_message}'.")
                     else:
                         # Custom Config Rules
-                        self.logging.warning("No remediation available for Config Rule '%s' "
-                                             "with payload '%s'." % (config_rule_name, config_message))
+                        self.logging.warning(
+                            f"No remediation available for Config Rule "
+                            f"'{config_rule_name}' with payload '{config_message}'.")
                 else:
-                    self.logging.info("Config Rule '%s' was not remediated "
-                                      "based on user preferences." % config_rule_name)
+                    self.logging.info(f"Config Rule '{config_rule_name}' was not remediated based on user preferences.")
             else:
-                self.logging.info("Resource '%s' is complaint "
-                                  "for Config Rule '%s'." % (config_rule_resource_id, config_rule_name))
+                self.logging.info(
+                    f"Resource '{config_rule_resource_id}' is compliant for Config Rule '{config_rule_name}'.")
             
             # if remediation was not successful, send message to DLQ
             if not remediation:
@@ -84,7 +88,7 @@ class Remediate:
                 record_json = dynamodb_json.loads(record, True)
                 settings[record_json.get('key')] = record_json.get('value')
         except:
-            self.logging.error("Could not read DynamoDB table '%s'." % os.environ['SETTINGSTABLE'])
+            self.logging.error(f"Could not read DynamoDB table '{os.environ['SETTINGSTABLE']}'.")
             self.logging.error(sys.exc_info()[1])
         
         return settings
@@ -109,13 +113,13 @@ class Remediate:
                         }
                     )
                 
-                self.logging.debug("Remediation failed. Payload has been sent to DLQ '%s'." % os.environ.get('DLQ'))
+                self.logging.debug(f"Remediation failed. Payload has been sent to DLQ '{os.environ.get('DLQ')}'.")
             except:
-                self.logging.error("Could not send payload to DLQ '%s'." % os.environ.get('DLQ'))
+                self.logging.error(f"Could not send payload to DLQ '{os.environ.get('DLQ')}'.")
                 self.logging.error(sys.exc_info()[1])
         else:
-            self.logging.warning("Could not remediate Config change within an "
-                                 "acceptable number of retries for payload '%s'." % message)
+            self.logging.warning(
+                f"Could not remediate Config change within an acceptable number of retries for payload '{message}'.")
 
     def get_queue_url(self):
         """
@@ -127,8 +131,7 @@ class Remediate:
             response = client.get_queue_url(QueueName=os.environ.get('DLQ'))
             return response.get('QueueUrl')
         except:
-            self.logging.error("Could not retrieve SQS Queue URL "
-                               "for SQS Queue '%s'." % os.environ.get('DLQ'))
+            self.logging.error(f"Could not retrieve SQS Queue URL for SQS Queue '{os.environ.get('DLQ')}'.")
             self.logging.error(sys.exc_info()[1])
     
     @staticmethod
