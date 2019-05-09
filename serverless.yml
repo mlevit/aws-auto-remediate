@@ -58,7 +58,9 @@ functions:
           - iam:UpdateAccountPasswordPolicy
           - rds:DescribeDBInstances
           - rds:ModifyDBInstance
+          - s3:CreateBucket
           - s3:PutBucketAcl
+          - s3:PutBucketLogging
           - sns:Publish
           - sqs:GetQueueUrl
           - sqs:SendMessage
