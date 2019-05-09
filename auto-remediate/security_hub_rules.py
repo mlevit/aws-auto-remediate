@@ -274,7 +274,7 @@ class SecurityHubRules:
                 client.delete_bucket(Bucket=log_bucket)
                 self.logging.info(f"Deleted S3 Bucket '{log_bucket}'.")
             except:
-                self.logging.error(f"Could not deleted S3 Bucket '{log_bucket}'.")
+                self.logging.error(f"Could not delete S3 Bucket '{log_bucket}'.")
             
             return False
         
@@ -302,7 +302,7 @@ class SecurityHubRules:
                 client.delete_bucket(Bucket=log_bucket)
                 self.logging.info(f"Deleted S3 Bucket '{log_bucket}'.")
             except:
-                self.logging.error(f"Could not deleted S3 Bucket '{log_bucket}'.")
+                self.logging.error(f"Could not delete S3 Bucket '{log_bucket}'.")
                 
             return False
     
@@ -352,7 +352,7 @@ class SecurityHubRules:
                 s3_client.delete_bucket(Bucket=log_bucket)
                 self.logging.info(f"Deleted S3 Bucket '{log_bucket}'.")
             except:
-                self.logging.error(f"Could not deleted S3 Bucket '{log_bucket}'.")
+                self.logging.error(f"Could not delete S3 Bucket '{log_bucket}'.")
 
             return False
         
@@ -378,7 +378,7 @@ class SecurityHubRules:
                 s3_client.delete_bucket(Bucket=log_bucket)
                 self.logging.info(f"Deleted S3 Bucket '{log_bucket}'.")
             except:
-                self.logging.error(f"Could not deleted S3 Bucket '{log_bucket}'.")
+                self.logging.error(f"Could not delete S3 Bucket '{log_bucket}'.")
 
             return False
     
