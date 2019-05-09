@@ -49,6 +49,7 @@ functions:
         Action:
           - dynamodb:GetItem
           - dynamodb:Scan
+          - ec2:CreateFlowLogs
           - ec2:RevokeSecurityGroupIngress
           - iam:DeleteAccessKey
           - iam:DeleteLoginProfile

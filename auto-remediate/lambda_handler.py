@@ -27,10 +27,31 @@ class Remediate:
         self.config = ConfigRules(self.logging)
         self.security_hub = SecurityHubRules(self.logging)
         self.custom = CustomRules(self.logging)
+        
+        # remediation function dict
+        self.remediation_functions = {
+            # config
+            'auto-remediate-rds-instance-public-access-check': self.config.rds_instance_public_access_check,
+            # security hub
+            'securityhub-iam-password-policy-ensure-expires': self.security_hub.iam_password_policy,
+            'securityhub-iam-password-policy-lowercase-letter-check': self.security_hub.iam_password_policy,
+            'securityhub-iam-password-policy-minimum-length-check': self.security_hub.iam_password_policy,
+            'securityhub-iam-password-policy-number-check': self.security_hub.iam_password_policy,
+            'securityhub-iam-password-policy-prevent-reuse-check': self.security_hub.iam_password_policy,
+            'securityhub-iam-password-policy-symbol-check': self.security_hub.iam_password_policy,
+            'securityhub-iam-password-policy-uppercase-letter-check': self.security_hub.iam_password_policy,
+            'securityhub-iam-user-unused-credentials-check': self.security_hub.iam_user_unused_credentials_check,
+            'securityhub-restricted-rdp': self.security_hub.restricted_rdp,
+            'securityhub-restricted-ssh': self.security_hub.restricted_ssh,
+            'securityhub-s3-bucket-public-read-prohibited': self.security_hub.s3_bucket_public_read_prohibited,
+            'securityhub-s3-bucket-public-write-prohibited': self.security_hub.s3_bucket_public_write_prohibited,
+            'securityhub-s3-bucket-logging-enabled': self.security_hub.s3_bucket_logging_enabled,
+            'securityhub-vpc-flow-logs-enabled': self.security_hub.vpc_flow_logs_enabled
+            # custom
+        }
     
     def remediate(self):
         for record in self.event.get('Records'):
-            remediation = True
             try_count = record.get('messageAttributes', {}).get('try_count', {}).get('stringValue', '0')
             config_message = json.loads(record.get('body'))
             config_rule_name = Remediate.get_config_rule_name(config_message)
@@ -39,36 +60,12 @@ class Remediate:
             
             if config_rule_compliance == 'NON_COMPLIANT':
                 if self.intend_to_remediate(config_rule_name):
-                    if 'auto-remediate' in config_rule_name:
-                        # AWS Config Managed Rules
-                        if 'rds-instance-public-access-check' in config_rule_name:
-                            remediation = self.config.rds_instance_public_access_check(config_rule_resource_id)
-                        else:
-                            self.logging.warning(
-                                f"No remediation available for Config Rule "
-                                f"'{config_rule_name}' with payload '{config_message}'.")
-                    elif 'securityhub' in config_rule_name:
-                        # AWS Security Hub Rules
-                        if 'iam-password-policy' in config_rule_name:
-                            remediation = self.security_hub.iam_password_policy(config_rule_resource_id)
-                        elif 'iam-user-unused-credentials-check' in config_rule_name:
-                            remediation = self.security_hub.iam_user_unused_credentials_check(config_rule_resource_id)
-                        elif 'restricted-rdp' in config_rule_name:
-                            remediation = self.security_hub.restricted_rdp(config_rule_resource_id)
-                        elif 'restricted-ssh' in config_rule_name:
-                            remediation = self.security_hub.restricted_ssh(config_rule_resource_id)
-                        elif 's3-bucket-public-read-prohibited' in config_rule_name:
-                            remediation = self.security_hub.s3_bucket_public_read_prohibited(config_rule_resource_id)
-                        elif 's3-bucket-public-write-prohibited' in config_rule_name:
-                            remediation = self.security_hub.s3_bucket_public_write_prohibited(config_rule_resource_id)
-                        elif 's3-bucket-logging-enabled' in config_rule_name:
-                            remediation = self.security_hub.s3_bucket_logging_enabled(config_rule_resource_id)
-                        else:
-                            self.logging.warning(
-                                f"No remediation available for Config Rule "
-                                f"'{config_rule_name}' with payload '{config_message}'.")
+                    remediation_function = self.remediation_functions.get(config_rule_name, None)
+                    
+                    if remediation_function is not None:
+                        if not remediation_function(config_rule_resource_id):
+                            self.send_to_dlq(config_message, try_count)
                     else:
-                        # Custom Config Rules
                         self.logging.warning(
                             f"No remediation available for Config Rule "
                             f"'{config_rule_name}' with payload '{config_message}'.")
@@ -77,10 +74,6 @@ class Remediate:
             else:
                 self.logging.info(
                     f"Resource '{config_rule_resource_id}' is compliant for Config Rule '{config_rule_name}'.")
-            
-            # if remediation was not successful, send message to DLQ
-            if not remediation:
-                self.send_to_dlq(config_message, try_count)  
 
     def intend_to_remediate(self, config_rule_name):
         return self.settings.get('rules').get(config_rule_name, {}).get('remediate', True)

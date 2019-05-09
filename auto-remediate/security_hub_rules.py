@@ -67,25 +67,23 @@ class SecurityHubRules:
         client = boto3.client('iam')
         
         try:
-            response = client.list_users()
+            paginator = client.get_paginator('list_users').paginate()
         except:
-            self.logging.error("Could not list all IAM users.")
+            self.logging.error("Could not get a paginator to list all IAM users.")
             self.logging.error(sys.exc_info()[1])
             return False
         
-        for user in response.get('Users'):
-            if resource_id == user.get('UserId'):
-                user_name = user.get('UserName')
-                
-                # check password usage
-                try:
-                    login_profile = client.get_login_profile(UserName=user_name)
-                    login_profile_date = login_profile.get('LoginProfile').get('CreateDate')
-                except:
-                    self.logging.error(f"Could not retrieve IAM Login Profile for User '{user_name}'.")
-                    self.logging.error(sys.exc_info()[1])
-                    return False
-                
+        for user_name in paginator.search(f"Users[?UserId == '{resource_id}'].UserName"):
+            # check password usage
+            try:
+                login_profile = client.get_login_profile(UserName=user_name)
+            except client.exceptions.NoSuchEntityException:
+                self.logging.debug(f"IAM User '{user_name}' does not have a Login Profile to delete.")
+            except:
+                self.logging.error(f"Could not retrieve IAM Login Profile for User '{user_name}'.")
+                self.logging.error(sys.exc_info()[1])
+            else:
+                login_profile_date = login_profile.get('LoginProfile').get('CreateDate')
                 if SecurityHubRules.get_day_delta(login_profile_date) > 90:
                     try:
                         client.delete_login_profile(UserName=user_name)
@@ -94,31 +92,32 @@ class SecurityHubRules:
                         self.logging.error(f"Could not delete IAM Login Profile for User '{user_name}'.")
                         self.logging.error(sys.exc_info()[1])
                         return False
+            
+            # check access keys usage
+            try:
+                list_access_keys = client.list_access_keys(UserName=user_name)
+            except:
+                self.logging.error(f"Could not list IAM Access Keys for User '{user_name}'.")
+                self.logging.error(sys.exc_info()[1])
+                return False
+            
+            for access_key in list_access_keys.get('AccessKeyMetadata'):
+                access_key_id = access_key.get('AccessKeyId')
+                access_key_date = access_key.get('CreateDate')
+                access_key_status = access_key.get('Status')
                 
-                # check access keys usage
-                try:
-                    list_access_keys = client.list_access_keys(UserName=user_name)
-                except:
-                    self.logging.error(f"Could not list IAM Access Keys for User '{user_name}'.")
-                    self.logging.error(sys.exc_info()[1])
-                    return False
-                
-                for access_key in list_access_keys.get('AccessKeyMetadata'):
-                    access_key_id = access_key.get('AccessKeyId')
-                    access_key_date = access_key.get('CreateDate')
-                    access_key_status = access_key.get('Status')
-                    
-                    if access_key_status == 'Active':
-                        if SecurityHubRules.get_day_delta(access_key_date) > 90:
-                            try:
-                                client.delete_access_key(AccessKeyId=access_key_id)
-                                self.logging.info(f"Deleted IAM Access Key '{access_key_id}' for User '{user_name}'.")
-                            except:
-                                self.logging.error(f"Could not delete IAM Access Key for User '{user_name}'.")
-                                self.logging.error(sys.exc_info()[1])
-                                return False
-                
-                return True
+                if access_key_status == 'Active' and SecurityHubRules.get_day_delta(access_key_date) > 90:
+                    try:
+                        client.delete_access_key(
+                            UserName=user_name,
+                            AccessKeyId=access_key_id)
+                        self.logging.info(f"Deleted IAM Access Key '{access_key_id}' for User '{user_name}'.")
+                    except:
+                        self.logging.error(f"Could not delete IAM Access Key for User '{user_name}'.")
+                        self.logging.error(sys.exc_info()[1])
+                        return False
+            
+            return True
     
     def restricted_rdp(self, resource_id):
         """
@@ -271,7 +270,7 @@ class SecurityHubRules:
                 client.delete_bucket(Bucket=log_bucket)
                 self.logging.info(f"Deleted S3 Bucket '{log_bucket}'.")
             except:
-                self.logging.error(f"Could not deleted S3 Bucket '{log_bucket}'.")
+                self.logging.error(f"Could not delete S3 Bucket '{log_bucket}'.")
             
             return False
         
@@ -299,8 +298,84 @@ class SecurityHubRules:
                 client.delete_bucket(Bucket=log_bucket)
                 self.logging.info(f"Deleted S3 Bucket '{log_bucket}'.")
             except:
-                self.logging.error(f"Could not deleted S3 Bucket '{log_bucket}'.")
+                self.logging.error(f"Could not delete S3 Bucket '{log_bucket}'.")
                 
+            return False
+    
+    def vpc_flow_logs_enabled(self, resource_id):
+        """
+        Enables VPC Flow Logs to an S3 Bucket.
+        """
+        s3_client = boto3.client('s3')
+        ec2_client = boto3.client('ec2')
+        log_bucket = f'{resource_id}-flow-logs'
+
+        # create new Bucket for logs
+        try:
+            s3_client.create_bucket(
+                ACL='log-delivery-write',
+                Bucket=log_bucket,
+                CreateBucketConfiguration={'LocationConstraint': s3_client.meta.region_name})
+
+            self.logging.info(f"Created new S3 Bucket '{log_bucket}' "
+                              f"for storing server access logs for S3 Bucket '{resource_id}'.")
+        except:
+            self.logging.error(f"Could not create new S3 Bucket '{log_bucket}' "
+                               f"for storing server access logs for S3 Bucket '{resource_id}'.")
+            self.logging.error(sys.exc_info()[1])
+            return False
+
+        # add log Bucket logging (into itself)
+        try:
+            s3_client.put_bucket_logging(
+                Bucket=log_bucket,
+                BucketLoggingStatus={
+                    'LoggingEnabled': {
+                        'TargetBucket': log_bucket,
+                        'TargetPrefix': 'self/'
+                    }
+                }
+            )
+            
+            self.logging.info(f"Server access logging enabled for "
+                              f"S3 Bucket '{log_bucket}' to S3 Bucket '{log_bucket}'.")
+        except:
+            self.logging.error(f"Could not enable server access logging enabled for "
+                               f"S3 Bucket '{log_bucket}' to S3 Bucket '{log_bucket}'.")
+            self.logging.error(sys.exc_info()[1])
+
+            try:
+                s3_client.delete_bucket(Bucket=log_bucket)
+                self.logging.info(f"Deleted S3 Bucket '{log_bucket}'.")
+            except:
+                self.logging.error(f"Could not delete S3 Bucket '{log_bucket}'.")
+
+            return False
+        
+        # add VPC flow logs
+        try:
+            ec2_client.create_flow_logs(
+                ResourceIds=[resource_id],
+                ResourceType='VPC',
+                TrafficType='REJECT',
+                LogDestinationType='s3',
+                LogDestination=f'arn:aws:s3:::{log_bucket}'
+            )
+            
+            self.logging.info(f"VPC Flow Logs have been enabled for "
+                              f"VPC '{resource_id}' to S3 Bucket '{log_bucket}'.")
+            return True
+        except:
+            self.logging.error(f"Could not enable VPC Flow Logs for "
+                               f"VPC '{resource_id}' to S3 Bucket '{log_bucket}'.")
+            self.logging.error(sys.exc_info()[1])
+
+            try:
+                s3_client.delete_bucket(Bucket=log_bucket)
+                self.logging.info(f"Deleted S3 Bucket '{log_bucket}'.")
+            except:
+                self.logging.error(f"Could not delete S3 Bucket '{log_bucket}'.")
+
             return False
     
     @staticmethod
