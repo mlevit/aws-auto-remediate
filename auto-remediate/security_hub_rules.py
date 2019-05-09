@@ -82,19 +82,22 @@ class SecurityHubRules:
                     try:
                         login_profile = client.get_login_profile(UserName=user_name)
                         login_profile_date = login_profile.get('LoginProfile').get('CreateDate')
+                        
+                        if SecurityHubRules.get_day_delta(login_profile_date) > 90:
+                            try:
+                                client.delete_login_profile(UserName=user_name)
+                                self.logging.info(f"Deleted IAM Login Profile for User '{user_name}'.")
+                            except:
+                                self.logging.error(f"Could not delete IAM Login Profile for User '{user_name}'.")
+                                self.logging.error(sys.exc_info()[1])
+                                return False
                     except:
-                        self.logging.error(f"Could not retrieve IAM Login Profile for User '{user_name}'.")
-                        self.logging.error(sys.exc_info()[1])
-                        return False
-                    
-                    if SecurityHubRules.get_day_delta(login_profile_date) > 90:
-                        try:
-                            client.delete_login_profile(UserName=user_name)
-                            self.logging.info(f"Deleted IAM Login Profile for User '{user_name}'.")
-                        except:
-                            self.logging.error(f"Could not delete IAM Login Profile for User '{user_name}'.")
+                        if 'cannot be found' in sys.exc_info()[1]:
+                            self.logging.warning(f"IAM User '{user_name}' does not have a Login Profile.")
+                            self.logging.warning(sys.exc_info()[1])
+                        else:
+                            self.logging.error(f"Could not retrieve IAM Login Profile for User '{user_name}'.")
                             self.logging.error(sys.exc_info()[1])
-                            return False
                     
                     # check access keys usage
                     try:
@@ -112,7 +115,9 @@ class SecurityHubRules:
                         if access_key_status == 'Active':
                             if SecurityHubRules.get_day_delta(access_key_date) > 90:
                                 try:
-                                    client.delete_access_key(AccessKeyId=access_key_id)
+                                    client.delete_access_key(
+                                        UserName=user_name,
+                                        AccessKeyId=access_key_id)
                                     self.logging.info(f"Deleted IAM Access Key '{access_key_id}' for User '{user_name}'.")
                                 except:
                                     self.logging.error(f"Could not delete IAM Access Key for User '{user_name}'.")
