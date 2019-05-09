@@ -53,11 +53,10 @@ class Remediate:
     
     def remediate(self):
         for record in self.event.get('Records'):
-            try_count = record.get('messageAttributes', {}).get('try_count', {}).get('stringValue', '0')
-            config_message = json.loads(record.get('body'))
-            config_rule_name = Remediate.get_config_rule_name(config_message)
-            config_rule_compliance = Remediate.get_config_rule_compliance(config_message)
-            config_rule_resource_id = Remediate.get_config_rule_resource_id(config_message)
+            config_payload = json.loads(record.get('body'))
+            config_rule_name = Remediate.get_config_rule_name(config_payload)
+            config_rule_compliance = Remediate.get_config_rule_compliance(config_payload)
+            config_rule_resource_id = Remediate.get_config_rule_resource_id(config_payload)
             
             if config_rule_compliance == 'NON_COMPLIANT':
                 if self.intend_to_remediate(config_rule_name):
@@ -65,11 +64,11 @@ class Remediate:
                     
                     if remediation_function is not None:
                         if not remediation_function(config_rule_resource_id):
-                            self.send_to_dlq(config_message, try_count)
+                            self.send_to_dlq(config_payload, Remediate.get_try_count(record))
                     else:
                         self.logging.warning(
                             f"No remediation available for Config Rule "
-                            f"'{config_rule_name}' with payload '{config_message}'.")
+                            f"'{config_rule_name}' with payload '{config_payload}'.")
                 else:
                     self.logging.info(f"Config Rule '{config_rule_name}' was not remediated based on user preferences.")
             else:
@@ -91,9 +90,9 @@ class Remediate:
         
         return settings
     
-    def send_to_dlq(self, message, try_count):
+    def send_to_dlq(self, config_payload, try_count):
         """
-        Sends a message to the DLQ
+        Sends the AWS Config payload to the DLQ.
         """
         client = boto3.client('sqs')
         
@@ -102,7 +101,7 @@ class Remediate:
             try:
                 client.send_message(
                     QueueUrl=self.get_queue_url(),
-                    MessageBody=json.dumps(message),
+                    MessageBody=json.dumps(config_payload),
                     MessageAttributes={
                         'try_count': {
                             'StringValue': str(try_count),
@@ -117,7 +116,7 @@ class Remediate:
                 self.logging.error(sys.exc_info()[1])
         else:
             self.logging.warning(
-                f"Could not remediate Config change within an acceptable number of retries for payload '{message}'.")
+                f"Could not remediate Config change within an acceptable number of retries for payload '{config_payload}'.")
 
     def get_queue_url(self):
         """
@@ -133,8 +132,8 @@ class Remediate:
             self.logging.error(sys.exc_info()[1])
     
     @staticmethod
-    def get_config_rule_name(record):
-        config_rule_name = record.get('detail').get('configRuleName')
+    def get_config_rule_name(config_payload):
+        config_rule_name = config_payload.get('detail').get('configRuleName')
         if 'securityhub' in config_rule_name:
             # remove random alphanumeric string suffixed to each
             # Security Hub rule
@@ -143,12 +142,16 @@ class Remediate:
             return config_rule_name
     
     @staticmethod
-    def get_config_rule_compliance(record):
-        return record.get('detail').get('newEvaluationResult').get('complianceType')
+    def get_config_rule_compliance(config_payload):
+        return config_payload.get('detail').get('newEvaluationResult').get('complianceType')
 
     @staticmethod
-    def get_config_rule_resource_id(record):
-        return record.get('detail').get('resourceId')
+    def get_config_rule_resource_id(config_payload):
+        return config_payload.get('detail').get('resourceId')
+
+    @staticmethod
+    def get_try_count(record):
+        return record.get('messageAttributes', {}).get('try_count', {}).get('stringValue', '0')
 
 
 def lambda_handler(event, context):
@@ -158,7 +161,7 @@ def lambda_handler(event, context):
         for handler in loggger.handlers:
             loggger.removeHandler(handler)
     
-    # change logging levels for boto and others
+    # change logging levels for boto and others to prevent log spamming
     logging.getLogger('boto3').setLevel(logging.ERROR)
     logging.getLogger('botocore').setLevel(logging.ERROR)
     logging.getLogger('urllib3').setLevel(logging.ERROR)
