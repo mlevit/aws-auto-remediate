@@ -239,7 +239,7 @@ class SecurityHubRules:
             s3_client.create_bucket(
                 ACL='log-delivery-write',
                 Bucket=log_bucket,
-                CreateBucketConfiguration={'LocationConstraint': client.meta.region_name})
+                CreateBucketConfiguration={'LocationConstraint': s3_client.meta.region_name})
 
             self.logging.info(f"Created new S3 Bucket '{log_bucket}' "
                               f"for storing server access logs for S3 Bucket '{resource_id}'.")
