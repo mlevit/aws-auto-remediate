@@ -10,8 +10,6 @@ Open source application to instantly remediate common security issues through th
 
 - [About](#about)
 - [Setup](#setup)
-  - [Deployment](#deployment)
-  - [Removal](#removal)
 - [AWS Resources](#aws-resources)
 - [Config Rules](#config-rules)
 
@@ -33,9 +31,19 @@ The Auto Remediate Setup function is triggered manually by the user. The purpose
 
 ## Setup
 
+### New Account
+
+Proceed to the [Deployment](#deployment) section below.
+
+### Existing Account
+
+Auto Remediate utilises the compliance event triggers made by AWS Config. Due to the fact that AWS Config will trigger a compliance event **only** when the compliance status of a resource changes state (i.e., COMPLIANT to NON_COMPLIANT or vice versa) it is advised that you **disabled** the `CIS AWS Foundations` compliance standards within AWS Security Hub (and ensure all AWS Config rules starting with `securityhub` are removed from your account) before proceeding.
+
+Once AWS Config is cleared of all AWS Security Hub related rules, you may proceed to deploy Auto Remediate and enable the `CIS AWS Foundations` compliance standards within AWS Security Hub.
+
 ### Deployment
 
-To deploy this Auto Remediate to your AWS account, follow the below steps:
+To deploy Auto Remediate to your AWS account, follow the below steps:
 
 01. Install Serverless
 
@@ -141,7 +149,7 @@ The tables below detail the auto remediated rules and scenarios.
 | :----------------------------------------------------------- |
 | [rds-instance-public-access-check](https://docs.aws.amazon.com/config/latest/developerguide/rds-instance-public-access-check.html)<br />Check whether the Amazon Relational Database Service instances are not publicly accessible. The rule is NON_COMPLIANT if the `publiclyAccessible` field is true in the instance configuration item. |
 
-### Security Hub
+### AWS Security Hub Rules
 
 #### Compute
 
