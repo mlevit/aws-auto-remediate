@@ -133,7 +133,13 @@ class Remediate:
     
     @staticmethod
     def get_config_rule_name(record):
-        return record.get('detail').get('configRuleName')
+        config_rule_name = record.get('detail').get('configRuleName')
+        if 'securityhub' in config_rule_name:
+            # remove random alphanumeric string suffixed to each
+            # Security Hub rule
+            return config_rule_name[:config_rule_name.rfind('-')]
+        else:
+            return config_rule_name
     
     @staticmethod
     def get_config_rule_compliance(record):
