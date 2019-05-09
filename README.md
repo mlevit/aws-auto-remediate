@@ -91,13 +91,13 @@ npm install serverless-iam-roles-per-function
 serverless deploy
 ```
 
-10. Invoke Auto Remediate Setup Config for the first time to create the necessary AWS Config rules
+10. Invoke Auto Remediate Setup Config for the first time to create the necessary AWS Config rules and Settings
 
 ```bash
 serverless invoke -f AutoRemediateSetup
 ```
 
-11. Check Auto Remediate logs
+11. Check Auto Remediate Setup logs
 
 ```bash
 serverless logs -f AutoRemediateSetup
