@@ -27,6 +27,21 @@ class Remediate:
         self.config = ConfigRules(self.logging)
         self.security_hub = SecurityHubRules(self.logging)
         self.custom = CustomRules(self.logging)
+        
+        # remediation function dict
+        self.remediation_functions = {
+            # config
+            'auto-remediate-rds-instance-public-access-check': self.config.rds_instance_public_access_check,
+            # security hub
+            'securityhub-iam-password-policy': self.security_hub.iam_password_policy,
+            'securityhub-iam-user-unused-credentials-check': self.security_hub.iam_user_unused_credentials_check,
+            'securityhub-restricted-rdp': self.security_hub.restricted_rdp,
+            'securityhub-restricted-ssh': self.security_hub.restricted_ssh,
+            'securityhub-s3-bucket-public-read-prohibited': self.security_hub.s3_bucket_public_read_prohibited,
+            'securityhub-s3-bucket-public-write-prohibited': self.security_hub.s3_bucket_public_write_prohibited,
+            'securityhub-vpc-flow-logs-enabled': self.security_hub.vpc_flow_logs_enabled
+            # custom
+        }
     
     def remediate(self):
         for record in self.event.get('Records'):
@@ -39,36 +54,11 @@ class Remediate:
             
             if config_rule_compliance == 'NON_COMPLIANT':
                 if self.intend_to_remediate(config_rule_name):
-                    if 'auto-remediate' in config_rule_name:
-                        # AWS Config Managed Rules
-                        if 'rds-instance-public-access-check' in config_rule_name:
-                            remediation = self.config.rds_instance_public_access_check(config_rule_resource_id)
-                        else:
-                            self.logging.warning(
-                                f"No remediation available for Config Rule "
-                                f"'{config_rule_name}' with payload '{config_message}'.")
-                    elif 'securityhub' in config_rule_name:
-                        # AWS Security Hub Rules
-                        if 'iam-password-policy' in config_rule_name:
-                            remediation = self.security_hub.iam_password_policy(config_rule_resource_id)
-                        elif 'iam-user-unused-credentials-check' in config_rule_name:
-                            remediation = self.security_hub.iam_user_unused_credentials_check(config_rule_resource_id)
-                        elif 'restricted-rdp' in config_rule_name:
-                            remediation = self.security_hub.restricted_rdp(config_rule_resource_id)
-                        elif 'restricted-ssh' in config_rule_name:
-                            remediation = self.security_hub.restricted_ssh(config_rule_resource_id)
-                        elif 's3-bucket-public-read-prohibited' in config_rule_name:
-                            remediation = self.security_hub.s3_bucket_public_read_prohibited(config_rule_resource_id)
-                        elif 's3-bucket-public-write-prohibited' in config_rule_name:
-                            remediation = self.security_hub.s3_bucket_public_write_prohibited(config_rule_resource_id)
-                        elif 'vpc-flow-logs-enabled' in config_rule_name:
-                            remediation = self.security_hub.vpc_flow_logs_enabled(config_rule_resource_id)
-                        else:
-                            self.logging.warning(
-                                f"No remediation available for Config Rule "
-                                f"'{config_rule_name}' with payload '{config_message}'.")
+                    remediation_function = self.remediation_functions.get(config_rule_name, None)
+                    
+                    if remediation_function is not None:
+                        remediation = remediation_function(config_rule_resource_id)
                     else:
-                        # Custom Config Rules
                         self.logging.warning(
                             f"No remediation available for Config Rule "
                             f"'{config_rule_name}' with payload '{config_message}'.")
