@@ -208,7 +208,7 @@ class SecurityHubRules:
             self.logging.info(f"ACL set to 'private' for S3 Bucket '{resource_id}'.")
             return True
         except:
-            self.logging.info(f"Could not set ACL set to 'private' for S3 Bucket '{resource_id}'.")
+            self.logging.error(f"Could not set ACL set to 'private' for S3 Bucket '{resource_id}'.")
             self.logging.error(sys.exc_info()[1])
             return False
     
@@ -226,8 +226,85 @@ class SecurityHubRules:
             self.logging.info(f"ACL set to 'private' for S3 Bucket '{resource_id}'.")
             return True
         except:
-            self.logging.info(f"Could not set ACL set to 'private' for S3 Bucket '{resource_id}'.")
+            self.logging.error(f"Could not set ACL set to 'private' for S3 Bucket '{resource_id}'.")
             self.logging.error(sys.exc_info()[1])
+            return False
+    
+    def s3_bucket_logging_enabled(self, resource_id):
+        """
+        Enables server access logging for an S3 Bucket.
+        """
+        client = boto3.client('s3')
+        log_bucket = f'{resource_id}-access-logs'
+        
+        # create new Bucket for logs
+        try:
+            client.create_bucket(
+                ACL='log-delivery-write', # see https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl
+                Bucket=log_bucket,
+                CreateBucketConfiguration={'LocationConstraint': client.meta.region_name})
+            
+            self.logging.info(f"Created new S3 Bucket '{log_bucket}' "
+                              f"for storing server access logs for S3 Bucket '{resource_id}'.")
+        except:
+            self.logging.error(f"Could not create new S3 Bucket '{log_bucket}' "
+                               f"for storing server access logs for S3 Bucket '{resource_id}'.")
+            self.logging.error(sys.exc_info()[1])
+            return False
+        
+        # add log Bucket logging (into itself)
+        try:
+            client.put_bucket_logging(
+                Bucket=log_bucket,
+                BucketLoggingStatus={
+                    'LoggingEnabled': {
+                        'TargetBucket': log_bucket,
+                        'TargetPrefix': 'self/'
+                    }
+                }
+            )
+            
+            self.logging.info(f"Server access logging enabled for "
+                              f"S3 Bucket '{log_bucket}' to S3 Bucket '{log_bucket}'.")
+        except:
+            self.logging.error(f"Could not enable server access logging enabled for "
+                               f"S3 Bucket '{log_bucket}' to S3 Bucket '{log_bucket}'.")
+            self.logging.error(sys.exc_info()[1])
+            
+            try:
+                client.delete_bucket(Bucket=log_bucket)
+                self.logging.info(f"Deleted S3 Bucket '{log_bucket}'.")
+            except:
+                self.logging.error(f"Could not deleted S3 Bucket '{log_bucket}'.")
+            
+            return False
+        
+        # add original Bucket logging into the log Bucket
+        try:
+            client.put_bucket_logging(
+                Bucket=resource_id,
+                BucketLoggingStatus={
+                    'LoggingEnabled': {
+                        'TargetBucket': log_bucket,
+                        'TargetPrefix': ''
+                    }
+                }
+            )
+            
+            self.logging.info(f"Server access logging enabled for "
+                              f"S3 Bucket '{resource_id}' to S3 Bucket '{log_bucket}'.")
+            return True
+        except:
+            self.logging.error(f"Could not enable server access logging enabled for "
+                               f"S3 Bucket '{resource_id}' to S3 Bucket '{log_bucket}'.")
+            self.logging.error(sys.exc_info()[1])
+            
+            try:
+                client.delete_bucket(Bucket=log_bucket)
+                self.logging.info(f"Deleted S3 Bucket '{log_bucket}'.")
+            except:
+                self.logging.error(f"Could not deleted S3 Bucket '{log_bucket}'.")
+                
             return False
     
     def vpc_flow_logs_enabled(self, resource_id):

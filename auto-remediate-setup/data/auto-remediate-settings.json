@@ -125,6 +125,13 @@
               "BOOL": true
             }
           }
+        },
+        "securityhub-s3-bucket-logging-enabled": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            }
+          }
         }
       }
     }

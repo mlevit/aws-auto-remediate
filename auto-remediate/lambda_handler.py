@@ -39,6 +39,7 @@ class Remediate:
             'securityhub-restricted-ssh': self.security_hub.restricted_ssh,
             'securityhub-s3-bucket-public-read-prohibited': self.security_hub.s3_bucket_public_read_prohibited,
             'securityhub-s3-bucket-public-write-prohibited': self.security_hub.s3_bucket_public_write_prohibited,
+            'securityhub-s3-bucket-logging-enabled': self.security_hub.s3_bucket_logging_enabled,
             'securityhub-vpc-flow-logs-enabled': self.security_hub.vpc_flow_logs_enabled
             # custom
         }

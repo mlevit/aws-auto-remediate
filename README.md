@@ -169,5 +169,6 @@ The tables below detail the auto remediated rules and scenarios.
 
 | Rule                                                         |
 | :----------------------------------------------------------- |
+| **securityhub-s3-bucket-logging-enabled**<br />Checks whether logging is enabled for your S3 buckets.<br /><br />⚠️ **WARNING:** The remediation process will create a new S3 Bucket with the format: `<bucket_name>-access-logs`. |
 | **securityhub-s3-bucket-public-read-prohibited**<br />Checks to see if S3 buckets are publicly readable. |
 | **securityhub-s3-bucket-public-write-prohibited**<br />Checks to see if S3 buckets allow public write. |
