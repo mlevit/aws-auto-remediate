@@ -74,50 +74,50 @@ class SecurityHubRules:
             return False
         
         for user_name in paginator.search(f"Users[?UserId == '{resource_id}'].UserName"):
-                # check password usage
-                try:
-                    login_profile = client.get_login_profile(UserName=user_name)
-                except client.exceptions.NoSuchEntityException:
-                    self.logging.debug(f"IAM User '{user_name}' does not have a Login Profile to delete.")
-                except:
-                    self.logging.error(f"Could not retrieve IAM Login Profile for User '{user_name}'.")
-                    self.logging.error(sys.exc_info()[1])
-                else:
-                    login_profile_date = login_profile.get('LoginProfile').get('CreateDate')
-                    if SecurityHubRules.get_day_delta(login_profile_date) > 90:
-                        try:
-                            client.delete_login_profile(UserName=user_name)
-                            self.logging.info(f"Deleted IAM Login Profile for User '{user_name}'.")
-                        except:
-                            self.logging.error(f"Could not delete IAM Login Profile for User '{user_name}'.")
-                            self.logging.error(sys.exc_info()[1])
-                            return False
+            # check password usage
+            try:
+                login_profile = client.get_login_profile(UserName=user_name)
+            except client.exceptions.NoSuchEntityException:
+                self.logging.debug(f"IAM User '{user_name}' does not have a Login Profile to delete.")
+            except:
+                self.logging.error(f"Could not retrieve IAM Login Profile for User '{user_name}'.")
+                self.logging.error(sys.exc_info()[1])
+            else:
+                login_profile_date = login_profile.get('LoginProfile').get('CreateDate')
+                if SecurityHubRules.get_day_delta(login_profile_date) > 90:
+                    try:
+                        client.delete_login_profile(UserName=user_name)
+                        self.logging.info(f"Deleted IAM Login Profile for User '{user_name}'.")
+                    except:
+                        self.logging.error(f"Could not delete IAM Login Profile for User '{user_name}'.")
+                        self.logging.error(sys.exc_info()[1])
+                        return False
+            
+            # check access keys usage
+            try:
+                list_access_keys = client.list_access_keys(UserName=user_name)
+            except:
+                self.logging.error(f"Could not list IAM Access Keys for User '{user_name}'.")
+                self.logging.error(sys.exc_info()[1])
+                return False
+            
+            for access_key in list_access_keys.get('AccessKeyMetadata'):
+                access_key_id = access_key.get('AccessKeyId')
+                access_key_date = access_key.get('CreateDate')
+                access_key_status = access_key.get('Status')
                 
-                # check access keys usage
-                try:
-                    list_access_keys = client.list_access_keys(UserName=user_name)
-                except:
-                    self.logging.error(f"Could not list IAM Access Keys for User '{user_name}'.")
-                    self.logging.error(sys.exc_info()[1])
-                    return False
-                
-                for access_key in list_access_keys.get('AccessKeyMetadata'):
-                    access_key_id = access_key.get('AccessKeyId')
-                    access_key_date = access_key.get('CreateDate')
-                    access_key_status = access_key.get('Status')
-                    
-                    if access_key_status == 'Active' and SecurityHubRules.get_day_delta(access_key_date) > 90:
-                        try:
-                            client.delete_access_key(
-                                UserName=user_name,
-                                AccessKeyId=access_key_id)
-                            self.logging.info(f"Deleted IAM Access Key '{access_key_id}' for User '{user_name}'.")
-                        except:
-                            self.logging.error(f"Could not delete IAM Access Key for User '{user_name}'.")
-                            self.logging.error(sys.exc_info()[1])
-                            return False
-                
-                return True
+                if access_key_status == 'Active' and SecurityHubRules.get_day_delta(access_key_date) > 90:
+                    try:
+                        client.delete_access_key(
+                            UserName=user_name,
+                            AccessKeyId=access_key_id)
+                        self.logging.info(f"Deleted IAM Access Key '{access_key_id}' for User '{user_name}'.")
+                    except:
+                        self.logging.error(f"Could not delete IAM Access Key for User '{user_name}'.")
+                        self.logging.error(sys.exc_info()[1])
+                        return False
+            
+            return True
     
     def restricted_rdp(self, resource_id):
         """
