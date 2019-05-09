@@ -10,6 +10,7 @@ Open source application to instantly remediate common security issues through th
 
 - [About](#about)
 - [Setup](#setup)
+- [Settings](#settings)
 - [AWS Resources](#aws-resources)
 - [Config Rules](#config-rules)
 
@@ -91,7 +92,7 @@ npm install serverless-iam-roles-per-function
 serverless deploy
 ```
 
-10. Invoke Auto Remediate Setup Config for the first time to create the necessary AWS Config rules and Settings
+10. Invoke Auto Remediate Setup for the first time to create the necessary AWS Config rules and Settings
 
 ```bash
 serverless invoke -f AutoRemediateSetup
@@ -120,6 +121,12 @@ cd aws-auto-remediate
 ```bash
 serverless remove
 ```
+
+## Settings
+
+Auto Remediate uses a DynamoDB settings table `auto-remediate-settings` that allows the user to control which rule should be remediated by the tool. Once Auto Remediate Setup has been run, head on over to DynamoDB and inspect the `rules` key where you can then set the `remediate` key to `false` if you'd like to disable automatic remediate.
+
+For rules deployed by Auto Remediate Setup `auto-remediate-rds-instance-public-access-check` an extra key `deploy` can be found in the settings table. Although not functional at the moment, this will allow users to control which Auto Remediate deployed rules should be deployed and which should be skipped.
 
 ## AWS Resources
 
