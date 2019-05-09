@@ -52,7 +52,6 @@ class Remediate:
     
     def remediate(self):
         for record in self.event.get('Records'):
-            remediation = True
             try_count = record.get('messageAttributes', {}).get('try_count', {}).get('stringValue', '0')
             config_message = json.loads(record.get('body'))
             config_rule_name = Remediate.get_config_rule_name(config_message)
@@ -64,7 +63,8 @@ class Remediate:
                     remediation_function = self.remediation_functions.get(config_rule_name, None)
                     
                     if remediation_function is not None:
-                        remediation = remediation_function(config_rule_resource_id)
+                        if not remediation_function(config_rule_resource_id):
+                            self.send_to_dlq(config_message, try_count)
                     else:
                         self.logging.warning(
                             f"No remediation available for Config Rule "
@@ -74,10 +74,6 @@ class Remediate:
             else:
                 self.logging.info(
                     f"Resource '{config_rule_resource_id}' is compliant for Config Rule '{config_rule_name}'.")
-            
-            # if remediation was not successful, send message to DLQ
-            if not remediation:
-                self.send_to_dlq(config_message, try_count)  
 
     def intend_to_remediate(self, config_rule_name):
         return self.settings.get('rules').get(config_rule_name, {}).get('remediate', True)
