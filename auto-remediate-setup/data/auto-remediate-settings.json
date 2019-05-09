@@ -132,6 +132,13 @@
               "BOOL": true
             }
           }
+        },
+        "securityhub-vpc-flow-logs-enabled": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            }
+          }
         }
       }
     }
