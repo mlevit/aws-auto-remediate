@@ -81,8 +81,13 @@ class SecurityHubRules:
                     # check password usage
                     try:
                         login_profile = client.get_login_profile(UserName=user_name)
+                    except client.exceptions.NoSuchEntityException:
+                        self.logging.debug(f"IAM User '{user_name}' does not have a Login Profile to delete.")
+                    except:
+                        self.logging.error(f"Could not retrieve IAM Login Profile for User '{user_name}'.")
+                        self.logging.error(sys.exc_info()[1])
+                    else:
                         login_profile_date = login_profile.get('LoginProfile').get('CreateDate')
-                        
                         if SecurityHubRules.get_day_delta(login_profile_date) > 90:
                             try:
                                 client.delete_login_profile(UserName=user_name)
@@ -91,13 +96,6 @@ class SecurityHubRules:
                                 self.logging.error(f"Could not delete IAM Login Profile for User '{user_name}'.")
                                 self.logging.error(sys.exc_info()[1])
                                 return False
-                    except:
-                        if 'cannot be found' in sys.exc_info()[1]:
-                            self.logging.warning(f"IAM User '{user_name}' does not have a Login Profile.")
-                            self.logging.warning(sys.exc_info()[1])
-                        else:
-                            self.logging.error(f"Could not retrieve IAM Login Profile for User '{user_name}'.")
-                            self.logging.error(sys.exc_info()[1])
                     
                     # check access keys usage
                     try:
