@@ -33,7 +33,13 @@ class Remediate:
             # config
             'auto-remediate-rds-instance-public-access-check': self.config.rds_instance_public_access_check,
             # security hub
-            'securityhub-iam-password-policy': self.security_hub.iam_password_policy,
+            'securityhub-iam-password-policy-ensure-expires': self.security_hub.iam_password_policy,
+            'securityhub-iam-password-policy-lowercase-letter-check': self.security_hub.iam_password_policy,
+            'securityhub-iam-password-policy-minimum-length-check': self.security_hub.iam_password_policy,
+            'securityhub-iam-password-policy-number-check': self.security_hub.iam_password_policy,
+            'securityhub-iam-password-policy-prevent-reuse-check': self.security_hub.iam_password_policy,
+            'securityhub-iam-password-policy-symbol-check': self.security_hub.iam_password_policy,
+            'securityhub-iam-password-policy-uppercase-letter-check': self.security_hub.iam_password_policy,
             'securityhub-iam-user-unused-credentials-check': self.security_hub.iam_user_unused_credentials_check,
             'securityhub-restricted-rdp': self.security_hub.restricted_rdp,
             'securityhub-restricted-ssh': self.security_hub.restricted_ssh,
