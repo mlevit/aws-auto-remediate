@@ -42,6 +42,13 @@
             }
           }
         },
+        "securityhub-cmk-backing-key-rotation-enabled": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            }
+          }
+        },
         "securityhub-iam-password-policy-ensure-expires": {
           "M": {
             "remediate": {

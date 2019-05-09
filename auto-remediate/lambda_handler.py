@@ -33,6 +33,7 @@ class Remediate:
             # config
             'auto-remediate-rds-instance-public-access-check': self.config.rds_instance_public_access_check,
             # security hub
+            'securityhub-cmk-backing-key-rotation-enabled': self.security_hub.cmk_backing_key_rotation_enabled,
             'securityhub-iam-password-policy-ensure-expires': self.security_hub.iam_password_policy,
             'securityhub-iam-password-policy-lowercase-letter-check': self.security_hub.iam_password_policy,
             'securityhub-iam-password-policy-minimum-length-check': self.security_hub.iam_password_policy,
@@ -133,7 +134,13 @@ class Remediate:
     
     @staticmethod
     def get_config_rule_name(record):
-        return record.get('detail').get('configRuleName')
+        config_rule_name = record.get('detail').get('configRuleName')
+        if 'securityhub' in config_rule_name:
+            # remove random alphanumeric string suffixed to each
+            # Security Hub rule
+            return config_rule_name[:config_rule_name.rfind('-')]
+        else:
+            return config_rule_name
     
     @staticmethod
     def get_config_rule_compliance(record):

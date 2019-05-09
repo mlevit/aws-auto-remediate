@@ -161,6 +161,7 @@ The tables below detail the auto remediated rules and scenarios.
 | Rule                                                         |
 | :----------------------------------------------------------- |
 | **securityhub-access-keys-rotated** (NOT IMPLEMENTED)<br />Checks whether the active access keys are rotated within the number of days specified in 90 days. |
+| **securityhub-cmk-backing-key-rotation-enabled**<br />Checks that key rotation is enabled for customer created customer master key (CMK). |
 | **securityhub-iam-password-policy-ensure-expires**<br /> Checks whether the IAM password policy ensures that passwords expire. |
 | **securityhub-iam-password-policy-lowercase-letter-check**<br /> Checks whether the IAM password policy enforces the inclusion of a lowercase letter. |
 | **securityhub-iam-password-policy-minimum-length-check**<br /> Checks whether the IAM password policy enforces a minimum length. |

@@ -57,6 +57,7 @@ functions:
           - iam:ListAccessKeys
           - iam:ListUsers
           - iam:UpdateAccountPasswordPolicy
+          - kms:EnableKeyRotation
           - rds:DescribeDBInstances
           - rds:ModifyDBInstance
           - s3:CreateBucket
