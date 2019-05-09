@@ -226,6 +226,82 @@ class SecurityHubRules:
             self.logging.error(sys.exc_info()[1])
             return False
     
+    def vpc_flow_logs_enabled(self, resource_id):
+        """
+        Enables VPC Flow Logs to an S3 Bucket.
+        """
+        s3_client = boto3.client('s3')
+        ec2_client = boto3.client('ec2')
+        log_bucket = f'{resource_id}-flow-logs'
+
+        # create new Bucket for logs
+        try:
+            s3_client.create_bucket(
+                ACL='log-delivery-write',
+                Bucket=log_bucket,
+                CreateBucketConfiguration={'LocationConstraint': client.meta.region_name})
+
+            self.logging.info(f"Created new S3 Bucket '{log_bucket}' "
+                              f"for storing server access logs for S3 Bucket '{resource_id}'.")
+        except:
+            self.logging.error(f"Could not create new S3 Bucket '{log_bucket}' "
+                               f"for storing server access logs for S3 Bucket '{resource_id}'.")
+            self.logging.error(sys.exc_info()[1])
+            return False
+
+        # add log Bucket logging (into itself)
+        try:
+            s3_client.put_bucket_logging(
+                Bucket=log_bucket,
+                BucketLoggingStatus={
+                    'LoggingEnabled': {
+                        'TargetBucket': log_bucket,
+                        'TargetPrefix': 'self/'
+                    }
+                }
+            )
+            
+            self.logging.info(f"Server access logging enabled for "
+                              f"S3 Bucket '{log_bucket}' to S3 Bucket '{log_bucket}'.")
+        except:
+            self.logging.error(f"Could not enable server access logging enabled for "
+                               f"S3 Bucket '{log_bucket}' to S3 Bucket '{log_bucket}'.")
+            self.logging.error(sys.exc_info()[1])
+
+            try:
+                s3_client.delete_bucket(Bucket=log_bucket)
+                self.logging.info(f"Deleted S3 Bucket '{log_bucket}'.")
+            except:
+                self.logging.error(f"Could not deleted S3 Bucket '{log_bucket}'.")
+
+            return False
+        
+        # add VPC flow logs
+        try:
+            ec2_client.create_flow_logs(
+                ResourceIds=[resource_id],
+                ResourceType='VPC',
+                TrafficType='REJECT',
+                LogDestinationType='s3',
+                LogDestination=f'arn:aws:s3:::{log_bucket}'
+            )
+            
+            self.logging.info(f"VPC Flow Logs have been enabled for "
+                              f"VPC '{resource_id}' to S3 Bucket '{log_bucket}'.")
+            return True
+        except:
+            self.logging.error(f"Could not enable VPC Flow Logs for "
+                               f"VPC '{resource_id}' to S3 Bucket '{log_bucket}'.")
+            self.logging.error(sys.exc_info()[1])
+
+            try:
+                s3_client.delete_bucket(Bucket=log_bucket)
+                self.logging.info(f"Deleted S3 Bucket '{log_bucket}'.")
+            except:
+                self.logging.error(f"Could not deleted S3 Bucket '{log_bucket}'.")
+
+            return False
+    
     @staticmethod
     def convert_to_datetime(date):
         return dateutil.parser.isoparse(str(date)).replace(tzinfo=None)
