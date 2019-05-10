@@ -139,7 +139,8 @@ class Remediate:
                 self.logging.error(sys.exc_info()[1])
         else:
             self.logging.warning(
-                f"Could not remediate Config change within an acceptable number of retries for payload '{config_payload}'."
+                f"Could not remediate Config change within an "
+                f"acceptable number of retries for payload '{config_payload}'."
             )
 
     def get_queue_url(self):
