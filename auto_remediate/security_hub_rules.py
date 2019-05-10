@@ -1,7 +1,8 @@
-import boto3
 import datetime
-import dateutil.parser
 import sys
+
+import boto3
+import dateutil.parser
 
 
 class SecurityHubRules:
@@ -15,7 +16,7 @@ class SecurityHubRules:
         # TODO Access Keys Rotated rule needs testing
         # client = boto3.client('iam')
         # resource_id = None
-        
+
         # try:
         #     client.delete_access_key(AccessKeyId=resource_id)
 
@@ -26,7 +27,7 @@ class SecurityHubRules:
         #     self.logging.error(sys.exc_info()[1])
         #     return False
         pass
-    
+
     def iam_password_policy(self, resource_id):
         """
         Applies a sensible IAM password policy, as per CIS AWS Foundations Standard Checks Supported in Security Hub
@@ -38,7 +39,7 @@ class SecurityHubRules:
         1.10 - Ensure IAM password policy prevents password reuse
         1.11 - Ensure IAM password policy expires passwords within 90 days or less
         """
-        client = boto3.client('iam')
+        client = boto3.client("iam")
 
         # TODO: better exception handling
         try:
@@ -51,89 +52,116 @@ class SecurityHubRules:
                 AllowUsersToChangePassword=True,
                 MaxPasswordAge=90,  # days
                 PasswordReusePrevention=24,  # last 24 passwords
-                HardExpiry=False
+                HardExpiry=False,
             )
-            self.logging.info("Updated IAM password policy with CIS AWS Foundations requirements.")
+            self.logging.info(
+                "Updated IAM password policy with CIS AWS Foundations requirements."
+            )
             return True
         except:
-            self.logging.error(f"Could not update IAM password policy for {resource_id}.")
+            self.logging.error(
+                f"Could not update IAM password policy for {resource_id}."
+            )
             self.logging.error(sys.exc_info()[1])
             return False
-    
+
     def cmk_backing_key_rotation_enabled(self, resource_id):
         """
         Enables key rotation for customer created customer master key (CMK).
         """
-        client = boto3.client('kms')
-        
+        client = boto3.client("kms")
+
         try:
             client.enable_key_rotation(KeyId=resource_id)
-            self.logging.info(f"Enabled key rotation for Customer Managed Key '{resource_id}'.")
+            self.logging.info(
+                f"Enabled key rotation for Customer Managed Key '{resource_id}'."
+            )
             return True
         except:
-            self.logging.error(f"Could not enable key rotation for Customer Managed Key '{resource_id}'.")
+            self.logging.error(
+                f"Could not enable key rotation for Customer Managed Key '{resource_id}'."
+            )
             self.logging.error(sys.exc_info()[1])
             return False
-    
+
     def iam_user_unused_credentials_check(self, resource_id):
         """
         Deletes unused Access Keys and Login Profiles.
         """
-        client = boto3.client('iam')
-        
+        client = boto3.client("iam")
+
         try:
-            paginator = client.get_paginator('list_users').paginate()
+            paginator = client.get_paginator("list_users").paginate()
         except:
             self.logging.error("Could not get a paginator to list all IAM users.")
             self.logging.error(sys.exc_info()[1])
             return False
-        
-        for user_name in paginator.search(f"Users[?UserId == '{resource_id}'].UserName"):
+
+        for user_name in paginator.search(
+            f"Users[?UserId == '{resource_id}'].UserName"
+        ):
             # check password usage
             try:
                 login_profile = client.get_login_profile(UserName=user_name)
             except client.exceptions.NoSuchEntityException:
-                self.logging.debug(f"IAM User '{user_name}' does not have a Login Profile to delete.")
+                self.logging.debug(
+                    f"IAM User '{user_name}' does not have a Login Profile to delete."
+                )
             except:
-                self.logging.error(f"Could not retrieve IAM Login Profile for User '{user_name}'.")
+                self.logging.error(
+                    f"Could not retrieve IAM Login Profile for User '{user_name}'."
+                )
                 self.logging.error(sys.exc_info()[1])
             else:
-                login_profile_date = login_profile.get('LoginProfile').get('CreateDate')
+                login_profile_date = login_profile.get("LoginProfile").get("CreateDate")
                 if SecurityHubRules.get_day_delta(login_profile_date) > 90:
                     try:
                         client.delete_login_profile(UserName=user_name)
-                        self.logging.info(f"Deleted IAM Login Profile for User '{user_name}'.")
+                        self.logging.info(
+                            f"Deleted IAM Login Profile for User '{user_name}'."
+                        )
                     except:
-                        self.logging.error(f"Could not delete IAM Login Profile for User '{user_name}'.")
+                        self.logging.error(
+                            f"Could not delete IAM Login Profile for User '{user_name}'."
+                        )
                         self.logging.error(sys.exc_info()[1])
                         return False
-            
+
             # check access keys usage
             try:
                 list_access_keys = client.list_access_keys(UserName=user_name)
             except:
-                self.logging.error(f"Could not list IAM Access Keys for User '{user_name}'.")
+                self.logging.error(
+                    f"Could not list IAM Access Keys for User '{user_name}'."
+                )
                 self.logging.error(sys.exc_info()[1])
                 return False
-            
-            for access_key in list_access_keys.get('AccessKeyMetadata'):
-                access_key_id = access_key.get('AccessKeyId')
-                access_key_date = access_key.get('CreateDate')
-                access_key_status = access_key.get('Status')
-                
-                if access_key_status == 'Active' and SecurityHubRules.get_day_delta(access_key_date) > 90:
+
+            for access_key in list_access_keys.get("AccessKeyMetadata"):
+                access_key_id = access_key.get("AccessKeyId")
+                access_key_date = access_key.get("CreateDate")
+                access_key_status = access_key.get("Status")
+
+                if (
+                    access_key_status == "Active"
+                    and SecurityHubRules.get_day_delta(access_key_date) > 90
+                ):
                     try:
                         client.delete_access_key(
-                            UserName=user_name,
-                            AccessKeyId=access_key_id)
-                        self.logging.info(f"Deleted IAM Access Key '{access_key_id}' for User '{user_name}'.")
+                            UserName=user_name, AccessKeyId=access_key_id
+                        )
+                        self.logging.info(
+                            f"Deleted IAM Access Key '{access_key_id}' for User '{user_name}'."
+                        )
                     except:
-                        self.logging.error(f"Could not delete IAM Access Key for User '{user_name}'.")
+                        self.logging.error(
+                            f"Could not delete IAM Access Key for User '{user_name}'."
+                        )
                         self.logging.error(sys.exc_info()[1])
                         return False
-            
+
             return True
-    
+
     def restricted_rdp(self, resource_id):
         """
         Deletes inbound rules within Security Groups that match:
@@ -141,34 +169,38 @@ class SecurityHubRules:
             Port: 3389
             Source: 0.0.0.0/0 or ::/0
         """
-        client = boto3.client('ec2')
-        
+        client = boto3.client("ec2")
+
         try:
             client.revoke_security_group_ingress(
                 GroupId=resource_id,
                 IpPermissions=[
                     {
-                        'FromPort': 3389,
-                        'ToPort': 3389,
-                        'IpProtocol': 'tcp',
-                        'IpRanges': [{'CidrIp': '0.0.0.0/0'}]
+                        "FromPort": 3389,
+                        "ToPort": 3389,
+                        "IpProtocol": "tcp",
+                        "IpRanges": [{"CidrIp": "0.0.0.0/0"}],
                     },
                     {
-                        'FromPort': 3389,
-                        'ToPort': 3389,
-                        'IpProtocol': 'tcp',
-                        'Ipv6Ranges': [{'CidrIpv6': '::/0'}]
-                    }
-                ]
+                        "FromPort": 3389,
+                        "ToPort": 3389,
+                        "IpProtocol": "tcp",
+                        "Ipv6Ranges": [{"CidrIpv6": "::/0"}],
+                    },
+                ],
             )
 
-            self.logging.info(f"Revoked public port 3389 ingress rule for Security Group '{resource_id}'.")
+            self.logging.info(
+                f"Revoked public port 3389 ingress rule for Security Group '{resource_id}'."
+            )
             return True
         except:
-            self.logging.error(f"Could not revoke public port 3389 ingress rule for Security Group '{resource_id}'.")
+            self.logging.error(
+                f"Could not revoke public port 3389 ingress rule for Security Group '{resource_id}'."
+            )
             self.logging.error(sys.exc_info()[1])
             return False
-    
+
     def restricted_ssh(self, resource_id):
         """
         Deletes inbound rules within Security Groups that match:
@@ -176,167 +208,190 @@ class SecurityHubRules:
             Port: 22
             Source: 0.0.0.0/0 or ::/0
         """
-        client = boto3.client('ec2')
-        
+        client = boto3.client("ec2")
+
         try:
             client.revoke_security_group_ingress(
                 GroupId=resource_id,
                 IpPermissions=[
                     {
-                        'FromPort': 22,
-                        'ToPort': 22,
-                        'IpProtocol': 'tcp',
-                        'IpRanges': [{'CidrIp': '0.0.0.0/0'}]
+                        "FromPort": 22,
+                        "ToPort": 22,
+                        "IpProtocol": "tcp",
+                        "IpRanges": [{"CidrIp": "0.0.0.0/0"}],
                     },
                     {
-                        'FromPort': 22,
-                        'ToPort': 22,
-                        'IpProtocol': 'tcp',
-                        'Ipv6Ranges': [{'CidrIpv6': '::/0'}]
-                    }
-                ]
+                        "FromPort": 22,
+                        "ToPort": 22,
+                        "IpProtocol": "tcp",
+                        "Ipv6Ranges": [{"CidrIpv6": "::/0"}],
+                    },
+                ],
             )
 
-            self.logging.info(f"Revoked public port 22 ingress rule for Security Group '{resource_id}'.")
+            self.logging.info(
+                f"Revoked public port 22 ingress rule for Security Group '{resource_id}'."
+            )
             return True
         except:
-            self.logging.error(f"Could not revoke public port 22 ingress rule for Security Group '{resource_id}'.")
+            self.logging.error(
+                f"Could not revoke public port 22 ingress rule for Security Group '{resource_id}'."
+            )
             self.logging.error(sys.exc_info()[1])
             return False
-    
+
     def s3_bucket_public_read_prohibited(self, resource_id):
         """
         Sets the S3 Bucket ACL to private to prevent public read.
         """
-        client = boto3.client('s3')
-        
+        client = boto3.client("s3")
+
         try:
-            client.put_bucket_acl(
-                ACL='private',
-                Bucket=resource_id)
+            client.put_bucket_acl(ACL="private", Bucket=resource_id)
 
             self.logging.info(f"ACL set to 'private' for S3 Bucket '{resource_id}'.")
             return True
         except:
-            self.logging.error(f"Could not set ACL set to 'private' for S3 Bucket '{resource_id}'.")
+            self.logging.error(
+                f"Could not set ACL set to 'private' for S3 Bucket '{resource_id}'."
+            )
             self.logging.error(sys.exc_info()[1])
             return False
-    
+
     def s3_bucket_public_write_prohibited(self, resource_id):
         """
         Sets the S3 Bucket ACL to private to prevent public write.
         """
-        client = boto3.client('s3')
-        
+        client = boto3.client("s3")
+
         try:
-            client.put_bucket_acl(
-                ACL='private',
-                Bucket=resource_id)
+            client.put_bucket_acl(ACL="private", Bucket=resource_id)
 
             self.logging.info(f"ACL set to 'private' for S3 Bucket '{resource_id}'.")
             return True
         except:
-            self.logging.error(f"Could not set ACL set to 'private' for S3 Bucket '{resource_id}'.")
+            self.logging.error(
+                f"Could not set ACL set to 'private' for S3 Bucket '{resource_id}'."
+            )
             self.logging.error(sys.exc_info()[1])
             return False
-    
+
     def s3_bucket_logging_enabled(self, resource_id):
         """
         Enables server access logging for an S3 Bucket.
         """
-        client = boto3.client('s3')
-        log_bucket = f'{resource_id}-access-logs'
-        
+        client = boto3.client("s3")
+        log_bucket = f"{resource_id}-access-logs"
+
         # create new Bucket for logs
         try:
             client.create_bucket(
-                ACL='log-delivery-write', # see https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl
+                ACL="log-delivery-write",  # see https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl
                 Bucket=log_bucket,
-                CreateBucketConfiguration={'LocationConstraint': client.meta.region_name})
-            
-            self.logging.info(f"Created new S3 Bucket '{log_bucket}' "
-                              f"for storing server access logs for S3 Bucket '{resource_id}'.")
+                CreateBucketConfiguration={
+                    "LocationConstraint": client.meta.region_name
+                },
+            )
+
+            self.logging.info(
+                f"Created new S3 Bucket '{log_bucket}' "
+                f"for storing server access logs for S3 Bucket '{resource_id}'."
+            )
         except:
-            self.logging.error(f"Could not create new S3 Bucket '{log_bucket}' "
-                               f"for storing server access logs for S3 Bucket '{resource_id}'.")
+            self.logging.error(
+                f"Could not create new S3 Bucket '{log_bucket}' "
+                f"for storing server access logs for S3 Bucket '{resource_id}'."
+            )
             self.logging.error(sys.exc_info()[1])
             return False
-        
+
         # add log Bucket logging (into itself)
         try:
             client.put_bucket_logging(
                 Bucket=log_bucket,
                 BucketLoggingStatus={
-                    'LoggingEnabled': {
-                        'TargetBucket': log_bucket,
-                        'TargetPrefix': 'self/'
+                    "LoggingEnabled": {
+                        "TargetBucket": log_bucket,
+                        "TargetPrefix": "self/",
                     }
-                }
+                },
             )
-            
-            self.logging.info(f"Server access logging enabled for "
-                              f"S3 Bucket '{log_bucket}' to S3 Bucket '{log_bucket}'.")
+
+            self.logging.info(
+                f"Server access logging enabled for "
+                f"S3 Bucket '{log_bucket}' to S3 Bucket '{log_bucket}'."
+            )
         except:
-            self.logging.error(f"Could not enable server access logging enabled for "
-                               f"S3 Bucket '{log_bucket}' to S3 Bucket '{log_bucket}'.")
+            self.logging.error(
+                f"Could not enable server access logging enabled for "
+                f"S3 Bucket '{log_bucket}' to S3 Bucket '{log_bucket}'."
+            )
             self.logging.error(sys.exc_info()[1])
-            
+
             try:
                 client.delete_bucket(Bucket=log_bucket)
                 self.logging.info(f"Deleted S3 Bucket '{log_bucket}'.")
             except:
                 self.logging.error(f"Could not delete S3 Bucket '{log_bucket}'.")
-            
+
             return False
-        
+
         # add original Bucket logging into the log Bucket
         try:
             client.put_bucket_logging(
                 Bucket=resource_id,
                 BucketLoggingStatus={
-                    'LoggingEnabled': {
-                        'TargetBucket': log_bucket,
-                        'TargetPrefix': ''
-                    }
-                }
+                    "LoggingEnabled": {"TargetBucket": log_bucket, "TargetPrefix": ""}
+                },
             )
-            
-            self.logging.info(f"Server access logging enabled for "
-                              f"S3 Bucket '{resource_id}' to S3 Bucket '{log_bucket}'.")
+
+            self.logging.info(
+                f"Server access logging enabled for "
+                f"S3 Bucket '{resource_id}' to S3 Bucket '{log_bucket}'."
+            )
             return True
         except:
-            self.logging.error(f"Could not enable server access logging enabled for "
-                               f"S3 Bucket '{resource_id}' to S3 Bucket '{log_bucket}'.")
+            self.logging.error(
+                f"Could not enable server access logging enabled for "
+                f"S3 Bucket '{resource_id}' to S3 Bucket '{log_bucket}'."
+            )
             self.logging.error(sys.exc_info()[1])
-            
+
             try:
                 client.delete_bucket(Bucket=log_bucket)
                 self.logging.info(f"Deleted S3 Bucket '{log_bucket}'.")
             except:
                 self.logging.error(f"Could not delete S3 Bucket '{log_bucket}'.")
-                
+
             return False
-    
+
     def vpc_flow_logs_enabled(self, resource_id):
         """
         Enables VPC Flow Logs to an S3 Bucket.
         """
-        s3_client = boto3.client('s3')
-        ec2_client = boto3.client('ec2')
-        log_bucket = f'{resource_id}-flow-logs'
+        s3_client = boto3.client("s3")
+        ec2_client = boto3.client("ec2")
+        log_bucket = f"{resource_id}-flow-logs"
 
         # create new Bucket for logs
         try:
             s3_client.create_bucket(
-                ACL='log-delivery-write',
+                ACL="log-delivery-write",
                 Bucket=log_bucket,
-                CreateBucketConfiguration={'LocationConstraint': s3_client.meta.region_name})
+                CreateBucketConfiguration={
+                    "LocationConstraint": s3_client.meta.region_name
+                },
+            )
 
-            self.logging.info(f"Created new S3 Bucket '{log_bucket}' "
-                              f"for storing server access logs for S3 Bucket '{resource_id}'.")
+            self.logging.info(
+                f"Created new S3 Bucket '{log_bucket}' "
+                f"for storing server access logs for S3 Bucket '{resource_id}'."
+            )
         except:
-            self.logging.error(f"Could not create new S3 Bucket '{log_bucket}' "
-                               f"for storing server access logs for S3 Bucket '{resource_id}'.")
+            self.logging.error(
+                f"Could not create new S3 Bucket '{log_bucket}' "
+                f"for storing server access logs for S3 Bucket '{resource_id}'."
+            )
             self.logging.error(sys.exc_info()[1])
             return False
 
@@ -345,18 +400,22 @@ class SecurityHubRules:
             s3_client.put_bucket_logging(
                 Bucket=log_bucket,
                 BucketLoggingStatus={
-                    'LoggingEnabled': {
-                        'TargetBucket': log_bucket,
-                        'TargetPrefix': 'self/'
+                    "LoggingEnabled": {
+                        "TargetBucket": log_bucket,
+                        "TargetPrefix": "self/",
                     }
-                }
+                },
             )
-            
-            self.logging.info(f"Server access logging enabled for "
-                              f"S3 Bucket '{log_bucket}' to S3 Bucket '{log_bucket}'.")
+
+            self.logging.info(
+                f"Server access logging enabled for "
+                f"S3 Bucket '{log_bucket}' to S3 Bucket '{log_bucket}'."
+            )
         except:
-            self.logging.error(f"Could not enable server access logging enabled for "
-                               f"S3 Bucket '{log_bucket}' to S3 Bucket '{log_bucket}'.")
+            self.logging.error(
+                f"Could not enable server access logging enabled for "
+                f"S3 Bucket '{log_bucket}' to S3 Bucket '{log_bucket}'."
+            )
             self.logging.error(sys.exc_info()[1])
 
             try:
@@ -366,23 +425,27 @@ class SecurityHubRules:
                 self.logging.error(f"Could not delete S3 Bucket '{log_bucket}'.")
 
             return False
-        
+
         # add VPC flow logs
         try:
             ec2_client.create_flow_logs(
                 ResourceIds=[resource_id],
-                ResourceType='VPC',
-                TrafficType='REJECT',
-                LogDestinationType='s3',
-                LogDestination=f'arn:aws:s3:::{log_bucket}'
+                ResourceType="VPC",
+                TrafficType="REJECT",
+                LogDestinationType="s3",
+                LogDestination=f"arn:aws:s3:::{log_bucket}",
             )
-            
-            self.logging.info(f"VPC Flow Logs have been enabled for "
-                              f"VPC '{resource_id}' to S3 Bucket '{log_bucket}'.")
+
+            self.logging.info(
+                f"VPC Flow Logs have been enabled for "
+                f"VPC '{resource_id}' to S3 Bucket '{log_bucket}'."
+            )
             return True
         except:
-            self.logging.error(f"Could not enable VPC Flow Logs for "
-                               f"VPC '{resource_id}' to S3 Bucket '{log_bucket}'.")
+            self.logging.error(
+                f"Could not enable VPC Flow Logs for "
+                f"VPC '{resource_id}' to S3 Bucket '{log_bucket}'."
+            )
             self.logging.error(sys.exc_info()[1])
 
             try:
@@ -392,18 +455,20 @@ class SecurityHubRules:
                 self.logging.error(f"Could not delete S3 Bucket '{log_bucket}'.")
 
             return False
-    
+
     @staticmethod
     def convert_to_datetime(date):
         return dateutil.parser.isoparse(str(date)).replace(tzinfo=None)
-    
+
     @staticmethod
     def get_day_delta(date):
         if date is not None:
-            from_datetime = SecurityHubRules.convert_to_datetime(datetime.datetime.now().isoformat())
+            from_datetime = SecurityHubRules.convert_to_datetime(
+                datetime.datetime.now().isoformat()
+            )
             to_datetime = SecurityHubRules.convert_to_datetime(date)
             delta = from_datetime - to_datetime
-            
+
             return delta.days
         else:
             return 0
