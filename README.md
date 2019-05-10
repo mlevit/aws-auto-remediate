@@ -1,6 +1,6 @@
 # AWS Auto Remediate
 
-![Pre-release](https://img.shields.io/github/release-pre/servian/aws-auto-remediate.svg?label=pre-release) ![Pre-release Date](https://img.shields.io/github/release-date-pre/servian/aws-auto-remediate.svg) ![Serverless](https://img.shields.io/github/package-json/dependency-version/servian/aws-auto-cleanup/serverless.svg) ![Language](https://img.shields.io/github/languages/top/servian/aws-auto-remediate.svg) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5bce55175d32494c89f0648b27719f43)](https://www.codacy.com/app/servian/aws-auto-remediate?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=servian/aws-auto-remediate&amp;utm_campaign=Badge_Grade)
+![Pre-release](https://img.shields.io/github/release-pre/servian/aws-auto-remediate.svg?label=pre-release) ![Pre-release Date](https://img.shields.io/github/release-date-pre/servian/aws-auto-remediate.svg) ![Serverless](https://img.shields.io/github/package-json/dependency-version/servian/aws-auto-cleanup/serverless.svg) ![Language](https://img.shields.io/github/languages/top/servian/aws-auto-remediate.svg) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5bce55175d32494c89f0648b27719f43)](https://www.codacy.com/app/servian/aws-auto-remediate?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=servian/aws-auto-remediate&amp;utm_campaign=Badge_Grade) [![Python Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 
 Open source application to instantly remediate common security issues through the use of AWS Config.
 
@@ -11,7 +11,7 @@ Open source application to instantly remediate common security issues through th
 - [About](#about)
 - [Setup](#setup)
 - [Settings](#settings)
-- [AWS Resources](#aws-resources)
+- [Resources](#resources)
 - [Config Rules](#config-rules)
 
 ## About
@@ -128,7 +128,7 @@ Auto Remediate uses a DynamoDB settings table `auto-remediate-settings` that all
 
 For rules deployed by Auto Remediate Setup `auto-remediate-rds-instance-public-access-check` an extra key `deploy` can be found in the settings table. Although not functional at the moment, this will allow users to control which Auto Remediate deployed rules should be deployed and which should be skipped.
 
-## AWS Resources
+## Resources
 
 The table below details all AWS resources created when deploying the application.
 
