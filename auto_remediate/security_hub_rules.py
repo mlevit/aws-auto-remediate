@@ -60,6 +60,21 @@ class SecurityHubRules:
             self.logging.error(sys.exc_info()[1])
             return False
     
+    def cmk_backing_key_rotation_enabled(self, resource_id):
+        """
+        Enables key rotation for customer created customer master key (CMK).
+        """
+        client = boto3.client('kms')
+        
+        try:
+            client.enable_key_rotation(KeyId=resource_id)
+            self.logging.info(f"Enabled key rotation for Customer Managed Key '{resource_id}'.")
+            return True
+        except:
+            self.logging.error(f"Could not enable key rotation for Customer Managed Key '{resource_id}'.")
+            self.logging.error(sys.exc_info()[1])
+            return False
+    
     def iam_user_unused_credentials_check(self, resource_id):
         """
         Deletes unused Access Keys and Login Profiles.

@@ -10,8 +10,7 @@ Open source application to instantly remediate common security issues through th
 
 - [About](#about)
 - [Setup](#setup)
-  - [Deployment](#deployment)
-  - [Removal](#removal)
+- [Settings](#settings)
 - [AWS Resources](#aws-resources)
 - [Config Rules](#config-rules)
 
@@ -33,9 +32,19 @@ The Auto Remediate Setup function is triggered manually by the user. The purpose
 
 ## Setup
 
+### New Account
+
+Proceed to the [Deployment](#deployment) section below.
+
+### Existing Account
+
+Auto Remediate utilises the compliance event triggers made by AWS Config. Due to the fact that AWS Config will trigger a compliance event **only** when the compliance status of a resource changes state (i.e., COMPLIANT to NON_COMPLIANT or vice versa) it is advised that you **disabled** the `CIS AWS Foundations` compliance standards within AWS Security Hub (and ensure all AWS Config rules starting with `securityhub` are removed from your account) before proceeding.
+
+Once AWS Config is cleared of all AWS Security Hub related rules, you may proceed to deploy Auto Remediate and enable the `CIS AWS Foundations` compliance standards within AWS Security Hub.
+
 ### Deployment
 
-To deploy this Auto Remediate to your AWS account, follow the below steps:
+To deploy Auto Remediate to your AWS account, follow the below steps:
 
 01. Install Serverless
 
@@ -83,13 +92,13 @@ npm install serverless-iam-roles-per-function
 serverless deploy
 ```
 
-10. Invoke Auto Remediate Setup Config for the first time to create the necessary AWS Config rules
+10. Invoke Auto Remediate Setup for the first time to create the necessary AWS Config rules and Settings
 
 ```bash
 serverless invoke -f AutoRemediateSetup
 ```
 
-11. Check Auto Remediate logs
+11. Check Auto Remediate Setup logs
 
 ```bash
 serverless logs -f AutoRemediateSetup
@@ -112,6 +121,12 @@ cd aws-auto-remediate
 ```bash
 serverless remove
 ```
+
+## Settings
+
+Auto Remediate uses a DynamoDB settings table `auto-remediate-settings` that allows the user to control which rule should be remediated by the tool. Once Auto Remediate Setup has been run, head on over to DynamoDB and inspect the `rules` key where you can then set the `remediate` key to `false` if you'd like to disable automatic remediate.
+
+For rules deployed by Auto Remediate Setup `auto-remediate-rds-instance-public-access-check` an extra key `deploy` can be found in the settings table. Although not functional at the moment, this will allow users to control which Auto Remediate deployed rules should be deployed and which should be skipped.
 
 ## AWS Resources
 
@@ -141,7 +156,7 @@ The tables below detail the auto remediated rules and scenarios.
 | :----------------------------------------------------------- |
 | [rds-instance-public-access-check](https://docs.aws.amazon.com/config/latest/developerguide/rds-instance-public-access-check.html)<br />Check whether the Amazon Relational Database Service instances are not publicly accessible. The rule is NON_COMPLIANT if the `publiclyAccessible` field is true in the instance configuration item. |
 
-### Security Hub
+### AWS Security Hub Rules
 
 #### Compute
 
@@ -161,6 +176,7 @@ The tables below detail the auto remediated rules and scenarios.
 | Rule                                                         |
 | :----------------------------------------------------------- |
 | **securityhub-access-keys-rotated** (NOT IMPLEMENTED)<br />Checks whether the active access keys are rotated within the number of days specified in 90 days. |
+| **securityhub-cmk-backing-key-rotation-enabled**<br />Checks that key rotation is enabled for customer created customer master key (CMK). |
 | **securityhub-iam-password-policy-ensure-expires**<br /> Checks whether the IAM password policy ensures that passwords expire. |
 | **securityhub-iam-password-policy-lowercase-letter-check**<br /> Checks whether the IAM password policy enforces the inclusion of a lowercase letter. |
 | **securityhub-iam-password-policy-minimum-length-check**<br /> Checks whether the IAM password policy enforces a minimum length. |

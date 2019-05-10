@@ -20,15 +20,15 @@ package:
 
 functions:
   AutoRemediate:
-    handler: auto-remediate.lambda_handler.lambda_handler
+    handler: auto_remediate.lambda_handler.lambda_handler
     name: auto-remediate-${self:provider.stage}
     description: Auto Remediate fixes common AWS security violations
     memorySize: 128
     timeout: 60
     package:
       exclude:
-        - auto-remediate-dlq/**
-        - auto-remediate-setup/**
+        - auto_remediate_dlq/**
+        - auto_remediate_setup/**
     environment:
       DLQ: auto-remediate-dlq-${self:provider.stage}
       LOGLEVEL: ${self:custom.log_level}
@@ -41,7 +41,7 @@ functions:
             - ${self:custom.region}
             - Ref: AWS::AccountId
             - auto-remediate-log-${self:provider.stage}
-      PYTHONPATH: "/var/task/auto-remediate:/var/task/dynamodb_json:/var/runtime"
+      PYTHONPATH: "/var/task/auto_remediate:/var/task/dynamodb_json:/var/runtime"
       RETRYCOUNT: 3
       SETTINGSTABLE: auto-remediate-settings-${self:provider.stage}
     iamRoleStatements:
@@ -57,6 +57,7 @@ functions:
           - iam:ListAccessKeys
           - iam:ListUsers
           - iam:UpdateAccountPasswordPolicy
+          - kms:EnableKeyRotation
           - rds:DescribeDBInstances
           - rds:ModifyDBInstance
           - s3:CreateBucket
@@ -74,20 +75,20 @@ functions:
               - Arn
           batchSize: 1
   AutoRemediateDLQ:
-    handler: auto-remediate-dlq.lambda_handler.lambda_handler
+    handler: auto_remediate_dlq.lambda_handler.lambda_handler
     name: auto-remediate-dlq-${self:provider.stage}
     description: Auto Remediate DLQ retries failed remediation attempts
     memorySize: 128
     timeout: 60
     package:
       exclude:
-        - auto-remediate/**
-        - auto-remediate-setup/**
+        - auto_remediate/**
+        - auto_remediate_setup/**
     environment:
       COMPLIANCEQUEUE: auto-remediate-config-compliance-${self:provider.stage}
       DLQ: auto-remediate-dlq-${self:provider.stage}
       LOGLEVEL: ${self:custom.log_level}
-      PYTHONPATH: "/var/task/auto-remediate-dlq:/var/runtime"
+      PYTHONPATH: "/var/task/auto_remediate_dlq:/var/runtime"
       REMEDIATEFUNCTION: auto-remediate-${self:provider.stage}
     iamRoleStatements:
       - Effect: Allow
@@ -102,18 +103,18 @@ functions:
           rate: rate(30 minutes)
           enabled: true
   AutoRemediateSetup:
-    handler: auto-remediate-setup.lambda_handler.lambda_handler
+    handler: auto_remediate_setup.lambda_handler.lambda_handler
     name: auto-remediate-setup-${self:provider.stage}
     description: Auto Remediate Setup creates CloudFormation Stacks for AWS Config
     memorySize: 128
     timeout: 60
     package:
       exclude:
-        - auto-remediate/**
-        - auto-remediate-dlq/**
+        - auto_remediate/**
+        - auto_remediate_dlq/**
     environment:
       LOGLEVEL: ${self:custom.log_level}
-      PYTHONPATH: "/var/task/auto-remediate-setup:/var/task/dynamodb_json:/var/runtime"
+      PYTHONPATH: "/var/task/auto_remediate_setup:/var/task/dynamodb_json:/var/runtime"
       SETTINGSTABLE: auto-remediate-settings-${self:provider.stage}
     iamRoleStatements:
       - Effect: Allow
