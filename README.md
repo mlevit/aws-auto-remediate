@@ -150,8 +150,8 @@ The tables below detail the auto remediated rules and scenarios.
 
 | Rule           | Description                                                  | Remediation                              |
 | -------------- | ------------------------------------------------------------ | ---------------------------------------- |
-| Restricted RDP | Checks whether the incoming RDP traffic is Allowed from 0.0.0.0/0. This rule is compliant when incoming RDP traffic is restricted. | :warning: Deletes offending inbound rule |
-| Restricted SSH | Checks whether the incoming SSH traffic for the security groups is accessible. The rule is compliant when the IP addresses of the incoming SSH traffic in the security groups are restricted. This rule applies only to IPv4. | :warning: Deletes offending inbound rule |
+| Restricted RDP | Checks whether the incoming RDP traffic is allowed from `0.0.0.0/0` or `::/0`. This rule is compliant when incoming RDP traffic is restricted. | :warning: Deletes offending inbound rule |
+| Restricted SSH | Checks whether the incoming SSH traffic is allowed from `0.0.0.0/0` or `::/0`. This rule is compliant when incoming SSH traffic is restricted. | :warning: Deletes offending inbound rule |
 
 #### Network and Content Delivery
 
