@@ -51,10 +51,14 @@ functions:
           - dynamodb:Scan
           - ec2:CreateFlowLogs
           - ec2:RevokeSecurityGroupIngress
+          - iam:CreatePolicyVersion
           - iam:DeleteAccessKey
           - iam:DeleteLoginProfile
           - iam:GetLoginProfile
+          - iam:GetPolicy
+          - iam:GetPolicyVersion
           - iam:ListAccessKeys
+          - iam:ListPolicies
           - iam:ListUsers
           - iam:UpdateAccountPasswordPolicy
           - kms:EnableKeyRotation

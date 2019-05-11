@@ -1,4 +1,5 @@
 import datetime
+import json
 import sys
 
 import boto3
@@ -27,6 +28,25 @@ class SecurityHubRules:
         #     self.logging.error(sys.exc_info()[1])
         #     return False
         pass
+
+    def cmk_backing_key_rotation_enabled(self, resource_id):
+        """
+        Enables key rotation for customer created customer master key (CMK).
+        """
+        client = boto3.client("kms")
+
+        try:
+            client.enable_key_rotation(KeyId=resource_id)
+            self.logging.info(
+                f"Enabled key rotation for Customer Managed Key '{resource_id}'."
+            )
+            return True
+        except:
+            self.logging.error(
+                f"Could not enable key rotation for Customer Managed Key '{resource_id}'."
+            )
+            self.logging.error(sys.exc_info()[1])
+            return False
 
     def iam_password_policy(self, resource_id):
         """
@@ -65,24 +85,73 @@ class SecurityHubRules:
             self.logging.error(sys.exc_info()[1])
             return False
 
-    def cmk_backing_key_rotation_enabled(self, resource_id):
+    def iam_policy_no_statements_with_admin_access(self, resource_id):
         """
-        Enables key rotation for customer created customer master key (CMK).
+        Removes statements that have "Effect": "Allow" with "Action": "*" over "Resource": "*".
         """
-        client = boto3.client("kms")
+        client = boto3.client("iam")
 
         try:
-            client.enable_key_rotation(KeyId=resource_id)
-            self.logging.info(
-                f"Enabled key rotation for Customer Managed Key '{resource_id}'."
-            )
-            return True
+            paginator = client.get_paginator("list_policies").paginate()
         except:
-            self.logging.error(
-                f"Could not enable key rotation for Customer Managed Key '{resource_id}'."
-            )
+            self.logging.error("Could not get a paginator to list all IAM Policies.")
             self.logging.error(sys.exc_info()[1])
             return False
+
+        for policy_arn in paginator.search(
+            f"Policies[?PolicyId == '{resource_id}'].Arn"
+        ):
+            # get policy
+            try:
+                response = client.get_policy(PolicyArn=policy_arn)
+            except:
+                self.logging.error(f"Could not get IAM Policy {policy_arn}.")
+                self.logging.error(sys.exc_info()[1])
+                return False
+
+            default_version = response.get("Policy").get("DefaultVersionId")
+
+            # get default policy
+            try:
+                response = client.get_policy_version(
+                    PolicyArn=policy_arn, VersionId=default_version
+                )
+            except:
+                self.logging.error(
+                    f"Could not get Policy Version for IAM Policy {policy_arn}."
+                )
+                self.logging.error(sys.exc_info()[1])
+                return False
+
+            # remove admin statements from policy
+            policy = response.get("PolicyVersion").get("Document")
+            for statement in policy.get("Statement"):
+                if (
+                    statement.get("Action") == "*"
+                    and statement.get("Effect") == "Allow"
+                    and statement.get("Resource") == "*"
+                ):
+                    policy.get("Statement").remove(statement)
+                    self.logging.info(
+                        f"Removed Statement '{statement}' from IAM Policy {policy_arn}."
+                    )
+
+            try:
+                client.create_policy_version(
+                    PolicyArn=policy_arn,
+                    PolicyDocument=json.dumps(policy),
+                    SetAsDefault=True,
+                )
+                self.logging.info(
+                    f"Created new Policy Version '{policy}' for IAM Policy '{policy_arn}'."
+                )
+            except:
+                self.logging.error(
+                    f"Could not create a new Policy Version '{policy}' for IAM Policy '{policy_arn}'."
+                )
+                self.logging.error(sys.exc_info()[1])
+                return False
+        return True
 
     def iam_user_unused_credentials_check(self, resource_id):
         """

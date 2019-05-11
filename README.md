@@ -134,51 +134,54 @@ For rules deployed by Auto Remediate Setup (e.g., `auto-remediate-rds-instance-p
 
 The tables below detail the auto remediated rules and scenarios.
 
+:warning: All remediations tagged with a warning symbol may break existing functionality.
+
 ### AWS Config Managed Rules
 
 #### Database
 
-| Rule                                                         |
-| :----------------------------------------------------------- |
-| [rds-instance-public-access-check](https://docs.aws.amazon.com/config/latest/developerguide/rds-instance-public-access-check.html)<br />Check whether the Amazon Relational Database Service instances are not publicly accessible. The rule is NON_COMPLIANT if the `publiclyAccessible` field is true in the instance configuration item. |
+| Rule                             | Description                                                  | Remediation                                          |
+| -------------------------------- | ------------------------------------------------------------ | ---------------------------------------------------- |
+| RDS Instance Public Access Check | Check whether the Amazon Relational Database Service instances are not publicly accessible.<br />The rule is NON_COMPLIANT if the `publiclyAccessible` field is true in the instance configuration item. | :warning: Sets `publiclyAccessible` field to `False` |
 
 ### AWS Security Hub Rules
 
 #### Compute
 
-| Rule                                                         |
-| :----------------------------------------------------------- |
-| **securityhub-restricted-rdp**<br />Checks whether the incoming RDP traffic is Allowed from 0.0.0.0/0. This rule is compliant when incoming RDP traffic is restricted. |
-| **securityhub-restricted-ssh**<br />Checks whether the incoming SSH traffic for the security groups is accessible. The rule is compliant when the IP addresses of the incoming SSH traffic in the security groups are restricted. This rule applies only to IPv4. |
+| Rule           | Description                                                  | Remediation                              |
+| -------------- | ------------------------------------------------------------ | ---------------------------------------- |
+| Restricted RDP | Checks whether the incoming RDP traffic is Allowed from 0.0.0.0/0. This rule is compliant when incoming RDP traffic is restricted. | :warning: Deletes offending inbound rule |
+| Restricted SSH | Checks whether the incoming SSH traffic for the security groups is accessible. The rule is compliant when the IP addresses of the incoming SSH traffic in the security groups are restricted. This rule applies only to IPv4. | :warning: Deletes offending inbound rule |
 
 #### Network and Content Delivery
 
-| Rule                                                         |
-| :----------------------------------------------------------- |
-| **securityhub-vpc-flow-logs-enabled**<br />Checks whether Amazon Virtual Private Cloud flow logs are found and enabled for Amazon VPC.<br /><br />:warning: **WARNING:** The remediation process will create a new S3 Bucket with the format: `<bucket_name>-flow-logs`. |
+| Rule                  | Description                                                  | Remediation                                                 |
+| --------------------- | ------------------------------------------------------------ | ----------------------------------------------------------- |
+| VPC Flow Logs Enables | Checks whether Amazon Virtual Private Cloud flow logs are found and enabled for Amazon VPC. | Creates new S3 Bucket `<bucket_name>-flow-logs` for logging |
 
 #### Security, Identity & Compliance
 
-| Rule                                                         |
-| :----------------------------------------------------------- |
-| **securityhub-access-keys-rotated** (NOT IMPLEMENTED)<br />Checks whether the active access keys are rotated within the number of days specified in 90 days. |
-| **securityhub-cmk-backing-key-rotation-enabled**<br />Checks that key rotation is enabled for customer created customer master key (CMK). |
-| **securityhub-iam-password-policy-ensure-expires**<br /> Checks whether the IAM password policy ensures that passwords expire. |
-| **securityhub-iam-password-policy-lowercase-letter-check**<br /> Checks whether the IAM password policy enforces the inclusion of a lowercase letter. |
-| **securityhub-iam-password-policy-minimum-length-check**<br /> Checks whether the IAM password policy enforces a minimum length. |
-| **securityhub-iam-password-policy-number-check**<br /> Checks whether the IAM password policy enforces the inclusion of a number . |
-| **securityhub-iam-password-policy-prevent-reuse-check**<br /> Checks whether the IAM password policy prevents password reuse. |
-| **securityhub-iam-password-policy-symbol-check**<br /> Checks whether the IAM password policy enforces the inclusion of a symbol. |
-| **securityhub-iam-password-policy-uppercase-letter-check**<br />Checks whether the account password policy for IAM users requires at least one uppercase character in password. |
-| **securityhub-iam-user-unused-credentials-check**<br />Checks whether AWS Identity and Access Management (IAM) users have passwords or active access keys that have not been used within 90 days.<br /><br />:warning: **WARNING:** Access/Secret Keys and Login Profiles for identified users will be deleted during the remedtion process. This could have unforeseen consequences for your users or service accounts. |
+| Rule                                       | Description                                                  | Remediation                                                  |
+| ------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Access Keys Rotated                        | Checks whether the active access keys are rotated within the number of days specified in 90 days. | :warning: Deletes Access Key                                 |
+| Customer Managed Key Rotation Enabled      | Checks that key rotation is enabled for customer created customer master key (CMK). | Enables key rotation                                         |
+| IAM Password Policy Ensure Expires         | Checks whether the IAM password policy ensures that passwords expire. | Enables password expiration                                  |
+| IAM Password Policy Lowercase Letter Check | Checks whether the IAM password policy enforces the inclusion of a lowercase letter. | Enables "Require at least one lowercase letter" option       |
+| IAM Password Policy Minimum Length Check   | Checks whether the IAM password policy enforces a minimum length. | Sets minimum password length to 14.                          |
+| IAM Password Policy Number Check           | Checks whether the IAM password policy enforces the inclusion of a number. | Enables "Require at least one number" option                 |
+| IAM Password Policy Prevent Reuse Check    | Checks whether the IAM password policy prevents password reuse. | Sets number of passwords to remember to 24.                  |
+| IAM Password Policy Symbol Check           | Checks whether the IAM password policy enforces the inclusion of a symbol. | Enables "Require at least one non-alphanumeric character" option |
+| IAM Password Policy Uppercase Letter Check | Checks whether the account password policy for IAM users requires at least one uppercase character in password. | Enables "Require at least one uppercase letter" option       |
+| IAM Policy No Statements with Admin Access | Checks whether the default version of AWS Identity and Access Management (IAM) policies do not have administrator access.<br />If any statement has `"Effect": "Allow"` with `"Action": "*"` over `"Resource": "*"`, the rule is NON_COMPLIANT. | :warning: Creates new Policy with offending Statements removed |
+| IAM User Unused Credentials Check          | Checks whether AWS Identity and Access Management (IAM) users have passwords or active access keys that have not been used within 90 days. | :warning: Deletes Access Key / Login Profile                 |
 
 #### Storage
 
-| Rule                                                         |
-| :----------------------------------------------------------- |
-| **securityhub-s3-bucket-logging-enabled**<br />Checks whether logging is enabled for your S3 buckets.<br /><br />⚠️ **WARNING:** The remediation process will create a new S3 Bucket with the format: `<bucket_name>-access-logs`. |
-| **securityhub-s3-bucket-public-read-prohibited**<br />Checks to see if S3 buckets are publicly readable. |
-| **securityhub-s3-bucket-public-write-prohibited**<br />Checks to see if S3 buckets allow public write. |
+| Rule                              | Description                                            | Remediation                                                  |
+| --------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------ |
+| S3 Bucket Logging Enabled         | Checks whether logging is enabled for your S3 buckets. | Creates new S3 Bucket `<bucket_name>-access-logs` for logging |
+| S3 Bucket Public Read Prohibited  | Checks to see if S3 buckets are publicly readable.     | :warning: Sets S3 Bucket ACL to `private`                    |
+| S3 Bucket Public Write Prohibited | Checks to see if S3 buckets allow public write.        | :warning: Sets S3 Bucket ACL to `private`                    |
 
 ## Resources
 
