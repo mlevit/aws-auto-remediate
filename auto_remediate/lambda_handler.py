@@ -90,11 +90,24 @@ class Remediate:
                 )
 
     def intend_to_remediate(self, config_rule_name):
+        """Returns whether an AWS Config Rule should be remediated based on user preferences.
+        
+        Arguments:
+            config_rule_name {string} -- AWS Config Rule name
+        
+        Returns:
+            boolean -- True | False
+        """
         return (
             self.settings.get("rules").get(config_rule_name, {}).get("remediate", True)
         )
 
     def get_settings(self):
+        """Return the DynamoDB aws-auto-remediate-settings table in a Python dict format
+        
+        Returns:
+            dict -- aws-auto-remediate-settings table
+        """
         settings = {}
         try:
             for record in boto3.client("dynamodb").scan(
@@ -111,8 +124,12 @@ class Remediate:
         return settings
 
     def send_to_dlq(self, config_payload, try_count):
-        """
-        Sends the AWS Config payload to the DLQ.
+        """Sends the AWS Config payload to an SQS Queue (DLQ) if after incrementing 
+        the "try_count" variable it is below the user defined "RETRYCOUNT" setting.
+        
+        Arguments:
+            config_payload {JSON} -- AWS Config payload
+            try_count {string} -- Number of previos remediation attemps for this AWS Config payload
         """
         client = boto3.client("sqs")
 
@@ -145,8 +162,10 @@ class Remediate:
             )
 
     def get_queue_url(self):
-        """
-        Retrieves the SQS Queue URL from the SQS Queue Name.
+        """Retrieves the SQS Queue URL from the SQS Queue Name.
+        
+        Returns:
+            string -- SQS Queue URL
         """
         client = boto3.client("sqs")
 
@@ -161,6 +180,15 @@ class Remediate:
 
     @staticmethod
     def get_config_rule_name(config_payload):
+        """Retrieves the AWS Config rule name variable. For Security Hub rules, the random
+        suffixed alphanumeric characters will be removed.
+        
+        Arguments:
+            config_payload {JSON} -- AWS Config payload
+        
+        Returns:
+            string -- AWS Config rule name
+        """
         config_rule_name = config_payload.get("detail").get("configRuleName")
         if "securityhub" in config_rule_name:
             # remove random alphanumeric string suffixed to each
@@ -171,6 +199,14 @@ class Remediate:
 
     @staticmethod
     def get_config_rule_compliance(config_payload):
+        """Retrieves the AWS Config rule compliance variable
+        
+        Arguments:
+            config_payload {JSON} -- AWS Config payload
+        
+        Returns:
+            string -- COMPLIANT | NON_COMPLIANT
+        """
         return (
             config_payload.get("detail")
             .get("newEvaluationResult")
@@ -179,10 +215,27 @@ class Remediate:
 
     @staticmethod
     def get_config_rule_resource_id(config_payload):
+        """Retrieves the AWS Config Resource ID from the AWS Config payload
+        
+        Arguments:
+            config_payload {JSON} -- AWS Config payload
+        
+        Returns:
+            string -- Resource ID relating to the AWS Resource that triggered the AWS Config Rule
+        """
         return config_payload.get("detail").get("resourceId")
 
     @staticmethod
     def get_try_count(record):
+        """Retrieves the "try_count" key from the SQS Record payload from a custom
+        SQS Message Attribute
+        
+        Arguments:
+            record {JSON} -- SQS Record payload
+        
+        Returns:
+            string -- Number of attempted remediations for a given AWS Config Rule
+        """
         return (
             record.get("messageAttributes", {})
             .get("try_count", {})

@@ -30,8 +30,13 @@ class SecurityHubRules:
         pass
 
     def cmk_backing_key_rotation_enabled(self, resource_id):
-        """
-        Enables key rotation for customer created customer master key (CMK).
+        """Enables key rotation for KMS Customer Managed Keys.
+        
+        Arguments:
+            resource_id {string} -- KMS Key ID
+        
+        Returns:
+            boolean -- True if remediation was successful
         """
         client = boto3.client("kms")
 
@@ -49,8 +54,7 @@ class SecurityHubRules:
             return False
 
     def iam_password_policy(self, resource_id):
-        """
-        Applies a sensible IAM password policy, as per CIS AWS Foundations Standard Checks Supported in Security Hub
+        """Applies a sensible IAM password policy, as per CIS AWS Foundations Standard Checks Supported in Security Hub
         1.5 - Ensure IAM password policy requires at least one uppercase letter
         1.6 - Ensure IAM password policy requires at least one lowercase letter
         1.7 - Ensure IAM password policy requires at least one symbol
@@ -58,6 +62,12 @@ class SecurityHubRules:
         1.9 - Ensure IAM password policy requires a minimum length of 14 or greater
         1.10 - Ensure IAM password policy prevents password reuse
         1.11 - Ensure IAM password policy expires passwords within 90 days or less
+        
+        Arguments:
+            resource_id {string} -- AWS Account ID
+        
+        Returns:
+            boolean -- True if remediation was succesfull
         """
         client = boto3.client("iam")
 
@@ -86,8 +96,14 @@ class SecurityHubRules:
             return False
 
     def iam_policy_no_statements_with_admin_access(self, resource_id):
-        """
-        Removes statements that have "Effect": "Allow" with "Action": "*" over "Resource": "*".
+        """Removes IAM Polciy Statements that have
+        "Effect": "Allow" with "Action": "*" over "Resource": "*".
+        
+        Arguments:
+            resource_id {string} -- IAM Policy ID
+        
+        Returns:
+            boolean -- True if remediation was successful
         """
         client = boto3.client("iam")
 
@@ -155,8 +171,13 @@ class SecurityHubRules:
         return True
 
     def iam_user_unused_credentials_check(self, resource_id):
-        """
-        Deletes unused Access Keys and Login Profiles.
+        """Deletes unused Access Keys and Login Profiles over 90 days old for a given IAM User.
+        
+        Arguments:
+            resource_id {string} -- IAM User ID
+        
+        Returns:
+            boolean -- True if remediation was successful
         """
         client = boto3.client("iam")
 
@@ -233,11 +254,16 @@ class SecurityHubRules:
             return True
 
     def restricted_rdp(self, resource_id):
-        """
-        Deletes inbound rules within Security Groups that match:
+        """Deletes inbound rules within Security Groups that match:
             Protocol: TCP
             Port: 3389
             Source: 0.0.0.0/0 or ::/0
+        
+        Arguments:
+            resource_id {string} -- EC2 Security Group ID
+        
+        Returns:
+            boolean -- True if remediation was successful
         """
         client = boto3.client("ec2")
 
@@ -272,11 +298,16 @@ class SecurityHubRules:
             return False
 
     def restricted_ssh(self, resource_id):
-        """
-        Deletes inbound rules within Security Groups that match:
+        """Deletes inbound rules within Security Groups that match:
             Protocol: TCP
             Port: 22
             Source: 0.0.0.0/0 or ::/0
+        
+        Arguments:
+            resource_id {string} -- EC2 Security Group ID
+        
+        Returns:
+            boolean -- True if remediation was successful
         """
         client = boto3.client("ec2")
 
@@ -311,8 +342,13 @@ class SecurityHubRules:
             return False
 
     def s3_bucket_public_read_prohibited(self, resource_id):
-        """
-        Sets the S3 Bucket ACL to private to prevent public read.
+        """Sets the S3 Bucket ACL to "private" to prevent the Bucket from being publicly read.
+        
+        Arguments:
+            resource_id {string} -- S3 Bucket Name
+        
+        Returns:
+            boolean -- True if remediation was successful
         """
         client = boto3.client("s3")
 
@@ -329,8 +365,13 @@ class SecurityHubRules:
             return False
 
     def s3_bucket_public_write_prohibited(self, resource_id):
-        """
-        Sets the S3 Bucket ACL to private to prevent public write.
+        """Sets the S3 Bucket ACL to "private" to prevent the Bucket from being publicly written to.
+        
+        Arguments:
+            resource_id {string} -- S3 Bucket Name
+        
+        Returns:
+            boolean -- True if remediation was successful
         """
         client = boto3.client("s3")
 
@@ -347,8 +388,14 @@ class SecurityHubRules:
             return False
 
     def s3_bucket_logging_enabled(self, resource_id):
-        """
-        Enables server access logging for an S3 Bucket.
+        """Enables server access logging for an S3 Bucket by creating a new S3 Bucket
+        with the name "<resource_id>-access-logs".
+        
+        Arguments:
+            resource_id {string} -- S3 Bucket Name
+        
+        Returns:
+            boolean -- True if remediation was successful
         """
         client = boto3.client("s3")
         log_bucket = f"{resource_id}-access-logs"
@@ -436,8 +483,13 @@ class SecurityHubRules:
             return False
 
     def vpc_flow_logs_enabled(self, resource_id):
-        """
-        Enables VPC Flow Logs to an S3 Bucket.
+        """Enables VPC Flow Logs by creating a new S3 Bucket with the name "<resource_id>-flow-logs".
+        
+        Arguments:
+            resource_id {string} -- VPC ID
+        
+        Returns:
+            boolean -- True if remediation was successful
         """
         s3_client = boto3.client("s3")
         ec2_client = boto3.client("ec2")
@@ -528,10 +580,26 @@ class SecurityHubRules:
 
     @staticmethod
     def convert_to_datetime(date):
+        """Converts Boto3 returns timestamp strings to datetime objects
+        
+        Arguments:
+            date {string} -- Boto3 timestamp
+        
+        Returns:
+            datetime -- datetime timestamp
+        """
         return dateutil.parser.isoparse(str(date)).replace(tzinfo=None)
 
     @staticmethod
     def get_day_delta(date):
+        """Returns the delta between the given date and now in days.
+        
+        Arguments:
+            date {string} -- Boto3 timestamp
+        
+        Returns:
+            integer -- Number of days between input date and now
+        """
         if date is not None:
             from_datetime = SecurityHubRules.convert_to_datetime(
                 datetime.datetime.now().isoformat()

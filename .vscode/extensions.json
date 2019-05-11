@@ -1,14 +1,13 @@
 {
-	// List of extensions which should be recommended for users of this workspace.
 	"recommendations": [
 		"dracula-theme.theme-dracula",
 		"eamodio.gitlens",
 		"kevinrose.vsc-python-indent",
 		"ms-python.python",
 		"ms-vsliveshare.vsliveshare",
+		"njpwerner.autodocstring",
 		"pkief.material-icon-theme",
 		"visualstudioexptteam.vscodeintellicode"
 	],
-	// List of extensions recommended by VS Code that should not be recommended for users of this workspace.
 	"unwantedRecommendations": []
 }
