@@ -80,7 +80,7 @@ class SecurityHubRules:
             return True
         except:
             self.logging.error(
-                f"Could not update IAM password policy for {resource_id}."
+                f"Could not update IAM password policy for Account '{resource_id}'."
             )
             self.logging.error(sys.exc_info()[1])
             return False
@@ -105,7 +105,7 @@ class SecurityHubRules:
             try:
                 response = client.get_policy(PolicyArn=policy_arn)
             except:
-                self.logging.error(f"Could not get IAM Policy {policy_arn}.")
+                self.logging.error(f"Could not get IAM Policy '{policy_arn}' details.")
                 self.logging.error(sys.exc_info()[1])
                 return False
 
@@ -118,7 +118,7 @@ class SecurityHubRules:
                 )
             except:
                 self.logging.error(
-                    f"Could not get Policy Version for IAM Policy {policy_arn}."
+                    f"Could not get Policy Version for IAM Policy '{policy_arn}'."
                 )
                 self.logging.error(sys.exc_info()[1])
                 return False
@@ -133,9 +133,10 @@ class SecurityHubRules:
                 ):
                     policy.get("Statement").remove(statement)
                     self.logging.info(
-                        f"Removed Statement '{statement}' from IAM Policy {policy_arn}."
+                        f"Removed Statement '{statement}' from IAM Policy '{policy_arn}'."
                     )
 
+            # create new policy version with offending statement removed
             try:
                 client.create_policy_version(
                     PolicyArn=policy_arn,
