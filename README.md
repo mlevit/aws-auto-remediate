@@ -1,6 +1,6 @@
 # AWS Auto Remediate
 
-![Pre-release](https://img.shields.io/github/release-pre/servian/aws-auto-remediate.svg?label=pre-release) ![Pre-release Date](https://img.shields.io/github/release-date-pre/servian/aws-auto-remediate.svg) ![Serverless](https://img.shields.io/github/package-json/dependency-version/servian/aws-auto-cleanup/serverless.svg) ![Language](https://img.shields.io/github/languages/top/servian/aws-auto-remediate.svg) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5bce55175d32494c89f0648b27719f43)](https://www.codacy.com/app/servian/aws-auto-remediate?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=servian/aws-auto-remediate&amp;utm_campaign=Badge_Grade)
+![Pre-release](https://img.shields.io/github/release-pre/servian/aws-auto-remediate.svg?label=pre-release) ![Pre-release Date](https://img.shields.io/github/release-date-pre/servian/aws-auto-remediate.svg) ![Serverless](https://img.shields.io/github/package-json/dependency-version/servian/aws-auto-cleanup/serverless.svg) ![Language](https://img.shields.io/github/languages/top/servian/aws-auto-remediate.svg) [![Python Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5bce55175d32494c89f0648b27719f43)](https://www.codacy.com/app/servian/aws-auto-remediate?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=servian/aws-auto-remediate&amp;utm_campaign=Badge_Grade)
 
 Open source application to instantly remediate common security issues through the use of AWS Config.
 
@@ -11,8 +11,10 @@ Open source application to instantly remediate common security issues through th
 - [About](#about)
 - [Setup](#setup)
 - [Settings](#settings)
-- [AWS Resources](#aws-resources)
 - [Config Rules](#config-rules)
+  - [AWS Config Managed Rules](#aws-config-managed-rules)
+  - [AWS Security Hub Rules](#aws-security-hub-rules)
+- [Resources](#resources)
 
 ## About
 
@@ -126,23 +128,7 @@ serverless remove
 
 Auto Remediate uses a DynamoDB settings table `auto-remediate-settings` that allows the user to control which rule should be remediated by the tool. Once Auto Remediate Setup has been run, head on over to DynamoDB and inspect the `rules` key where you can then set the `remediate` key to `false` if you'd like to disable automatic remediate.
 
-For rules deployed by Auto Remediate Setup `auto-remediate-rds-instance-public-access-check` an extra key `deploy` can be found in the settings table. Although not functional at the moment, this will allow users to control which Auto Remediate deployed rules should be deployed and which should be skipped.
-
-## AWS Resources
-
-The table below details all AWS resources created when deploying the application.
-
-| Service               | Resource ID                        |
-| --------------------- | ---------------------------------- |
-| CloudFormation Stack  | `auto-remediate`                   |
-| CloudWatch Event Rule | `auto-remediate-config-compliance` |
-| DynamoDB Table        | `auto-remediate-settings`          |
-| Lambda Function       | `auto-remediate`                   |
-|                       | `auto-remediate-dlq`               |
-|                       | `auto-remediate-setup`             |
-| SNS Topic             | `auto-remediate-log`               |
-| SQS Queue             | `auto-remediate-config-compliance` |
-|                       | `auto-remediate-dlq`               |
+For rules deployed by Auto Remediate Setup (e.g., `auto-remediate-rds-instance-public-access-check`) an extra key `deploy` can be found in the settings table. Although not functional at the moment, this will allow users to control which Auto Remediate deployed rules should be deployed and which should be skipped.
 
 ## Config Rules
 
@@ -193,3 +179,19 @@ The tables below detail the auto remediated rules and scenarios.
 | **securityhub-s3-bucket-logging-enabled**<br />Checks whether logging is enabled for your S3 buckets.<br /><br />⚠️ **WARNING:** The remediation process will create a new S3 Bucket with the format: `<bucket_name>-access-logs`. |
 | **securityhub-s3-bucket-public-read-prohibited**<br />Checks to see if S3 buckets are publicly readable. |
 | **securityhub-s3-bucket-public-write-prohibited**<br />Checks to see if S3 buckets allow public write. |
+
+## Resources
+
+The table below details all AWS resources created when deploying the application.
+
+| Service               | Resource ID                        |
+| --------------------- | ---------------------------------- |
+| CloudFormation Stack  | `auto-remediate`                   |
+| CloudWatch Event Rule | `auto-remediate-config-compliance` |
+| DynamoDB Table        | `auto-remediate-settings`          |
+| Lambda Function       | `auto-remediate`                   |
+|                       | `auto-remediate-dlq`               |
+|                       | `auto-remediate-setup`             |
+| SNS Topic             | `auto-remediate-log`               |
+| SQS Queue             | `auto-remediate-config-compliance` |
+|                       | `auto-remediate-dlq`               |
