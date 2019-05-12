@@ -10,24 +10,27 @@ class SecurityHubRules:
     def __init__(self, logging):
         self.logging = logging
 
-    def access_keys_rotated(self, record):
+    def access_keys_rotated(self, resource_id):
+        """Deletes IAM User's Access Keys over 90 days old.
+        
+        Arguments:
+            resource_id {string} -- IAM Access Key ID
+        
+        Returns:
+            boolean -- True if remediation is successful
         """
-        Deletes IAM User's access and secret key.
-        """
-        # TODO Access Keys Rotated rule needs testing
-        # client = boto3.client('iam')
-        # resource_id = None
+        client = boto3.client("iam")
 
-        # try:
-        #     client.delete_access_key(AccessKeyId=resource_id)
-
-        #     self.logging.info("Deleted unrotated IAM Access Key '%s'." % resource_id)
-        #     return True
-        # except:
-        #     self.logging.info("Could not delete unrotated IAM Access Key '%s'." % resource_id)
-        #     self.logging.error(sys.exc_info()[1])
-        #     return False
-        pass
+        try:
+            client.delete_access_key(AccessKeyId=resource_id)
+            self.logging.info(f"Deleted unrotated IAM Access Key '{resource_id}'.")
+            return True
+        except:
+            self.logging.error(
+                f"Could not delete unrotated IAM Access Key '{resource_id}'."
+            )
+            self.logging.error(sys.exc_info()[1])
+            return False
 
     def cmk_backing_key_rotation_enabled(self, resource_id):
         """Enables key rotation for KMS Customer Managed Keys.
@@ -71,7 +74,6 @@ class SecurityHubRules:
         """
         client = boto3.client("iam")
 
-        # TODO: better exception handling
         try:
             client.update_account_password_policy(
                 MinimumPasswordLength=14,  # 14 characters
@@ -85,7 +87,8 @@ class SecurityHubRules:
                 HardExpiry=False,
             )
             self.logging.info(
-                "Updated IAM password policy with CIS AWS Foundations requirements."
+                f"Updated IAM password policy with CIS AWS Foundations "
+                f"requirements for Account '{resource_id}'."
             )
             return True
         except:

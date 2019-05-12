@@ -1,5 +1,6 @@
-import boto3
 import sys
+
+import boto3
 
 
 class ConfigRules:
