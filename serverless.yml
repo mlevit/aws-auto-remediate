@@ -146,7 +146,8 @@ resources:
               Fn::GetAtt:
                 - SQSConfigComplianceQueue
                 - Arn
-            Id: Id123
+            Id: 12345
+      DependsOn: SQSConfigComplianceQueue
     DynamoDBSettingsTable:
       Type: AWS::DynamoDB::Table
       Properties:
