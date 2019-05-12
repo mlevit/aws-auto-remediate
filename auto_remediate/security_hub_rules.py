@@ -1,4 +1,5 @@
 import datetime
+import json
 import sys
 
 import boto3
@@ -9,65 +10,36 @@ class SecurityHubRules:
     def __init__(self, logging):
         self.logging = logging
 
-    def access_keys_rotated(self, record):
-        """
-        Deletes IAM User's access and secret key.
-        """
-        # TODO Access Keys Rotated rule needs testing
-        # client = boto3.client('iam')
-        # resource_id = None
-
-        # try:
-        #     client.delete_access_key(AccessKeyId=resource_id)
-
-        #     self.logging.info("Deleted unrotated IAM Access Key '%s'." % resource_id)
-        #     return True
-        # except:
-        #     self.logging.info("Could not delete unrotated IAM Access Key '%s'." % resource_id)
-        #     self.logging.error(sys.exc_info()[1])
-        #     return False
-        pass
-
-    def iam_password_policy(self, resource_id):
-        """
-        Applies a sensible IAM password policy, as per CIS AWS Foundations Standard Checks Supported in Security Hub
-        1.5 - Ensure IAM password policy requires at least one uppercase letter
-        1.6 - Ensure IAM password policy requires at least one lowercase letter
-        1.7 - Ensure IAM password policy requires at least one symbol
-        1.8 - Ensure IAM password policy requires at least one number
-        1.9 - Ensure IAM password policy requires a minimum length of 14 or greater
-        1.10 - Ensure IAM password policy prevents password reuse
-        1.11 - Ensure IAM password policy expires passwords within 90 days or less
+    def access_keys_rotated(self, resource_id):
+        """Deletes IAM User's Access Keys over 90 days old.
+        
+        Arguments:
+            resource_id {string} -- IAM Access Key ID
+        
+        Returns:
+            boolean -- True if remediation is successful
         """
         client = boto3.client("iam")
 
-        # TODO: better exception handling
         try:
-            client.update_account_password_policy(
-                MinimumPasswordLength=14,  # 14 characters
-                RequireSymbols=True,
-                RequireNumbers=True,
-                RequireUppercaseCharacters=True,
-                RequireLowercaseCharacters=True,
-                AllowUsersToChangePassword=True,
-                MaxPasswordAge=90,  # days
-                PasswordReusePrevention=24,  # last 24 passwords
-                HardExpiry=False,
-            )
-            self.logging.info(
-                "Updated IAM password policy with CIS AWS Foundations requirements."
-            )
+            client.delete_access_key(AccessKeyId=resource_id)
+            self.logging.info(f"Deleted unrotated IAM Access Key '{resource_id}'.")
             return True
         except:
             self.logging.error(
-                f"Could not update IAM password policy for {resource_id}."
+                f"Could not delete unrotated IAM Access Key '{resource_id}'."
             )
             self.logging.error(sys.exc_info()[1])
             return False
 
     def cmk_backing_key_rotation_enabled(self, resource_id):
-        """
-        Enables key rotation for customer created customer master key (CMK).
+        """Enables key rotation for KMS Customer Managed Keys.
+        
+        Arguments:
+            resource_id {string} -- KMS Key ID
+        
+        Returns:
+            boolean -- True if remediation was successful
         """
         client = boto3.client("kms")
 
@@ -84,9 +56,131 @@ class SecurityHubRules:
             self.logging.error(sys.exc_info()[1])
             return False
 
-    def iam_user_unused_credentials_check(self, resource_id):
+    def iam_password_policy(self, resource_id):
+        """Applies a sensible IAM password policy, as per CIS AWS Foundations Standard Checks Supported in Security Hub
+        1.5 - Ensure IAM password policy requires at least one uppercase letter
+        1.6 - Ensure IAM password policy requires at least one lowercase letter
+        1.7 - Ensure IAM password policy requires at least one symbol
+        1.8 - Ensure IAM password policy requires at least one number
+        1.9 - Ensure IAM password policy requires a minimum length of 14 or greater
+        1.10 - Ensure IAM password policy prevents password reuse
+        1.11 - Ensure IAM password policy expires passwords within 90 days or less
+        
+        Arguments:
+            resource_id {string} -- AWS Account ID
+        
+        Returns:
+            boolean -- True if remediation was succesfull
         """
-        Deletes unused Access Keys and Login Profiles.
+        client = boto3.client("iam")
+
+        try:
+            client.update_account_password_policy(
+                MinimumPasswordLength=14,  # 14 characters
+                RequireSymbols=True,
+                RequireNumbers=True,
+                RequireUppercaseCharacters=True,
+                RequireLowercaseCharacters=True,
+                AllowUsersToChangePassword=True,
+                MaxPasswordAge=90,  # days
+                PasswordReusePrevention=24,  # last 24 passwords
+                HardExpiry=False,
+            )
+            self.logging.info(
+                f"Updated IAM password policy with CIS AWS Foundations "
+                f"requirements for Account '{resource_id}'."
+            )
+            return True
+        except:
+            self.logging.error(
+                f"Could not update IAM password policy for Account '{resource_id}'."
+            )
+            self.logging.error(sys.exc_info()[1])
+            return False
+
+    def iam_policy_no_statements_with_admin_access(self, resource_id):
+        """Removes IAM Polciy Statements that have
+        "Effect": "Allow" with "Action": "*" over "Resource": "*".
+        
+        Arguments:
+            resource_id {string} -- IAM Policy ID
+        
+        Returns:
+            boolean -- True if remediation was successful
+        """
+        client = boto3.client("iam")
+
+        try:
+            paginator = client.get_paginator("list_policies").paginate()
+        except:
+            self.logging.error("Could not get a paginator to list all IAM Policies.")
+            self.logging.error(sys.exc_info()[1])
+            return False
+
+        for policy_arn in paginator.search(
+            f"Policies[?PolicyId == '{resource_id}'].Arn"
+        ):
+            # get policy
+            try:
+                response = client.get_policy(PolicyArn=policy_arn)
+            except:
+                self.logging.error(f"Could not get IAM Policy '{policy_arn}' details.")
+                self.logging.error(sys.exc_info()[1])
+                return False
+
+            default_version = response.get("Policy").get("DefaultVersionId")
+
+            # get default policy
+            try:
+                response = client.get_policy_version(
+                    PolicyArn=policy_arn, VersionId=default_version
+                )
+            except:
+                self.logging.error(
+                    f"Could not get Policy Version for IAM Policy '{policy_arn}'."
+                )
+                self.logging.error(sys.exc_info()[1])
+                return False
+
+            # remove admin statements from policy
+            policy = response.get("PolicyVersion").get("Document")
+            for statement in policy.get("Statement"):
+                if (
+                    statement.get("Action") == "*"
+                    and statement.get("Effect") == "Allow"
+                    and statement.get("Resource") == "*"
+                ):
+                    policy.get("Statement").remove(statement)
+                    self.logging.info(
+                        f"Removed Statement '{statement}' from IAM Policy '{policy_arn}'."
+                    )
+
+            # create new policy version with offending statement removed
+            try:
+                client.create_policy_version(
+                    PolicyArn=policy_arn,
+                    PolicyDocument=json.dumps(policy),
+                    SetAsDefault=True,
+                )
+                self.logging.info(
+                    f"Created new Policy Version '{policy}' for IAM Policy '{policy_arn}'."
+                )
+            except:
+                self.logging.error(
+                    f"Could not create a new Policy Version '{policy}' for IAM Policy '{policy_arn}'."
+                )
+                self.logging.error(sys.exc_info()[1])
+                return False
+        return True
+
+    def iam_user_unused_credentials_check(self, resource_id):
+        """Deletes unused Access Keys and Login Profiles over 90 days old for a given IAM User.
+        
+        Arguments:
+            resource_id {string} -- IAM User ID
+        
+        Returns:
+            boolean -- True if remediation was successful
         """
         client = boto3.client("iam")
 
@@ -163,11 +257,16 @@ class SecurityHubRules:
             return True
 
     def restricted_rdp(self, resource_id):
-        """
-        Deletes inbound rules within Security Groups that match:
+        """Deletes inbound rules within Security Groups that match:
             Protocol: TCP
             Port: 3389
             Source: 0.0.0.0/0 or ::/0
+        
+        Arguments:
+            resource_id {string} -- EC2 Security Group ID
+        
+        Returns:
+            boolean -- True if remediation was successful
         """
         client = boto3.client("ec2")
 
@@ -202,11 +301,16 @@ class SecurityHubRules:
             return False
 
     def restricted_ssh(self, resource_id):
-        """
-        Deletes inbound rules within Security Groups that match:
+        """Deletes inbound rules within Security Groups that match:
             Protocol: TCP
             Port: 22
             Source: 0.0.0.0/0 or ::/0
+        
+        Arguments:
+            resource_id {string} -- EC2 Security Group ID
+        
+        Returns:
+            boolean -- True if remediation was successful
         """
         client = boto3.client("ec2")
 
@@ -241,8 +345,13 @@ class SecurityHubRules:
             return False
 
     def s3_bucket_public_read_prohibited(self, resource_id):
-        """
-        Sets the S3 Bucket ACL to private to prevent public read.
+        """Sets the S3 Bucket ACL to "private" to prevent the Bucket from being publicly read.
+        
+        Arguments:
+            resource_id {string} -- S3 Bucket Name
+        
+        Returns:
+            boolean -- True if remediation was successful
         """
         client = boto3.client("s3")
 
@@ -259,8 +368,13 @@ class SecurityHubRules:
             return False
 
     def s3_bucket_public_write_prohibited(self, resource_id):
-        """
-        Sets the S3 Bucket ACL to private to prevent public write.
+        """Sets the S3 Bucket ACL to "private" to prevent the Bucket from being publicly written to.
+        
+        Arguments:
+            resource_id {string} -- S3 Bucket Name
+        
+        Returns:
+            boolean -- True if remediation was successful
         """
         client = boto3.client("s3")
 
@@ -277,8 +391,14 @@ class SecurityHubRules:
             return False
 
     def s3_bucket_logging_enabled(self, resource_id):
-        """
-        Enables server access logging for an S3 Bucket.
+        """Enables server access logging for an S3 Bucket by creating a new S3 Bucket
+        with the name "<resource_id>-access-logs".
+        
+        Arguments:
+            resource_id {string} -- S3 Bucket Name
+        
+        Returns:
+            boolean -- True if remediation was successful
         """
         client = boto3.client("s3")
         log_bucket = f"{resource_id}-access-logs"
@@ -366,8 +486,13 @@ class SecurityHubRules:
             return False
 
     def vpc_flow_logs_enabled(self, resource_id):
-        """
-        Enables VPC Flow Logs to an S3 Bucket.
+        """Enables VPC Flow Logs by creating a new S3 Bucket with the name "<resource_id>-flow-logs".
+        
+        Arguments:
+            resource_id {string} -- VPC ID
+        
+        Returns:
+            boolean -- True if remediation was successful
         """
         s3_client = boto3.client("s3")
         ec2_client = boto3.client("ec2")
@@ -458,10 +583,26 @@ class SecurityHubRules:
 
     @staticmethod
     def convert_to_datetime(date):
+        """Converts Boto3 returns timestamp strings to datetime objects
+        
+        Arguments:
+            date {string} -- Boto3 timestamp
+        
+        Returns:
+            datetime -- datetime timestamp
+        """
         return dateutil.parser.isoparse(str(date)).replace(tzinfo=None)
 
     @staticmethod
     def get_day_delta(date):
+        """Returns the delta between the given date and now in days.
+        
+        Arguments:
+            date {string} -- Boto3 timestamp
+        
+        Returns:
+            integer -- Number of days between input date and now
+        """
         if date is not None:
             from_datetime = SecurityHubRules.convert_to_datetime(
                 datetime.datetime.now().isoformat()

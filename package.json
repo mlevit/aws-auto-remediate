@@ -4,11 +4,11 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "serverless": "^1.41.1",
+    "serverless": "^1.42.2",
     "serverless-s3-remover": "^0.6.0"
   },
   "devDependencies": {
-    "serverless-iam-roles-per-function": "^2.0.0",
+    "serverless-iam-roles-per-function": "^2.0.1",
     "serverless-python-requirements": "^4.3.0"
   },
   "repository": {

@@ -1,5 +1,6 @@
-import boto3
 import sys
+
+import boto3
 
 
 class ConfigRules:
@@ -7,8 +8,13 @@ class ConfigRules:
         self.logging = logging
 
     def rds_instance_public_access_check(self, resource_id):
-        """
-        Sets PubliclyAccessible field to False.
+        """Sets Publicly Accessible option to False for public RDS Instances
+        
+        Arguments:
+            resource_id {DbiResourceId} -- The AWS Region-unique, immutable identifier for the DB instance
+        
+        Returns:
+            boolean -- True if remediation was successful
         """
         client = boto3.client("rds")
 
