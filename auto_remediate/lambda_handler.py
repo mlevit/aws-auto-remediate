@@ -72,13 +72,16 @@ class Remediate:
 
                     if remediation_function is not None:
                         if not remediation_function(config_rule_resource_id):
-                            self.send_to_dlq(
+                            self.send_to_dead_letter_queue(
                                 config_payload, Remediate.get_try_count(record)
                             )
                     else:
                         self.logging.warning(
                             f"No remediation available for Config Rule "
                             f"'{config_rule_name}' with payload '{config_payload}'."
+                        )
+                        self.send_to_missing_remediation_topic(
+                            config_rule_name, config_payload
                         )
                 else:
                     self.logging.info(
@@ -89,18 +92,52 @@ class Remediate:
                     f"Resource '{config_rule_resource_id}' is compliant for Config Rule '{config_rule_name}'."
                 )
 
-    def intend_to_remediate(self, config_rule_name):
-        """Returns whether an AWS Config Rule should be remediated based on user preferences.
+    @staticmethod
+    def get_config_rule_compliance(config_payload):
+        """Retrieves the AWS Config rule compliance variable
         
         Arguments:
-            config_rule_name {string} -- AWS Config Rule name
+            config_payload {JSON} -- AWS Config payload
         
         Returns:
-            boolean -- True | False
+            string -- COMPLIANT | NON_COMPLIANT
         """
         return (
-            self.settings.get("rules").get(config_rule_name, {}).get("remediate", True)
+            config_payload.get("detail")
+            .get("newEvaluationResult")
+            .get("complianceType")
         )
+
+    @staticmethod
+    def get_config_rule_name(config_payload):
+        """Retrieves the AWS Config rule name variable. For Security Hub rules, the random
+        suffixed alphanumeric characters will be removed.
+        
+        Arguments:
+            config_payload {JSON} -- AWS Config payload
+        
+        Returns:
+            string -- AWS Config rule name
+        """
+        config_rule_name = config_payload.get("detail").get("configRuleName")
+        if "securityhub" in config_rule_name:
+            # remove random alphanumeric string suffixed to each
+            # Security Hub rule
+            return config_rule_name[: config_rule_name.rfind("-")]
+        else:
+            return config_rule_name
+
+    @staticmethod
+    def get_config_rule_resource_id(config_payload):
+        """Retrieves the AWS Config Resource ID from the AWS Config payload
+        
+        Arguments:
+            config_payload {JSON} -- AWS Config payload
+        
+        Returns:
+            string -- Resource ID relating to the AWS Resource that triggered the AWS Config Rule
+        """
+        return config_payload.get("detail").get("resourceId")
 
     def get_settings(self):
         """Return the DynamoDB aws-auto-remediate-settings table in a Python dict format
@@ -123,108 +160,6 @@ class Remediate:
 
         return settings
 
-    def send_to_dlq(self, config_payload, try_count):
-        """Sends the AWS Config payload to an SQS Queue (DLQ) if after incrementing 
-        the "try_count" variable it is below the user defined "RETRYCOUNT" setting.
-        
-        Arguments:
-            config_payload {JSON} -- AWS Config payload
-            try_count {string} -- Number of previos remediation attemps for this AWS Config payload
-        """
-        client = boto3.client("sqs")
-
-        try_count = int(try_count) + 1
-        if try_count < int(os.environ.get("RETRYCOUNT", 3)):
-            try:
-                client.send_message(
-                    QueueUrl=self.get_queue_url(),
-                    MessageBody=json.dumps(config_payload),
-                    MessageAttributes={
-                        "try_count": {
-                            "StringValue": str(try_count),
-                            "DataType": "Number",
-                        }
-                    },
-                )
-
-                self.logging.debug(
-                    f"Remediation failed. Payload has been sent to DLQ '{os.environ.get('DLQ')}'."
-                )
-            except:
-                self.logging.error(
-                    f"Could not send payload to DLQ '{os.environ.get('DLQ')}'."
-                )
-                self.logging.error(sys.exc_info()[1])
-        else:
-            self.logging.warning(
-                f"Could not remediate Config change within an "
-                f"acceptable number of retries for payload '{config_payload}'."
-            )
-
-    def get_queue_url(self):
-        """Retrieves the SQS Queue URL from the SQS Queue Name.
-        
-        Returns:
-            string -- SQS Queue URL
-        """
-        client = boto3.client("sqs")
-
-        try:
-            response = client.get_queue_url(QueueName=os.environ.get("DLQ"))
-            return response.get("QueueUrl")
-        except:
-            self.logging.error(
-                f"Could not retrieve SQS Queue URL for SQS Queue '{os.environ.get('DLQ')}'."
-            )
-            self.logging.error(sys.exc_info()[1])
-
-    @staticmethod
-    def get_config_rule_name(config_payload):
-        """Retrieves the AWS Config rule name variable. For Security Hub rules, the random
-        suffixed alphanumeric characters will be removed.
-        
-        Arguments:
-            config_payload {JSON} -- AWS Config payload
-        
-        Returns:
-            string -- AWS Config rule name
-        """
-        config_rule_name = config_payload.get("detail").get("configRuleName")
-        if "securityhub" in config_rule_name:
-            # remove random alphanumeric string suffixed to each
-            # Security Hub rule
-            return config_rule_name[: config_rule_name.rfind("-")]
-        else:
-            return config_rule_name
-
-    @staticmethod
-    def get_config_rule_compliance(config_payload):
-        """Retrieves the AWS Config rule compliance variable
-        
-        Arguments:
-            config_payload {JSON} -- AWS Config payload
-        
-        Returns:
-            string -- COMPLIANT | NON_COMPLIANT
-        """
-        return (
-            config_payload.get("detail")
-            .get("newEvaluationResult")
-            .get("complianceType")
-        )
-
-    @staticmethod
-    def get_config_rule_resource_id(config_payload):
-        """Retrieves the AWS Config Resource ID from the AWS Config payload
-        
-        Arguments:
-            config_payload {JSON} -- AWS Config payload
-        
-        Returns:
-            string -- Resource ID relating to the AWS Resource that triggered the AWS Config Rule
-        """
-        return config_payload.get("detail").get("resourceId")
-
     @staticmethod
     def get_try_count(record):
         """Retrieves the "try_count" key from the SQS Record payload from a custom
@@ -241,6 +176,77 @@ class Remediate:
             .get("try_count", {})
             .get("stringValue", "0")
         )
+
+    def intend_to_remediate(self, config_rule_name):
+        """Returns whether an AWS Config Rule should be remediated based on user preferences.
+        
+        Arguments:
+            config_rule_name {string} -- AWS Config Rule name
+        
+        Returns:
+            boolean -- True | False
+        """
+        return (
+            self.settings.get("rules").get(config_rule_name, {}).get("remediate", True)
+        )
+
+    def send_to_dead_letter_queue(self, config_payload, try_count):
+        """Sends the AWS Config payload to an SQS Queue (DLQ) if after incrementing 
+        the "try_count" variable it is below the user defined "RETRYCOUNT" setting.
+        
+        Arguments:
+            config_payload {dict} -- AWS Config payload
+            try_count {string} -- Number of previos remediation attemps for this AWS Config payload
+        """
+        client = boto3.client("sqs")
+
+        try_count = int(try_count) + 1
+        if try_count < int(os.environ.get("RETRYCOUNT", 3)):
+            try:
+                client.send_message(
+                    QueueUrl=os.environ.get("DEADLETTERQUEUE"),
+                    MessageBody=json.dumps(config_payload),
+                    MessageAttributes={
+                        "try_count": {
+                            "StringValue": str(try_count),
+                            "DataType": "Number",
+                        }
+                    },
+                )
+
+                self.logging.debug(
+                    f"Remediation failed. Payload has been sent to SQS DLQ '{os.environ.get('DEADLETTERQUEUE')}'."
+                )
+            except:
+                self.logging.error(
+                    f"Could not send payload to SQS DLQ '{os.environ.get('DEADLETTERQUEUE')}'."
+                )
+                self.logging.error(sys.exc_info()[1])
+        else:
+            self.logging.warning(
+                f"Could not remediate Config change within an "
+                f"acceptable number of retries for payload '{config_payload}'."
+            )
+
+    def send_to_missing_remediation_topic(self, config_rule_name, config_payload):
+        """Publishes a message onto the missing remediation SNS Topic. The topic should be subscribed to
+        by administrators to be aware when their security remediations are not fully covered.
+        
+        Arguments:
+            config_rule_name {string} -- AWS Config Rule name
+            config_payload {dict} -- AWS Config Rule payload
+        """
+        client = boto3.client("sns")
+        topic_arn = os.environ.get("MISSINGREMEDIATIONTOPIC")
+
+        try:
+            client.publish(
+                TopicArn=topic_arn,
+                Message=json.dumps(config_payload),
+                Subject=f"No remediation available for Config Rule '{config_rule_name}'",
+            )
+        except:
+            self.logging.error(f"Could not publish to SNS Topic 'topic_arn'.")
 
 
 def lambda_handler(event, context):

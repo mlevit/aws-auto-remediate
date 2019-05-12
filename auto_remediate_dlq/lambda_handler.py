@@ -11,12 +11,11 @@ class Retry:
         self.logging = logging
 
     def retry_security_events(self):
-        """
-        Retrieves messages from the DLQ and sends them back into the 
+        """Retrieves messages from the DLQ and sends them back into the 
         compliance SQS Queue for reprocessing.
         """
         client = boto3.client("sqs")
-        queue_url = self.get_queue_url(os.environ.get("DLQ"))
+        queue_url = os.environ.get("DEADLETTERQUEUE")
 
         try:
             response = client.receive_message(
@@ -42,7 +41,7 @@ class Retry:
                     .get("StringValue", "1")
                 )
 
-                if self.send_to_queue(body, try_count):
+                if self.send_to_compliance_queue(body, try_count):
                     self.delete_from_queue(queue_url, receipt_handle)
 
             # get the next 10 messages
@@ -58,44 +57,12 @@ class Retry:
                 )
                 self.logging.error(sys.exc_info()[1])
 
-    @staticmethod
-    def get_config_rule_name(record):
-        return record.get("detail").get("configRuleName")
-
-    @staticmethod
-    def get_config_rule_compliance(record):
-        return record.get("detail").get("newEvaluationResult").get("complianceType")
-
-    def send_to_queue(self, message, try_count):
-        """
-        Sends a message to the Config Compliance SQS Queue.
-        """
-        client = boto3.client("sqs")
-        queue_url = self.get_queue_url(os.environ.get("COMPLIANCEQUEUE"))
-
-        try:
-            client.send_message(
-                QueueUrl=queue_url,
-                MessageBody=message,
-                MessageAttributes={
-                    "try_count": {"StringValue": try_count, "DataType": "Number"}
-                },
-            )
-
-            self.logging.debug(
-                f"Message payload sent to SQS Queue '{os.environ.get('COMPLIANCEQUEUE')}'."
-            )
-            return True
-        except:
-            self.logging.error(
-                f"Could not send payload to SQS Queue '{os.environ.get('COMPLIANCEQUEUE')}'."
-            )
-            self.logging.error(sys.exc_info()[1])
-            return False
-
     def delete_from_queue(self, queue_url, receipt_handle):
-        """
-        Delete a Message from an SQS Queue.
+        """Delete a Message from an SQS Queue.
+        
+        Arguments:
+            queue_url {string} -- URL of an SQS Queue
+            receipt_handle {string} -- The receipt handle associated with the message to delete
         """
         client = boto3.client("sqs")
         try:
@@ -110,20 +77,59 @@ class Retry:
             )
             self.logging.error(sys.exc_info()[1])
 
-    def get_queue_url(self, queue_name):
+    @staticmethod
+    def get_config_rule_compliance(record):
+        """Retrieves the AWS Config rule compliance variable
+        
+        Arguments:
+            config_payload {JSON} -- AWS Config payload
+        
+        Returns:
+            string -- COMPLIANT | NON_COMPLIANT
         """
-        Retrieves the SQS Queue URL from the SQS Queue Name.
+        return record.get("detail").get("newEvaluationResult").get("complianceType")
+
+    @staticmethod
+    def get_config_rule_name(record):
+        """Retrieves the AWS Config rule name variable. For Security Hub rules, the random
+        suffixed alphanumeric characters will be removed.
+        
+        Arguments:
+            config_payload {JSON} -- AWS Config payload
+        
+        Returns:
+            string -- AWS Config rule name
+        """
+        return record.get("detail").get("configRuleName")
+
+    def send_to_compliance_queue(self, config_payload, try_count):
+        """Sends a message to the Config Compliance SQS Queue.
+        
+        Arguments:
+            config_payload {string} -- AWS Config payload
+            try_count {string} -- Number of attempted remediations for a given AWS Config Rule
+        
+        Returns:
+            boolean -- True if sending message to SQS was successful
         """
         client = boto3.client("sqs")
+        queue_url = os.environ.get("COMPLIANCEQUEUE")
 
         try:
-            response = client.get_queue_url(QueueName=queue_name)
-            return response.get("QueueUrl")
-        except:
-            self.logging.error(
-                f"Could not retrieve SQS Queue URL for SQS Queue '{queue_name}'."
+            client.send_message(
+                QueueUrl=queue_url,
+                MessageBody=config_payload,
+                MessageAttributes={
+                    "try_count": {"StringValue": try_count, "DataType": "Number"}
+                },
             )
+
+            self.logging.debug(f"Message payload sent to SQS Queue '{queue_url}'.")
+            return True
+        except:
+            self.logging.error(f"Could not send payload to SQS Queue '{queue_url}'.")
             self.logging.error(sys.exc_info()[1])
+            return False
 
 
 def lambda_handler(event, context):

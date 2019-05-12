@@ -30,20 +30,17 @@ functions:
         - auto_remediate_dlq/**
         - auto_remediate_setup/**
     environment:
-      DLQ: auto-remediate-dlq-${self:provider.stage}
+      DEADLETTERQUEUE:
+        Ref: SQSDeadLetterQueue
       LOGLEVEL: ${self:custom.log_level}
       LOGTOPIC:
-        Fn::Join:
-          - ":"
-          - - arn
-            - aws
-            - sns
-            - ${self:custom.region}
-            - Ref: AWS::AccountId
-            - auto-remediate-log-${self:provider.stage}
+        Ref: SNSLogTopic
+      MISSINGREMEDIATIONTOPIC:
+        Ref: SNSMissingRemediationTopic
       PYTHONPATH: "/var/task/auto_remediate:/var/task/dynamodb_json:/var/runtime"
       RETRYCOUNT: 3
-      SETTINGSTABLE: auto-remediate-settings-${self:provider.stage}
+      SETTINGSTABLE:
+        Ref: DynamoDBSettingsTable
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -89,11 +86,12 @@ functions:
         - auto_remediate/**
         - auto_remediate_setup/**
     environment:
-      COMPLIANCEQUEUE: auto-remediate-config-compliance-${self:provider.stage}
-      DLQ: auto-remediate-dlq-${self:provider.stage}
+      COMPLIANCEQUEUE:
+        Ref: SQSConfigCompliance
+      DEADLETTERQUEUE:
+        Ref: SQSDeadLetterQueue
       LOGLEVEL: ${self:custom.log_level}
       PYTHONPATH: "/var/task/auto_remediate_dlq:/var/runtime"
-      REMEDIATEFUNCTION: auto-remediate-${self:provider.stage}
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -119,7 +117,8 @@ functions:
     environment:
       LOGLEVEL: ${self:custom.log_level}
       PYTHONPATH: "/var/task/auto_remediate_setup:/var/task/dynamodb_json:/var/runtime"
-      SETTINGSTABLE: auto-remediate-settings-${self:provider.stage}
+      SETTINGSTABLE:
+        Ref: DynamoDBSettingsTable
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -166,6 +165,10 @@ resources:
       Type: AWS::SNS::Topic
       Properties:
         TopicName: auto-remediate-log-${self:provider.stage}
+    SNSMissingRemediationTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: auto-remediate-missing-remediation-${self:provider.stage}
     SQSConfigCompliance:
       Type: AWS::SQS::Queue
       Properties:
