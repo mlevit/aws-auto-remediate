@@ -24,6 +24,8 @@ The Auto Remediate function is triggered via an SQS Queue `auto-remediate-config
 
 Once the Lambda function has been triggered it will attempt to remediate the security concern. If the remediation was unsuccessful, the event payload will be sent to the dead letter queue (DQL) SQS Queue `auto-remediate-dlq`. Each time a payload is sent is sent to the DLQ, an attribute `try_count` is incremented to the SQS message. Once that count exceeds `RETRYCOUNT` variable attached to the Lambda Function, the message will no longer be sent to the DLQ.
 
+If no remediation exists for the incoming AWS Config event, the AWS Config payload will be sent to an SNS Topic `auto-remediate-missing-remediation` which can be subscribed to by administrators or other AWS services.
+
 ### Auto Remediate DLQ
 
 The Auto Remediate DLQ function is triggered on a schedule (defined in the `serverless.yml` file). When the function is run, it will retrieve messages from SQS Queue `auto-remediate-dlq` and sends the message to the compliance SQS Queue `auto-remediate-config-compliance`.
@@ -187,14 +189,15 @@ The tables below detail the auto remediated rules and scenarios.
 
 The table below details all AWS resources created when deploying the application.
 
-| Service               | Resource ID                        |
-| --------------------- | ---------------------------------- |
-| CloudFormation Stack  | `auto-remediate`                   |
-| CloudWatch Event Rule | `auto-remediate-config-compliance` |
-| DynamoDB Table        | `auto-remediate-settings`          |
-| Lambda Function       | `auto-remediate`                   |
-|                       | `auto-remediate-dlq`               |
-|                       | `auto-remediate-setup`             |
-| SNS Topic             | `auto-remediate-log`               |
-| SQS Queue             | `auto-remediate-config-compliance` |
-|                       | `auto-remediate-dlq`               |
+| Service               | Resource ID                          |
+| --------------------- | ------------------------------------ |
+| CloudFormation Stack  | `auto-remediate`                     |
+| CloudWatch Event Rule | `auto-remediate-config-compliance`   |
+| DynamoDB Table        | `auto-remediate-settings`            |
+| Lambda Function       | `auto-remediate`                     |
+|                       | `auto-remediate-dlq`                 |
+|                       | `auto-remediate-setup`               |
+| SNS Topic             | `auto-remediate-log`                 |
+|                       | `auto-remediate-missing-remediation` |
+| SQS Queue             | `auto-remediate-config-compliance`   |
+|                       | `auto-remediate-dlq`                 |
