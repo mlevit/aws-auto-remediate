@@ -1,28 +1,27 @@
 service: auto-remediate
 
 custom:
-  company: servian                  # change to your company name
-  log_level: DEBUG                  # change to DEBUG for dev/test
-  region: ap-southeast-2            # change to your AWS region
+  company: servian                  # company name
+  log_level: DEBUG                  # DEBUG for dev | INFO for production
+  region: ap-southeast-2            # AWS region
 
 provider:
   name: aws
   runtime: python3.7
-  stage: dev                        # change to dev or production based on deployment type
+  stage: dev                        # dev | production
   region: ${self:custom.region}
-  profile: saml                     # change to your AWS login profile
+  profile: saml                     # AWS profile
 
 package:
   individually: true
   exclude:
     - node_modules/**
-    - .DS_Store
 
 functions:
   AutoRemediate:
     handler: auto_remediate.lambda_handler.lambda_handler
     name: auto-remediate-${self:provider.stage}
-    description: Auto Remediate fixes common AWS security violations
+    description: Auto Remediate instantly remediates common security issues
     memorySize: 128
     timeout: 60
     package:
@@ -72,7 +71,7 @@ functions:
       - sqs:
           arn:
             Fn::GetAtt:
-              - SQSConfigCompliance
+              - SQSConfigComplianceQueue
               - Arn
           batchSize: 1
   AutoRemediateDLQ:
@@ -87,7 +86,7 @@ functions:
         - auto_remediate_setup/**
     environment:
       COMPLIANCEQUEUE:
-        Ref: SQSConfigCompliance
+        Ref: SQSConfigComplianceQueue
       DEADLETTERQUEUE:
         Ref: SQSDeadLetterQueue
       LOGLEVEL: ${self:custom.log_level}
@@ -145,7 +144,7 @@ resources:
         Targets:
           - Arn:
               Fn::GetAtt:
-                - SQSConfigCompliance
+                - SQSConfigComplianceQueue
                 - Arn
             Id: Id123
     DynamoDBSettingsTable:
@@ -169,7 +168,7 @@ resources:
       Type: AWS::SNS::Topic
       Properties:
         TopicName: auto-remediate-missing-remediation-${self:provider.stage}
-    SQSConfigCompliance:
+    SQSConfigComplianceQueue:
       Type: AWS::SQS::Queue
       Properties:
         QueueName: auto-remediate-config-compliance-${self:provider.stage}
