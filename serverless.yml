@@ -52,6 +52,7 @@ functions:
           - ec2:RevokeSecurityGroupIngress
           - ec2:RevokeSecurityGroupIngress
           - iam:CreatePolicyVersion
+          - iam:CreateRole
           - iam:DeleteAccessKey
           - iam:DeleteLoginProfile
           - iam:GetLoginProfile
