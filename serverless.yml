@@ -63,10 +63,12 @@ functions:
           - iam:UpdateAccountPasswordPolicy
           - kms:CreateAlias
           - kms:CreateKey
+          - kms:DeleteAlias
           - kms:EnableKeyRotation
           - kms:ScheduleKeyDeletion
           - logs:CreateLogGroup
           - logs:DescribeLogGroups
+          - logs:DeleteLogGroup
           - rds:DescribeDBInstances
           - rds:ModifyDBInstance
           - s3:CreateBucket

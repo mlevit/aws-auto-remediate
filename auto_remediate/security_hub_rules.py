@@ -42,9 +42,20 @@ class SecurityHubRules:
             boolean -- True if remediation was successful
         """
         cloudtrail_client = boto3.client("cloudtrail")
+        iam_client = boto3.client("iam")
         logs_client = boto3.client("logs")
+        sts_client = boto3.client("sts")
 
         cloudwatch_log_group = f"CloudTrail/{resource_id}"
+
+        # get AWS Account Number and Region
+        try:
+            account_number = sts_client.get_caller_identity().get("Account")
+            account_region = sts_client.meta.region_name
+        except:
+            self.logging.error("Could not get Account Number and Region.")
+            self.logging.error(sys.exc_info()[1])
+            return False
 
         # create CloudWatch Log Group
         try:
@@ -88,10 +99,59 @@ class SecurityHubRules:
                     f"Retrieved ARN '{cloudwatch_log_group_arn}' for CloudWatch Log Group '{cloudwatch_log_group}'."
                 )
 
+        # create IAM Role for CloudTrail
+        try:
+            iam_role_file = (
+                "auto_remediate/data/cloud_trail_cloud_watch_logs_enabled_role.json"
+            )
+            with open(iam_role_file) as file:
+                iam_role = str(file.read())
+        except:
+            self.logging.error(f"Could not read IAM Role file '{iam_role_file}'.")
+            self.logging.error(sys.exc_info()[1])
+            return False
+        else:
+            iam_role = iam_role.replace("account_number", account_number)
+            iam_role = iam_role.replace("region", account_region)
+            iam_role = iam_role.replace("cloudwatch_log_group", cloudwatch_log_group)
+
+        try:
+            response = iam_client.create_role(
+                RoleName=f"CloudTrail-CloudWatchLogs-{resource_id}",
+                AssumeRolePolicyDocument=iam_role,
+                Description="AWS CloudTrail will assume the role to deliver CloudTrail events to the CloudWatch Logs log group",
+            )
+            self.logging.info(
+                f"Created new IAM Role 'CloudTrail-CloudWatchLogs-{resource_id}'."
+            )
+        except:
+            self.logging.error(
+                f"Could not create new IAM Role 'CloudTrail-CloudWatchLogs-{resource_id}'."
+            )
+            self.logging.error(sys.exc_info()[1])
+
+            # delete CloudWatch Log Group
+            try:
+                logs_client.delete_log_group(logGroupName=cloudwatch_log_group)
+                self.logging.info(
+                    f"Deleted CloudWatch Log Group '{cloudwatch_log_group}'."
+                )
+            except:
+                self.logging.error(
+                    f"Could not delete CloudWatch Log Group '{cloudwatch_log_group}'."
+                )
+                self.logging.error(sys.exc_info()[1])
+
+            return False
+        else:
+            iam_role_arn = response.get("Role").get("Arn")
+
         # update CloudTrail with CloudWatch Log Group
         try:
             cloudtrail_client.update_trail(
-                Name=resource_id, CloudWatchLogsLogGroupArn=cloudwatch_log_group_arn
+                Name=resource_id,
+                CloudWatchLogsLogGroupArn=cloudwatch_log_group_arn,
+                CloudWatchLogsRoleArn=iam_role_arn,
             )
             self.logging.info(
                 f"Added CloudWatch Log Group '{cloudwatch_log_group}' to CloudTrail '{resource_id}'."
@@ -145,9 +205,7 @@ class SecurityHubRules:
             with open(kms_policy_file) as file:
                 kms_policy = str(file.read())
         except:
-            self.logging.error(
-                f"Could not read file KMS Policy file '{kms_policy_file}'."
-            )
+            self.logging.error(f"Could not read KMS Policy file '{kms_policy_file}'.")
             self.logging.error(sys.exc_info()[1])
             return False
         else:
@@ -174,9 +232,7 @@ class SecurityHubRules:
         # create KMS Alias
         kms_alias = f"alias/cloudtrail/{resource_id}"
         try:
-            kms_client.create_alias(
-                AliasName=kms_alias, TargetKeyId=kms_key_id
-            )
+            kms_client.create_alias(AliasName=kms_alias, TargetKeyId=kms_key_id)
             self.logging.info(
                 f"Created new KMS Alias '{kms_alias}' for KMS Key '{kms_key_id}'."
             )
@@ -185,15 +241,19 @@ class SecurityHubRules:
                 f"Could not create KMS Alias '{kms_alias}' for KMS Key '{kms_key_id}'."
             )
             self.logging.error(sys.exc_info()[1])
-            
+
             # schedule KMS Customer Managed Key for deletion
             try:
                 kms_client.schedule_key_deletion(
                     KeyId=kms_key_id, PendingWindowInDays=7
                 )
-                self.logging.info(f"Scheduled KMS Customer Managed Key '{kms_key_id}' for deletion.")
+                self.logging.info(
+                    f"Scheduled KMS Customer Managed Key '{kms_key_id}' for deletion."
+                )
             except:
-                self.logging.error(f"Could not delete KMS Customer Managed Key '{kms_key_id}'.")
+                self.logging.error(
+                    f"Could not delete KMS Customer Managed Key '{kms_key_id}'."
+                )
 
             return False
 
@@ -209,22 +269,26 @@ class SecurityHubRules:
                 f"Could not encrypt CloudTrail '{resource_id}' with new KMS Customer Managed Key '{kms_key_id}'."
             )
             self.logging.error(sys.exc_info()[1])
-            
+
             # delete KMS Alias
             try:
                 kms_client.delete_alias(AliasName=kms_alias)
                 self.logging.info(f"Deleted KMS Alias '{kms_alias}'.")
             except:
                 self.logging.error(f"Could not delete KMS Alias '{kms_alias}'.")
-            
+
             # schedule KMS Customer Managed Key for deletion
             try:
                 kms_client.schedule_key_deletion(
                     KeyId=kms_key_id, PendingWindowInDays=7
                 )
-                self.logging.info(f"Scheduled KMS Customer Managed Key '{kms_key_id}' for deletion.")
+                self.logging.info(
+                    f"Scheduled KMS Customer Managed Key '{kms_key_id}' for deletion."
+                )
             except:
-                self.logging.error(f"Could not delete KMS Customer Managed Key '{kms_key_id}'.")
+                self.logging.error(
+                    f"Could not delete KMS Customer Managed Key '{kms_key_id}'."
+                )
 
             return False
 
