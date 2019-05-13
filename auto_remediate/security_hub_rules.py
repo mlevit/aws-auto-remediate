@@ -171,6 +171,8 @@ class SecurityHubRules:
 
         # update CloudTrail with CloudWatch Log Group
         try:
+            # TODO Not working with below error
+            # ! [ERROR] An error occurred (InvalidCloudWatchLogsRoleArnException) when calling the UpdateTrail operation: Access denied. Check the trust relationships for your role. (security_hub_rules.py, cloud_trail_cloud_watch_logs_enabled(), line 186)
             self.cloudtrail_client.update_trail(
                 Name=resource_id,
                 CloudWatchLogsLogGroupArn=cloudwatch_log_group_arn,
