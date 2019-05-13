@@ -64,6 +64,7 @@ functions:
           - kms:CreateAlias
           - kms:CreateKey
           - kms:EnableKeyRotation
+          - kms:ScheduleKeyDeletion
           - logs:CreateLogGroup
           - logs:DescribeLogGroups
           - rds:DescribeDBInstances

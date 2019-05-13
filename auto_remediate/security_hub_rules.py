@@ -102,6 +102,8 @@ class SecurityHubRules:
             self.logging.error(sys.exc_info()[1])
             return False
 
+        # TODO Check if KMS Alias already exists, if it does then re-use
+
         # get KMS policy
         try:
             file_path = (
@@ -147,6 +149,15 @@ class SecurityHubRules:
                 f"Could not create KMS Alias 'cloudtrail/{resource_id}' for KMS Key '{kms_key_id}'."
             )
             self.logging.error(sys.exc_info()[1])
+
+            try:
+                kms_client.schedule_key_deletion(
+                    KeyId=kms_key_id, PendingWindowInDays=7
+                )
+                self.logging.info(f"Scheduled KMS CMK '{kms_key_id}' for deletion.")
+            except:
+                self.logging.error(f"Could not delete KMS CMK '{kms_key_id}'.")
+
             return False
 
         # update CloudTrail
@@ -161,6 +172,15 @@ class SecurityHubRules:
                 f"Could not encrypt CloudTrail '{resource_id}' with new KMS Customer Managed Key '{kms_key_id}'."
             )
             self.logging.error(sys.exc_info()[1])
+
+            try:
+                kms_client.schedule_key_deletion(
+                    KeyId=kms_key_id, PendingWindowInDays=7
+                )
+                self.logging.info(f"Scheduled KMS CMK '{kms_key_id}' for deletion.")
+            except:
+                self.logging.error(f"Could not delete KMS CMK '{kms_key_id}'.")
+
             return False
 
     def cmk_backing_key_rotation_enabled(self, resource_id):
