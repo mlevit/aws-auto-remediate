@@ -160,7 +160,7 @@ The tables below detail the auto remediated rules and scenarios.
 | Rule                              | Description                                                  | Remediation                                                 |
 | --------------------------------- | ------------------------------------------------------------ | ----------------------------------------------------------- |
 | VPC Flow Logs Enables             | Checks whether Amazon Virtual Private Cloud flow logs are found and enabled for Amazon VPC. | Creates new S3 Bucket `<bucket_name>-flow-logs` for logging |
-| VPC Default Security Group Closed | Checks that the default security group of any Amazon Virtual Private Cloud (VPC) does not allow inbound or outbound traffic. The rule is NON_COMPLIANT if the default security group has one or more inbound or outbound traffic. | Deletes all egress and ingress rules.                       |
+| VPC Default Security Group Closed | Checks that the default security group of any Amazon Virtual Private Cloud (VPC) does not allow inbound or outbound traffic. The rule is NON_COMPLIANT if the default security group has one or more inbound or outbound traffic. | Deletes all egress and ingress rules                        |
 
 #### Security, Identity & Compliance
 
