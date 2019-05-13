@@ -105,6 +105,13 @@
             }
           }
         },
+        "securityhub-iam-root-access-key-check": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            }
+          }
+        },
         "securityhub-iam-user-unused-credentials-check": {
           "M": {
             "remediate": {
