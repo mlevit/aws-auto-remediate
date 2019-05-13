@@ -35,6 +35,8 @@ class Remediate:
             "auto-remediate-rds-instance-public-access-check": self.config.rds_instance_public_access_check,
             # security hub
             "securityhub-access-keys-rotated": self.security_hub.access_keys_rotated,
+            "securityhub-cloud-trail-cloud-watch-logs-enabled": self.security_hub.cloud_trail_cloud_watch_logs_enabled,
+            "securityhub-cloud-trail-encryption-enabled": self.security_hub.cloud_trail_encryption_enabled,
             "securityhub-cmk-backing-key-rotation-enabled": self.security_hub.cmk_backing_key_rotation_enabled,
             "securityhub-iam-password-policy-ensure-expires": self.security_hub.iam_password_policy,
             "securityhub-iam-password-policy-lowercase-letter-check": self.security_hub.iam_password_policy,

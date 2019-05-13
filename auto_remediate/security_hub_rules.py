@@ -32,6 +32,111 @@ class SecurityHubRules:
             self.logging.error(sys.exc_info()[1])
             return False
 
+    def cloud_trail_cloud_watch_logs_enabled(self, resource_id):
+        logs_client = boto3.client("logs")
+        cloudtrail_client = boto3.client("cloudtrail")
+        
+        cloudwatch_log_group = f"CloudTrail/{resource_id}"
+
+        # create CloudWatch Log Group
+        try:
+            logs_client.create_log_group(logGroupName=cloudwatch_log_group)
+            self.logging.info(
+                f"Created new CloudWatch Log Group '{cloudwatch_log_group}'."
+            )
+        except:
+            self.logging.error(
+                f"Could not create new CloudWatch Log Group '{cloudwatch_log_group}'."
+            )
+            self.logging.error(sys.exc_info()[1])
+            return False
+        else:
+            try:
+                response = logs_client.describe_log_groups(
+                    logGroupNamePrefix=cloudwatch_log_group
+                )
+            except:
+                self.logging.error(
+                    f"Could not describe CloudWatch Log Group '{cloudwatch_log_group}'."
+                )
+                self.logging.error(sys.exc_info()[1])
+                return False
+            else:
+                cloudwatch_log_group_arn = response.get("logGroups")[0].get("arn")
+                self.logging.info(
+                    f"Retrieved ARN '{cloudwatch_log_group_arn}' for CloudWatch Log Group '{cloudwatch_log_group}'."
+                )
+
+        # update CloudTrail
+        try:
+            cloudtrail_client.update_trail(
+                Name=resource_id,
+                CloudWatchLogsLogGroupArn=cloudwatch_log_group_arn,
+            )
+            self.logging.info(
+                f"Added CloudWatch Log Group '{cloudwatch_log_group}' to CloudTrail '{resource_id}'."
+            )
+        except:
+            self.logging.error(f"Could not update CloudTrail '{resource_id}'.")
+            self.logging.error(sys.exc_info()[1])
+            return False
+    
+    def cloud_trail_encryption_enabled(self, resource_id):
+        cloudtrail_client = boto3.client("cloudtrail")
+        kms_client = boto3.client("kms")
+        sts_client = boto3.client('sts')
+        
+        # get account number and ARN
+        try:
+            account_number = sts_client.get_caller_identity().get("Account")
+            account_arn = sts_client.get_caller_identity().get("Arn")
+        except:
+            self.logging.error("Could not get Account Number and ARN.")
+            self.logging.error(sys.exc_info()[1])
+            return False
+        
+        # get KMS policy
+        try:
+            file_path = "auto_remediate/data/cloud_trail_encryption_enabled_kms_policy.json"
+            with open(file_path) as file:
+                kms_policy = str(file.read())
+        except:
+            self.logging.error(f"Could not read file '{file_path}'.")
+            self.logging.error(sys.exc_info()[1])
+            return False
+        else:
+            kms_policy = kms_policy.replace("account_number", account_number)
+            kms_policy = kms_policy.replace("account_arn", account_arn)
+
+        # create KMS CMK
+        try:
+            response = kms_client.create_key(
+                Policy=kms_policy,
+                Description=f"Key for CloudTrail {resource_id}"
+            )
+        except:
+            self.logging.error(f"Could not create new KMS Customer Managed Key for CloudTrail '{resource_id}'.")
+            self.logging.error(sys.exc_info()[1])
+            return False
+        else:
+            kms_key_id = response.get("KeyMetadata").get("KeyId")
+            self.logging.info(f"Created new KMS Customer Managed Key '{kms_key_id}' for CloudTrail '{resource_id}'.")
+
+        # update CloudTrail
+        try:
+            cloudtrail_client.update_trail(
+                Name=resource_id,
+                KmsKeyId=kms_key_id,
+            )
+            self.logging.info(
+                f"Encrypted CloudTrail '{resource_id}' with new KMS Customer Managed Key '{kms_key_id}'."
+            )
+            return True
+        except:
+            self.logging.error(f"Could not encrypt CloudTrail '{resource_id}' with new KMS Customer Managed Key '{kms_key_id}'.")
+            self.logging.error(sys.exc_info()[1])
+            return False
+
     def cmk_backing_key_rotation_enabled(self, resource_id):
         """Enables key rotation for KMS Customer Managed Keys.
         

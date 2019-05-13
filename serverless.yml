@@ -43,6 +43,7 @@ functions:
     iamRoleStatements:
       - Effect: Allow
         Action:
+          - cloudtrail:UpdateTrail
           - dynamodb:GetItem
           - dynamodb:Scan
           - ec2:CreateFlowLogs
@@ -60,7 +61,10 @@ functions:
           - iam:ListPolicies
           - iam:ListUsers
           - iam:UpdateAccountPasswordPolicy
+          - kms:CreateKey
           - kms:EnableKeyRotation
+          - logs:CreateLogGroup
+          - logs:DescribeLogGroups
           - rds:DescribeDBInstances
           - rds:ModifyDBInstance
           - s3:CreateBucket
@@ -69,6 +73,7 @@ functions:
           - sns:Publish
           - sqs:GetQueueUrl
           - sqs:SendMessage
+          - sts:GetCallerIdentity
         Resource: "*"
     events:
       - sqs:
