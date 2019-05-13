@@ -105,13 +105,6 @@
             }
           }
         },
-        "securityhub-iam-root-access-key-check": {
-          "M": {
-            "remediate": {
-              "BOOL": true
-            }
-          }
-        },
         "securityhub-iam-user-unused-credentials-check": {
           "M": {
             "remediate": {
@@ -148,6 +141,13 @@
           }
         },
         "securityhub-s3-bucket-logging-enabled": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            }
+          }
+        },
+        "securityhub-vpc-default-security-group-closed": {
           "M": {
             "remediate": {
               "BOOL": true

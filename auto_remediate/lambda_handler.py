@@ -99,7 +99,7 @@ class Remediate:
         """Retrieves the AWS Config rule compliance variable
         
         Arguments:
-            config_payload {JSON} -- AWS Config payload
+            config_payload {dictionary} -- AWS Config payload
         
         Returns:
             string -- COMPLIANT | NON_COMPLIANT
@@ -116,7 +116,7 @@ class Remediate:
         suffixed alphanumeric characters will be removed.
         
         Arguments:
-            config_payload {JSON} -- AWS Config payload
+            config_payload {dictionary} -- AWS Config payload
         
         Returns:
             string -- AWS Config rule name
@@ -134,7 +134,7 @@ class Remediate:
         """Retrieves the AWS Config Resource ID from the AWS Config payload
         
         Arguments:
-            config_payload {JSON} -- AWS Config payload
+            config_payload {dictionary} -- AWS Config payload
         
         Returns:
             string -- Resource ID relating to the AWS Resource that triggered the AWS Config Rule
@@ -168,7 +168,7 @@ class Remediate:
         SQS Message Attribute
         
         Arguments:
-            record {JSON} -- SQS Record payload
+            record {dictionary} -- SQS Record payload
         
         Returns:
             string -- Number of attempted remediations for a given AWS Config Rule
@@ -199,7 +199,7 @@ class Remediate:
         the "try_count" variable it is below the user defined "RETRYCOUNT" setting.
         
         Arguments:
-            config_payload {dict} -- AWS Config payload
+            config_payload {dictionary} -- AWS Config payload
             try_count {string} -- Number of previos remediation attemps for this AWS Config payload
         """
         client = boto3.client("sqs")
@@ -238,7 +238,7 @@ class Remediate:
         
         Arguments:
             config_rule_name {string} -- AWS Config Rule name
-            config_payload {dict} -- AWS Config Rule payload
+            config_payload {dictionary} -- AWS Config Rule payload
         """
         client = boto3.client("sns")
         topic_arn = os.environ.get("MISSINGREMEDIATIONTOPIC")
