@@ -63,6 +63,7 @@ functions:
           - iam:ListAccessKeys
           - iam:ListPolicies
           - iam:ListUsers
+          - iam:PassRole
           - iam:PutRolePolicy
           - iam:UpdateAccountPasswordPolicy
           - kms:CreateAlias

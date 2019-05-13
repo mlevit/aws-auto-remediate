@@ -242,17 +242,17 @@ class SecurityHubRules:
             )
 
         # create KMS Alias
-        kms_alias = f"alias/cloudtrail/{resource_id}"
+        kms_alias_name = f"alias/cloudtrail/{resource_id}"
         try:
-            self.kms_client.create_alias(AliasName=kms_alias, TargetKeyId=kms_key_id)
+            self.kms_client.create_alias(AliasName=kms_alias_name, TargetKeyId=kms_key_id)
             self.logging.info(
-                f"Created new KMS Alias '{kms_alias}' for KMS Key '{kms_key_id}'."
+                f"Created new KMS Alias '{kms_alias_name}' for KMS Key '{kms_key_id}'."
             )
         except self.kms_client.exceptions.AlreadyExistsException:
-            self.logging.info(f"KMS Alias '{kms_alias}' already exists.")
+            self.logging.info(f"KMS Alias '{kms_alias_name}' already exists.")
         except:
             self.logging.error(
-                f"Could not create KMS Alias '{kms_alias}' for KMS Key '{kms_key_id}'."
+                f"Could not create KMS Alias '{kms_alias_name}' for KMS Key '{kms_key_id}'."
             )
             self.logging.error(sys.exc_info()[1])
 
@@ -276,10 +276,10 @@ class SecurityHubRules:
 
             # delete KMS Alias
             try:
-                self.kms_client.delete_alias(AliasName=kms_alias)
-                self.logging.info(f"Deleted KMS Alias '{kms_alias}'.")
+                self.kms_client.delete_alias(AliasName=kms_alias_name)
+                self.logging.info(f"Deleted KMS Alias '{kms_alias_name}'.")
             except:
-                self.logging.error(f"Could not delete KMS Alias '{kms_alias}'.")
+                self.logging.error(f"Could not delete KMS Alias '{kms_alias_name}'.")
 
             # schedule KMS Customer Managed Key for deletion
             self.schedule_key_deletion(kms_key_id)
@@ -684,12 +684,9 @@ class SecurityHubRules:
                 f"S3 Bucket '{log_bucket}' to S3 Bucket '{log_bucket}'."
             )
             self.logging.error(sys.exc_info()[1])
-
-            try:
-                self.s3_client.delete_bucket(Bucket=log_bucket)
-                self.logging.info(f"Deleted S3 Bucket '{log_bucket}'.")
-            except:
-                self.logging.error(f"Could not delete S3 Bucket '{log_bucket}'.")
+            
+            # rollback
+            self.delete_bucket(log_bucket)
 
             return False
 
@@ -714,11 +711,8 @@ class SecurityHubRules:
             )
             self.logging.error(sys.exc_info()[1])
 
-            try:
-                self.s3_client.delete_bucket(Bucket=log_bucket)
-                self.logging.info(f"Deleted S3 Bucket '{log_bucket}'.")
-            except:
-                self.logging.error(f"Could not delete S3 Bucket '{log_bucket}'.")
+            # rollback
+            self.delete_bucket(log_bucket)
 
             return False
 
@@ -831,11 +825,8 @@ class SecurityHubRules:
             )
             self.logging.error(sys.exc_info()[1])
 
-            try:
-                self.s3_client.delete_bucket(Bucket=log_bucket)
-                self.logging.info(f"Deleted S3 Bucket '{log_bucket}'.")
-            except:
-                self.logging.error(f"Could not delete S3 Bucket '{log_bucket}'.")
+            # rollback
+            self.delete_bucket(log_bucket)
 
             return False
 
@@ -861,11 +852,8 @@ class SecurityHubRules:
             )
             self.logging.error(sys.exc_info()[1])
 
-            try:
-                self.s3_client.delete_bucket(Bucket=log_bucket)
-                self.logging.info(f"Deleted S3 Bucket '{log_bucket}'.")
-            except:
-                self.logging.error(f"Could not delete S3 Bucket '{log_bucket}'.")
+            # rollback
+            self.delete_bucket(log_bucket)
 
             return False
 
@@ -913,6 +901,14 @@ class SecurityHubRules:
             )
         except:
             self.logging.error(f"Could not delete KMS Customer Managed Key '{key_id}'.")
+    
+    # S3
+    def delete_bucket(self, bucket):
+        try:
+            self.s3_client.delete_bucket(Bucket=bucket)
+            self.logging.info(f"Deleted S3 Bucket '{bucket}'.")
+        except:
+            self.logging.error(f"Could not delete S3 Bucket '{bucket}'.")
 
     # STATIC METHODS
 
