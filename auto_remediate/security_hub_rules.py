@@ -33,8 +33,16 @@ class SecurityHubRules:
             return False
 
     def cloud_trail_cloud_watch_logs_enabled(self, resource_id):
-        logs_client = boto3.client("logs")
+        """Adds CloudWatch Log Group to CloudTrail logs
+        
+        Arguments:
+            resource_id {string} -- CloudTrail name
+        
+        Returns:
+            boolean -- True if remediation was successful
+        """
         cloudtrail_client = boto3.client("cloudtrail")
+        logs_client = boto3.client("logs")
 
         cloudwatch_log_group = f"CloudTrail/{resource_id}"
 
@@ -60,6 +68,19 @@ class SecurityHubRules:
                     f"Could not describe CloudWatch Log Group '{cloudwatch_log_group}'."
                 )
                 self.logging.error(sys.exc_info()[1])
+
+                # delete CloudWatch Log Group
+                try:
+                    logs_client.delete_log_group(logGroupName=cloudwatch_log_group)
+                    self.logging.info(
+                        f"Deleted CloudWatch Log Group '{cloudwatch_log_group}'."
+                    )
+                except:
+                    self.logging.error(
+                        f"Could not delete CloudWatch Log Group '{cloudwatch_log_group}'."
+                    )
+                    self.logging.error(sys.exc_info()[1])
+
                 return False
             else:
                 cloudwatch_log_group_arn = response.get("logGroups")[0].get("arn")
@@ -67,7 +88,7 @@ class SecurityHubRules:
                     f"Retrieved ARN '{cloudwatch_log_group_arn}' for CloudWatch Log Group '{cloudwatch_log_group}'."
                 )
 
-        # update CloudTrail
+        # update CloudTrail with CloudWatch Log Group
         try:
             cloudtrail_client.update_trail(
                 Name=resource_id, CloudWatchLogsLogGroupArn=cloudwatch_log_group_arn
@@ -75,13 +96,27 @@ class SecurityHubRules:
             self.logging.info(
                 f"Added CloudWatch Log Group '{cloudwatch_log_group}' to CloudTrail '{resource_id}'."
             )
+            return True
         except:
             self.logging.error(f"Could not update CloudTrail '{resource_id}'.")
             self.logging.error(sys.exc_info()[1])
+
+            # delete CloudWatch Log Group
+            try:
+                logs_client.delete_log_group(logGroupName=cloudwatch_log_group)
+                self.logging.info(
+                    f"Deleted CloudWatch Log Group '{cloudwatch_log_group}'."
+                )
+            except:
+                self.logging.error(
+                    f"Could not delete CloudWatch Log Group '{cloudwatch_log_group}'."
+                )
+                self.logging.error(sys.exc_info()[1])
+
             return False
 
     def cloud_trail_encryption_enabled(self, resource_id):
-        """Encrypts CloudTrail logs by creating a new KMS Key
+        """Encrypts CloudTrail logs with a KMS Customer Managed Key.
         
         Arguments:
             resource_id {string} -- CloudTrail name
@@ -93,7 +128,7 @@ class SecurityHubRules:
         kms_client = boto3.client("kms")
         sts_client = boto3.client("sts")
 
-        # get account number and ARN
+        # get AWS Account Number and ARN
         try:
             account_number = sts_client.get_caller_identity().get("Account")
             account_arn = sts_client.get_caller_identity().get("Arn")
@@ -104,22 +139,24 @@ class SecurityHubRules:
 
         # TODO Check if KMS Alias already exists, if it does then re-use
 
-        # get KMS policy
+        # get KMS Policy
         try:
-            file_path = (
+            kms_policy_file = (
                 "auto_remediate/data/cloud_trail_encryption_enabled_kms_policy.json"
             )
-            with open(file_path) as file:
+            with open(kms_policy_file) as file:
                 kms_policy = str(file.read())
         except:
-            self.logging.error(f"Could not read file '{file_path}'.")
+            self.logging.error(
+                f"Could not read file KMS Policy file '{kms_policy_file}'."
+            )
             self.logging.error(sys.exc_info()[1])
             return False
         else:
             kms_policy = kms_policy.replace("account_number", account_number)
             kms_policy = kms_policy.replace("account_arn", account_arn)
 
-        # create KMS CMK
+        # create KMS Customer Managed Key
         try:
             response = kms_client.create_key(
                 Policy=kms_policy, Description=f"Key for CloudTrail {resource_id}"
@@ -136,7 +173,7 @@ class SecurityHubRules:
                 f"Created new KMS Customer Managed Key '{kms_key_id}' for CloudTrail '{resource_id}'."
             )
 
-        # create alias
+        # create KMS Alias
         try:
             kms_client.create_alias(
                 AliasName=f"alias/cloudtrail/{resource_id}", TargetKeyId=kms_key_id
@@ -160,7 +197,7 @@ class SecurityHubRules:
 
             return False
 
-        # update CloudTrail
+        # update CloudTrail with KMS Key
         try:
             cloudtrail_client.update_trail(Name=resource_id, KmsKeyId=kms_key_id)
             self.logging.info(
