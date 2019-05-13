@@ -157,9 +157,10 @@ The tables below detail the auto remediated rules and scenarios.
 
 #### Network and Content Delivery
 
-| Rule                  | Description                                                  | Remediation                                                 |
-| --------------------- | ------------------------------------------------------------ | ----------------------------------------------------------- |
-| VPC Flow Logs Enables | Checks whether Amazon Virtual Private Cloud flow logs are found and enabled for Amazon VPC. | Creates new S3 Bucket `<bucket_name>-flow-logs` for logging |
+| Rule                              | Description                                                  | Remediation                                                 |
+| --------------------------------- | ------------------------------------------------------------ | ----------------------------------------------------------- |
+| VPC Flow Logs Enables             | Checks whether Amazon Virtual Private Cloud flow logs are found and enabled for Amazon VPC. | Creates new S3 Bucket `<bucket_name>-flow-logs` for logging |
+| VPC Default Security Group Closed | Checks that the default security group of any Amazon Virtual Private Cloud (VPC) does not allow inbound or outbound traffic. The rule is NON_COMPLIANT if the default security group has one or more inbound or outbound traffic. | Deletes all egress and ingress rules.                       |
 
 #### Security, Identity & Compliance
 
@@ -175,7 +176,6 @@ The tables below detail the auto remediated rules and scenarios.
 | IAM Password Policy Symbol Check           | Checks whether the IAM password policy enforces the inclusion of a symbol. | Enables "Require at least one non-alphanumeric character" option |
 | IAM Password Policy Uppercase Letter Check | Checks whether the account password policy for IAM users requires at least one uppercase character in password. | Enables "Require at least one uppercase letter" option       |
 | IAM Policy No Statements with Admin Access | Checks whether the default version of AWS Identity and Access Management (IAM) policies do not have administrator access.<br />If any statement has `"Effect": "Allow"` with `"Action": "*"` over `"Resource": "*"`, the rule is NON_COMPLIANT. | :warning: Creates new Policy with offending Statements removed |
-| IAM Root Access Key Check                  | Checks whether the root user access key is available.        | Deletes Access Key                                           |
 | IAM User Unused Credentials Check          | Checks whether AWS Identity and Access Management (IAM) users have passwords or active access keys that have not been used within 90 days. | :warning: Deletes Access Key / Login Profile                 |
 
 #### Storage

@@ -46,6 +46,9 @@ functions:
           - dynamodb:GetItem
           - dynamodb:Scan
           - ec2:CreateFlowLogs
+          - ec2:DescribeSecurityGroups
+          - ec2:RevokeSecurityGroupEgress
+          - ec2:RevokeSecurityGroupIngress
           - ec2:RevokeSecurityGroupIngress
           - iam:CreatePolicyVersion
           - iam:DeleteAccessKey

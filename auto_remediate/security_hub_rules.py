@@ -172,28 +172,6 @@ class SecurityHubRules:
                 self.logging.error(sys.exc_info()[1])
                 return False
         return True
-    
-    def iam_root_access_key_check(self, resource_id):
-        """Deletes root accounts Access Key
-        
-        Arguments:
-            resource_id {string} -- Access Key id
-        
-        Returns:
-            boolean -- True if remediation was succesful
-        """
-        client = boto3.client("iam")
-        
-        try:
-            client.delete_access_key(AccessKeyId=resource_id)
-            self.logging.info(f"Deleted root user's IAM Access Key '{resource_id}'.")
-            return True
-        except:
-            self.logging.error(
-                f"Could not delete root user's IAM Access Key '{resource_id}'."
-            )
-            self.logging.error(sys.exc_info()[1])
-            return False
 
     def iam_user_unused_credentials_check(self, resource_id):
         """Deletes unused Access Keys and Login Profiles over 90 days old for a given IAM User.
@@ -506,6 +484,61 @@ class SecurityHubRules:
                 self.logging.error(f"Could not delete S3 Bucket '{log_bucket}'.")
 
             return False
+
+    def vpc_default_security_group_closed(self, resource_id):
+        """Removes all egress and ingress rules for a Security Group
+        
+        Arguments:
+            resource_id {string} -- Security Group ID
+        
+        Returns:
+            boolean -- True if remediation was successful
+        """
+        client = boto3.client("ec2")
+
+        try:
+            response = client.describe_security_groups(GroupIds=[resource_id])
+        except:
+            self.logging.error(
+                f"Could not describe default Security Group '{resource_id}'."
+            )
+            self.logging.error(sys.exc_info()[1])
+            return False
+
+        for security_group in response.get("SecurityGroups"):
+            # revoke egress rule
+            try:
+                client.revoke_security_group_egress(
+                    GroupId=resource_id,
+                    IpPermissions=security_group.get("IpPermissionsEgress"),
+                )
+                self.logging.info(
+                    f"Revoked all egress rules for default Security Group '{resource_id}'."
+                )
+                return True
+            except:
+                self.logging.error(
+                    f"Could not revoke egress rules for default Security Group '{resource_id}'."
+                )
+                self.logging.error(sys.exc_info()[1])
+                return False
+
+            # revoke ingress rules
+            try:
+                client.revoke_security_group_ingress(
+                    GroupId=resource_id,
+                    IpPermissions=security_group.get("IpPermissions"),
+                )
+                self.logging.info(
+                    f"Revoked all ingress rules for default Security Group '{resource_id}'."
+                )
+                return True
+            except:
+                self.logging.error(
+                    f"Could not revoke ingress rules for default Security Group '{resource_id}'."
+                )
+                self.logging.error(sys.exc_info()[1])
+                return False
 
     def vpc_flow_logs_enabled(self, resource_id):
         """Enables VPC Flow Logs by creating a new S3 Bucket with the name "<resource_id>-flow-logs".

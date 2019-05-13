@@ -44,13 +44,13 @@ class Remediate:
             "securityhub-iam-password-policy-symbol-check": self.security_hub.iam_password_policy,
             "securityhub-iam-password-policy-uppercase-letter-check": self.security_hub.iam_password_policy,
             "securityhub-iam-policy-no-statements-with-admin-access": self.security_hub.iam_policy_no_statements_with_admin_access,
-            "securityhub-iam-root-access-key-check": self.security_hub.iam_root_access_key_check,
             "securityhub-iam-user-unused-credentials-check": self.security_hub.iam_user_unused_credentials_check,
             "securityhub-restricted-rdp": self.security_hub.restricted_rdp,
             "securityhub-restricted-ssh": self.security_hub.restricted_ssh,
             "securityhub-s3-bucket-logging-enabled": self.security_hub.s3_bucket_logging_enabled,
             "securityhub-s3-bucket-public-read-prohibited": self.security_hub.s3_bucket_public_read_prohibited,
             "securityhub-s3-bucket-public-write-prohibited": self.security_hub.s3_bucket_public_write_prohibited,
+            "securityhub-vpc-default-security-group-closed": self.security_hub.vpc_default_security_group_closed,
             "securityhub-vpc-flow-logs-enabled": self.security_hub.vpc_flow_logs_enabled
             # custom
         }
