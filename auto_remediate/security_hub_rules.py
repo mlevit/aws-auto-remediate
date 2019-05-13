@@ -137,9 +137,7 @@ class SecurityHubRules:
             self.logging.error(sys.exc_info()[1])
             return False
 
-        # TODO Check if KMS Alias already exists, if it does then re-use
-
-        # get KMS Policy
+        # create KMS Policy
         try:
             kms_policy_file = (
                 "auto_remediate/data/cloud_trail_encryption_enabled_kms_policy.json"
@@ -174,30 +172,32 @@ class SecurityHubRules:
             )
 
         # create KMS Alias
+        kms_alias = f"alias/cloudtrail/{resource_id}"
         try:
             kms_client.create_alias(
-                AliasName=f"alias/cloudtrail/{resource_id}", TargetKeyId=kms_key_id
+                AliasName=kms_alias, TargetKeyId=kms_key_id
             )
             self.logging.info(
-                f"Created new KMS Alias 'cloudtrail/{resource_id}' for KMS Key '{kms_key_id}'."
+                f"Created new KMS Alias '{kms_alias}' for KMS Key '{kms_key_id}'."
             )
         except:
             self.logging.error(
-                f"Could not create KMS Alias 'cloudtrail/{resource_id}' for KMS Key '{kms_key_id}'."
+                f"Could not create KMS Alias '{kms_alias}' for KMS Key '{kms_key_id}'."
             )
             self.logging.error(sys.exc_info()[1])
-
+            
+            # schedule KMS Customer Managed Key for deletion
             try:
                 kms_client.schedule_key_deletion(
                     KeyId=kms_key_id, PendingWindowInDays=7
                 )
-                self.logging.info(f"Scheduled KMS CMK '{kms_key_id}' for deletion.")
+                self.logging.info(f"Scheduled KMS Customer Managed Key '{kms_key_id}' for deletion.")
             except:
-                self.logging.error(f"Could not delete KMS CMK '{kms_key_id}'.")
+                self.logging.error(f"Could not delete KMS Customer Managed Key '{kms_key_id}'.")
 
             return False
 
-        # update CloudTrail with KMS Key
+        # update CloudTrail with KMS Customer Managed Key
         try:
             cloudtrail_client.update_trail(Name=resource_id, KmsKeyId=kms_key_id)
             self.logging.info(
@@ -209,14 +209,22 @@ class SecurityHubRules:
                 f"Could not encrypt CloudTrail '{resource_id}' with new KMS Customer Managed Key '{kms_key_id}'."
             )
             self.logging.error(sys.exc_info()[1])
-
+            
+            # delete KMS Alias
+            try:
+                kms_client.delete_alias(AliasName=kms_alias)
+                self.logging.info(f"Deleted KMS Alias '{kms_alias}'.")
+            except:
+                self.logging.error(f"Could not delete KMS Alias '{kms_alias}'.")
+            
+            # schedule KMS Customer Managed Key for deletion
             try:
                 kms_client.schedule_key_deletion(
                     KeyId=kms_key_id, PendingWindowInDays=7
                 )
-                self.logging.info(f"Scheduled KMS CMK '{kms_key_id}' for deletion.")
+                self.logging.info(f"Scheduled KMS Customer Managed Key '{kms_key_id}' for deletion.")
             except:
-                self.logging.error(f"Could not delete KMS CMK '{kms_key_id}'.")
+                self.logging.error(f"Could not delete KMS Customer Managed Key '{kms_key_id}'.")
 
             return False
 
