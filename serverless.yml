@@ -61,6 +61,7 @@ functions:
           - iam:ListPolicies
           - iam:ListUsers
           - iam:UpdateAccountPasswordPolicy
+          - kms:CreateAlias
           - kms:CreateKey
           - kms:EnableKeyRotation
           - logs:CreateLogGroup

@@ -35,7 +35,7 @@ class SecurityHubRules:
     def cloud_trail_cloud_watch_logs_enabled(self, resource_id):
         logs_client = boto3.client("logs")
         cloudtrail_client = boto3.client("cloudtrail")
-        
+
         cloudwatch_log_group = f"CloudTrail/{resource_id}"
 
         # create CloudWatch Log Group
@@ -70,8 +70,7 @@ class SecurityHubRules:
         # update CloudTrail
         try:
             cloudtrail_client.update_trail(
-                Name=resource_id,
-                CloudWatchLogsLogGroupArn=cloudwatch_log_group_arn,
+                Name=resource_id, CloudWatchLogsLogGroupArn=cloudwatch_log_group_arn
             )
             self.logging.info(
                 f"Added CloudWatch Log Group '{cloudwatch_log_group}' to CloudTrail '{resource_id}'."
@@ -80,12 +79,20 @@ class SecurityHubRules:
             self.logging.error(f"Could not update CloudTrail '{resource_id}'.")
             self.logging.error(sys.exc_info()[1])
             return False
-    
+
     def cloud_trail_encryption_enabled(self, resource_id):
+        """Encrypts CloudTrail logs by creating a new KMS Key
+        
+        Arguments:
+            resource_id {string} -- CloudTrail name
+        
+        Returns:
+            boolean -- True if remediation was successful
+        """
         cloudtrail_client = boto3.client("cloudtrail")
         kms_client = boto3.client("kms")
-        sts_client = boto3.client('sts')
-        
+        sts_client = boto3.client("sts")
+
         # get account number and ARN
         try:
             account_number = sts_client.get_caller_identity().get("Account")
@@ -94,10 +101,12 @@ class SecurityHubRules:
             self.logging.error("Could not get Account Number and ARN.")
             self.logging.error(sys.exc_info()[1])
             return False
-        
+
         # get KMS policy
         try:
-            file_path = "auto_remediate/data/cloud_trail_encryption_enabled_kms_policy.json"
+            file_path = (
+                "auto_remediate/data/cloud_trail_encryption_enabled_kms_policy.json"
+            )
             with open(file_path) as file:
                 kms_policy = str(file.read())
         except:
@@ -111,29 +120,46 @@ class SecurityHubRules:
         # create KMS CMK
         try:
             response = kms_client.create_key(
-                Policy=kms_policy,
-                Description=f"Key for CloudTrail {resource_id}"
+                Policy=kms_policy, Description=f"Key for CloudTrail {resource_id}"
             )
         except:
-            self.logging.error(f"Could not create new KMS Customer Managed Key for CloudTrail '{resource_id}'.")
+            self.logging.error(
+                f"Could not create new KMS Customer Managed Key for CloudTrail '{resource_id}'."
+            )
             self.logging.error(sys.exc_info()[1])
             return False
         else:
             kms_key_id = response.get("KeyMetadata").get("KeyId")
-            self.logging.info(f"Created new KMS Customer Managed Key '{kms_key_id}' for CloudTrail '{resource_id}'.")
+            self.logging.info(
+                f"Created new KMS Customer Managed Key '{kms_key_id}' for CloudTrail '{resource_id}'."
+            )
+
+        # create alias
+        try:
+            kms_client.create_alias(
+                AliasName=f"alias/cloudtrail/{resource_id}", TargetKeyId=kms_key_id
+            )
+            self.logging.info(
+                f"Created new KMS Alias 'cloudtrail/{resource_id}' for KMS Key '{kms_key_id}'."
+            )
+        except:
+            self.logging.error(
+                f"Could not create KMS Alias 'cloudtrail/{resource_id}' for KMS Key '{kms_key_id}'."
+            )
+            self.logging.error(sys.exc_info()[1])
+            return False
 
         # update CloudTrail
         try:
-            cloudtrail_client.update_trail(
-                Name=resource_id,
-                KmsKeyId=kms_key_id,
-            )
+            cloudtrail_client.update_trail(Name=resource_id, KmsKeyId=kms_key_id)
             self.logging.info(
                 f"Encrypted CloudTrail '{resource_id}' with new KMS Customer Managed Key '{kms_key_id}'."
             )
             return True
         except:
-            self.logging.error(f"Could not encrypt CloudTrail '{resource_id}' with new KMS Customer Managed Key '{kms_key_id}'.")
+            self.logging.error(
+                f"Could not encrypt CloudTrail '{resource_id}' with new KMS Customer Managed Key '{kms_key_id}'."
+            )
             self.logging.error(sys.exc_info()[1])
             return False
 
