@@ -1,2 +1,1 @@
-botostubs==0.9.1.9.142
 dynamodb-json==1.3

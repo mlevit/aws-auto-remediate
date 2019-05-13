@@ -3,22 +3,21 @@ import json
 import sys
 
 import boto3
-import botostubs
 import dateutil.parser
 
 
 class SecurityHubRules:
     def __init__(self, logging):
         self.logging = logging
-        
+
         # create Boto3 clients
-        self.cloudtrail_client = boto3.client("cloudtrail") # type: botostubs.CloudTrail 
-        self.ec2_client = boto3.client("ec2") # type: botostubs.EC@
-        self.iam_client = boto3.client("iam") # type: botostubs.IAM
-        self.kms_client = boto3.client("kms") # type: botostubs.KMS
-        self.logs_client = boto3.client("logs") # type: botostubs.CloudWatchLogs
-        self.s3_client = boto3.client("s3") # type: botostubs.S3
-        self.sts_client = boto3.client("sts") # type: botostubs.STS
+        self.cloudtrail_client = boto3.client("cloudtrail")
+        self.ec2_client = boto3.client("ec2")
+        self.iam_client = boto3.client("iam")
+        self.kms_client = boto3.client("kms")
+        self.logs_client = boto3.client("logs")
+        self.s3_client = boto3.client("s3")
+        self.sts_client = boto3.client("sts")
 
     def access_keys_rotated(self, resource_id):
         """Deletes IAM User's Access Keys over 90 days old.
@@ -49,7 +48,7 @@ class SecurityHubRules:
         Returns:
             boolean -- True if remediation was successful
         """
-        cloudwatch_log_group = f"/aws/cloudtrail/{resource_id}"
+        cloudwatch_log_group_name = f"/aws/cloudtrail/{resource_id}"
 
         # get AWS Account Number and Region
         try:
@@ -62,92 +61,113 @@ class SecurityHubRules:
 
         # create CloudWatch Log Group
         try:
-            self.logs_client.create_log_group(logGroupName=cloudwatch_log_group)
+            self.logs_client.create_log_group(logGroupName=cloudwatch_log_group_name)
             self.logging.info(
-                f"Created new CloudWatch Log Group '{cloudwatch_log_group}'."
+                f"Created new CloudWatch Log Group '{cloudwatch_log_group_name}'."
             )
         except:
             self.logging.error(
-                f"Could not create new CloudWatch Log Group '{cloudwatch_log_group}'."
+                f"Could not create new CloudWatch Log Group '{cloudwatch_log_group_name}'."
             )
             self.logging.error(sys.exc_info()[1])
             return False
         else:
             try:
                 response = self.logs_client.describe_log_groups(
-                    logGroupNamePrefix=cloudwatch_log_group
+                    logGroupNamePrefix=cloudwatch_log_group_name
                 )
             except:
                 self.logging.error(
-                    f"Could not describe CloudWatch Log Group '{cloudwatch_log_group}'."
+                    f"Could not describe CloudWatch Log Group '{cloudwatch_log_group_name}'."
                 )
                 self.logging.error(sys.exc_info()[1])
 
-                # delete CloudWatch Log Group
-                try:
-                    self.logs_client.delete_log_group(logGroupName=cloudwatch_log_group)
-                    self.logging.info(
-                        f"Deleted CloudWatch Log Group '{cloudwatch_log_group}'."
-                    )
-                except:
-                    self.logging.error(
-                        f"Could not delete CloudWatch Log Group '{cloudwatch_log_group}'."
-                    )
-                    self.logging.error(sys.exc_info()[1])
-
+                # rollback
+                self.delete_log_group(cloudwatch_log_group_name)
                 return False
             else:
                 cloudwatch_log_group_arn = response.get("logGroups")[0].get("arn")
                 self.logging.info(
-                    f"Retrieved ARN '{cloudwatch_log_group_arn}' for CloudWatch Log Group '{cloudwatch_log_group}'."
+                    f"Retrieved ARN '{cloudwatch_log_group_arn}' for CloudWatch Log Group '{cloudwatch_log_group_name}'."
                 )
 
-        # create IAM Role for CloudTrail
+        # get trust relationship
         try:
-            iam_role_file = (
-                "auto_remediate/data/cloud_trail_cloud_watch_logs_enabled_role.json"
-            )
-            with open(iam_role_file) as file:
-                iam_role = str(file.read())
-        except:
-            self.logging.error(f"Could not read IAM Role file '{iam_role_file}'.")
-            self.logging.error(sys.exc_info()[1])
-            return False
-        else:
-            iam_role = iam_role.replace("account_number", account_number)
-            iam_role = iam_role.replace("region", account_region)
-            iam_role = iam_role.replace("cloudwatch_log_group", cloudwatch_log_group)
-
-        try:
-            response = self.iam_client.create_role(
-                RoleName=f"CloudTrail-CloudWatchLogs-{resource_id}",
-                AssumeRolePolicyDocument=iam_role,
-                Description="AWS CloudTrail will assume the role to deliver CloudTrail events to the CloudWatch Logs log group",
-            )
-            self.logging.info(
-                f"Created new IAM Role 'CloudTrail-CloudWatchLogs-{resource_id}'."
-            )
+            trust_relationship_file = "auto_remediate/data/cloud_trail_cloud_watch_logs_enabled_trust_relationship.json"
+            with open(trust_relationship_file) as file:
+                trust_relationship = str(file.read())
         except:
             self.logging.error(
-                f"Could not create new IAM Role 'CloudTrail-CloudWatchLogs-{resource_id}'."
+                f"Could not read IAM Trust Relationship file '{trust_relationship_file}'."
             )
             self.logging.error(sys.exc_info()[1])
 
-            # delete CloudWatch Log Group
-            try:
-                self.logs_client.delete_log_group(logGroupName=cloudwatch_log_group)
-                self.logging.info(
-                    f"Deleted CloudWatch Log Group '{cloudwatch_log_group}'."
-                )
-            except:
-                self.logging.error(
-                    f"Could not delete CloudWatch Log Group '{cloudwatch_log_group}'."
-                )
-                self.logging.error(sys.exc_info()[1])
+            # rollback
+            self.delete_log_group(cloudwatch_log_group_name)
+            return False
 
+        # create IAM Role for CloudTrail
+        iam_role_name = f"CloudTrail-CloudWatchLogs-{resource_id}"
+        try:
+            response = self.iam_client.create_role(
+                RoleName=iam_role_name,
+                AssumeRolePolicyDocument=trust_relationship,
+                Description="AWS CloudTrail will assume the role to deliver CloudTrail events to the CloudWatch Logs log group",
+            )
+            self.logging.info(f"Created new IAM Role '{iam_role_name}'.")
+        except:
+            self.logging.error(f"Could not create new IAM Role '{iam_role_name}'.")
+            self.logging.error(sys.exc_info()[1])
+
+            # rollback
+            self.delete_log_group(cloudwatch_log_group_name)
             return False
         else:
             iam_role_arn = response.get("Role").get("Arn")
+
+            # create policy
+            try:
+                policy_file = "auto_remediate/data/cloud_trail_cloud_watch_logs_enabled_policy.json"
+                with open(policy_file) as file:
+                    policy = str(file.read())
+            except:
+                self.logging.error(f"Could not read IAM Policy file '{policy_file}'.")
+                self.logging.error(sys.exc_info()[1])
+
+                # rollback
+                self.delete_log_group(cloudwatch_log_group_name)
+                return False
+            else:
+                policy = policy.replace("account_number", account_number)
+                policy = policy.replace("region", account_region)
+                policy = policy.replace(
+                    "cloudwatch_log_group_name", cloudwatch_log_group_name
+                )
+
+                iam_policy_name = f"CloudTrail-CloudWatch-{resource_id}"
+
+                try:
+                    self.iam_client.put_role_policy(
+                        RoleName=iam_role_name,
+                        PolicyName=iam_policy_name,
+                        PolicyDocument=policy,
+                    )
+
+                    self.logging.info(
+                        f"Added IAM Policy '{iam_policy_name}' to IAM Role '{iam_role_name}'."
+                    )
+                except:
+                    self.logging.error(
+                        f"Could not add IAM Policy '{iam_policy_name}' to IAM Role '{iam_role_name}'."
+                    )
+
+                    # rollback
+                    self.delete_role(iam_role_name)
+                    self.delete_log_group(cloudwatch_log_group_name)
+                    return False
+
+                    self.logging.error(sys.exc_info()[1])
+                    return False
 
         # update CloudTrail with CloudWatch Log Group
         try:
@@ -157,24 +177,17 @@ class SecurityHubRules:
                 CloudWatchLogsRoleArn=iam_role_arn,
             )
             self.logging.info(
-                f"Added CloudWatch Log Group '{cloudwatch_log_group}' to CloudTrail '{resource_id}'."
+                f"Added CloudWatch Log Group '{cloudwatch_log_group_name}' to CloudTrail '{resource_id}'."
             )
             return True
         except:
             self.logging.error(f"Could not update CloudTrail '{resource_id}'.")
             self.logging.error(sys.exc_info()[1])
 
-            # delete CloudWatch Log Group
-            try:
-                self.logs_client.delete_log_group(logGroupName=cloudwatch_log_group)
-                self.logging.info(
-                    f"Deleted CloudWatch Log Group '{cloudwatch_log_group}'."
-                )
-            except:
-                self.logging.error(
-                    f"Could not delete CloudWatch Log Group '{cloudwatch_log_group}'."
-                )
-                self.logging.error(sys.exc_info()[1])
+            # rollback
+            self.delete_role_policy(iam_role_name, iam_policy_name)
+            self.delete_role(iam_role_name)
+            self.delete_log_group(cloudwatch_log_group_name)
 
             return False
 
@@ -244,17 +257,7 @@ class SecurityHubRules:
             self.logging.error(sys.exc_info()[1])
 
             # schedule KMS Customer Managed Key for deletion
-            try:
-                self.kms_client.schedule_key_deletion(
-                    KeyId=kms_key_id, PendingWindowInDays=7
-                )
-                self.logging.info(
-                    f"Scheduled KMS Customer Managed Key '{kms_key_id}' for deletion."
-                )
-            except:
-                self.logging.error(
-                    f"Could not delete KMS Customer Managed Key '{kms_key_id}'."
-                )
+            self.schedule_key_deletion(kms_key_id)
 
             return False
 
@@ -279,17 +282,7 @@ class SecurityHubRules:
                 self.logging.error(f"Could not delete KMS Alias '{kms_alias}'.")
 
             # schedule KMS Customer Managed Key for deletion
-            try:
-                self.kms_client.schedule_key_deletion(
-                    KeyId=kms_key_id, PendingWindowInDays=7
-                )
-                self.logging.info(
-                    f"Scheduled KMS Customer Managed Key '{kms_key_id}' for deletion."
-                )
-            except:
-                self.logging.error(
-                    f"Could not delete KMS Customer Managed Key '{kms_key_id}'."
-                )
+            self.schedule_key_deletion(kms_key_id)
 
             return False
 
@@ -875,6 +868,53 @@ class SecurityHubRules:
                 self.logging.error(f"Could not delete S3 Bucket '{log_bucket}'.")
 
             return False
+
+    # ROLLBACK METHODS
+
+    # IAM
+    def delete_log_group(self, log_group_name):
+        try:
+            self.logs_client.delete_log_group(logGroupName=log_group_name)
+            self.logging.info(f"Deleted CloudWatch Log Group '{log_group_name}'.")
+        except:
+            self.logging.error(
+                f"Could not delete CloudWatch Log Group '{log_group_name}'."
+            )
+            self.logging.error(sys.exc_info()[1])
+
+    def delete_role(self, role_name):
+        try:
+            self.iam_client.delete_role(RoleName=role_name)
+            self.logging.info(f"Deleted IAM Role '{role_name}'.")
+        except:
+            self.logging.error(f"Could not delete IAM Role '{role_name}'.")
+            self.logging.error(sys.exc_info()[1])
+
+    def delete_role_policy(self, role_name, iam_policy_name):
+        try:
+            self.iam_client.delete_role_policy(
+                RoleName=role_name, PolicyName=iam_policy_name
+            )
+            self.logging.info(
+                f"Deleted IAM Policy '{iam_policy_name}' from IAM Role '{role_name}'."
+            )
+        except:
+            self.logging.error(
+                f"Could not delete IAM Policy '{iam_policy_name}' from IAM Role '{role_name}'."
+            )
+            self.logging.error(sys.exc_info()[1])
+
+    # KMS
+    def schedule_key_deletion(self, key_id):
+        try:
+            self.kms_client.schedule_key_deletion(KeyId=key_id, PendingWindowInDays=7)
+            self.logging.info(
+                f"Scheduled KMS Customer Managed Key '{key_id}' for deletion."
+            )
+        except:
+            self.logging.error(f"Could not delete KMS Customer Managed Key '{key_id}'.")
+
+    # STATIC METHODS
 
     @staticmethod
     def convert_to_datetime(date):

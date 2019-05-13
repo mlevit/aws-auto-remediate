@@ -55,12 +55,15 @@ functions:
           - iam:CreateRole
           - iam:DeleteAccessKey
           - iam:DeleteLoginProfile
+          - iam:DeleteRole
+          - iam:DeleteRolePolicy
           - iam:GetLoginProfile
           - iam:GetPolicy
           - iam:GetPolicyVersion
           - iam:ListAccessKeys
           - iam:ListPolicies
           - iam:ListUsers
+          - iam:PutRolePolicy
           - iam:UpdateAccountPasswordPolicy
           - kms:CreateAlias
           - kms:CreateKey
@@ -68,8 +71,8 @@ functions:
           - kms:EnableKeyRotation
           - kms:ScheduleKeyDeletion
           - logs:CreateLogGroup
-          - logs:DescribeLogGroups
           - logs:DeleteLogGroup
+          - logs:DescribeLogGroups
           - rds:DescribeDBInstances
           - rds:ModifyDBInstance
           - s3:CreateBucket
