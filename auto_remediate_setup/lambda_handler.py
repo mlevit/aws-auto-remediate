@@ -20,7 +20,7 @@ class Setup:
         Parse a directory and create the CloudFormation Stacks it contains.
         """
         existing_stacks = self.get_current_stacks()
-        path = f"auto-remediate-setup/data/{stack_sub_dir}"
+        path = f"auto_remediate_setup/data/{stack_sub_dir}"
 
         print(existing_stacks)
 
@@ -82,7 +82,7 @@ class Setup:
         try:
             client = boto3.client("dynamodb")
             settings_data = open(
-                "auto-remediate-setup/data/auto-remediate-settings.json"
+                "auto_remediate_setup/data/auto-remediate-settings.json"
             )
             settings_json = json.loads(settings_data.read())
 

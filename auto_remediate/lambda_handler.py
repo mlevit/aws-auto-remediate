@@ -188,7 +188,9 @@ class Remediate:
             boolean -- True | False
         """
         return (
-            self.settings.get("rules").get(config_rule_name, {}).get("remediate", True)
+            self.settings.get("rules", {})
+            .get(config_rule_name, {})
+            .get("remediate", True)
         )
 
     def send_to_dead_letter_queue(self, config_payload, try_count):
