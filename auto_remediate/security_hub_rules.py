@@ -172,6 +172,28 @@ class SecurityHubRules:
                 self.logging.error(sys.exc_info()[1])
                 return False
         return True
+    
+    def iam_root_access_key_check(self, resource_id):
+        """Deletes root accounts Access Key
+        
+        Arguments:
+            resource_id {string} -- Access Key id
+        
+        Returns:
+            boolean -- True if remediation was succesful
+        """
+        client = boto3.client("iam")
+        
+        try:
+            client.delete_access_key(AccessKeyId=resource_id)
+            self.logging.info(f"Deleted root user's IAM Access Key '{resource_id}'.")
+            return True
+        except:
+            self.logging.error(
+                f"Could not delete root user's IAM Access Key '{resource_id}'."
+            )
+            self.logging.error(sys.exc_info()[1])
+            return False
 
     def iam_user_unused_credentials_check(self, resource_id):
         """Deletes unused Access Keys and Login Profiles over 90 days old for a given IAM User.
