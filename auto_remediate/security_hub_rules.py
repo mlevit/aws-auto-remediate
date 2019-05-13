@@ -244,7 +244,9 @@ class SecurityHubRules:
         # create KMS Alias
         kms_alias_name = f"alias/cloudtrail/{resource_id}"
         try:
-            self.kms_client.create_alias(AliasName=kms_alias_name, TargetKeyId=kms_key_id)
+            self.kms_client.create_alias(
+                AliasName=kms_alias_name, TargetKeyId=kms_key_id
+            )
             self.logging.info(
                 f"Created new KMS Alias '{kms_alias_name}' for KMS Key '{kms_key_id}'."
             )
@@ -684,7 +686,7 @@ class SecurityHubRules:
                 f"S3 Bucket '{log_bucket}' to S3 Bucket '{log_bucket}'."
             )
             self.logging.error(sys.exc_info()[1])
-            
+
             # rollback
             self.delete_bucket(log_bucket)
 
@@ -901,7 +903,7 @@ class SecurityHubRules:
             )
         except:
             self.logging.error(f"Could not delete KMS Customer Managed Key '{key_id}'.")
-    
+
     # S3
     def delete_bucket(self, bucket):
         try:
