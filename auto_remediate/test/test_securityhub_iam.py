@@ -27,7 +27,9 @@ class TestSecurityHubIamUserNoPoliciesCheck:
         )
         yield sh
 
-    def test_iam_no_user_policies_check(self, iam_test_user_id, iam_test_user_with_policy):
+    def test_iam_no_user_policies_check(
+        self, iam_test_user_id, iam_test_user_with_policy
+    ):
         iam_test_user_with_policy.iam_user_no_policies_check(iam_test_user_id)
         user_policies = iam_test_user_with_policy.client_iam.list_attached_user_policies(
             UserName="marat"
