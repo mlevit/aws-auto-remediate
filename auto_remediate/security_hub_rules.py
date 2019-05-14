@@ -10,14 +10,61 @@ class SecurityHubRules:
     def __init__(self, logging):
         self.logging = logging
 
-        # create Boto3 clients
-        self.cloudtrail_client = boto3.client("cloudtrail")
-        self.ec2_client = boto3.client("ec2")
-        self.iam_client = boto3.client("iam")
-        self.kms_client = boto3.client("kms")
-        self.logs_client = boto3.client("logs")
-        self.s3_client = boto3.client("s3")
-        self.sts_client = boto3.client("sts")
+        self._client_ec2 = None
+        self._client_iam = None
+        self._client_kms = None
+        self._client_logs = None
+        self._client_s3 = None
+
+    @property
+    def client_ec2(self):
+        if not self._client_ec2:
+            self._client_ec2 = boto3.client("ec2")
+        return self._client_ec2
+
+    @client_ec2.setter
+    def client_ec2(self, client):
+        self._client_ec2 = client
+
+    @property
+    def client_iam(self):
+        if not self._client_iam:
+            self._client_iam = boto3.client("iam")
+        return self._client_iam
+
+    @client_iam.setter
+    def client_iam(self, client):
+        self._client_iam = client
+
+    @property
+    def client_logs(self):
+        if not self._client_kms:
+            self._client_logs = boto3.client("logs")
+        return self._client_logs
+
+    @client_kms.setter
+    def client_logs(self, client):
+        self._client_logs = client
+
+    @property
+    def client_kms(self):
+        if not self._client_kms:
+            self._client_kms = boto3.client("kms")
+        return self._client_kms
+
+    @client_kms.setter
+    def client_kms(self, client):
+        self._client_kms = client
+
+    @property
+    def client_s3(self):
+        if not self._client_s3:
+            self._client_s3 = boto3.client("s3")
+        return self._client_s3
+
+    @client_s3.setter
+    def client_s3(self, client):
+        self._client_s3 = client
 
     def access_keys_rotated(self, resource_id):
         """Deletes IAM User's Access Keys over 90 days old.
@@ -29,7 +76,7 @@ class SecurityHubRules:
             boolean -- True if remediation is successful
         """
         try:
-            self.iam_client.delete_access_key(AccessKeyId=resource_id)
+            self.client_iam.delete_access_key(AccessKeyId=resource_id)
             self.logging.info(f"Deleted unrotated IAM Access Key '{resource_id}'.")
             return True
         except:
@@ -300,7 +347,7 @@ class SecurityHubRules:
             boolean -- True if remediation was successful
         """
         try:
-            self.kms_client.enable_key_rotation(KeyId=resource_id)
+            self.client_kms.enable_key_rotation(KeyId=resource_id)
             self.logging.info(
                 f"Enabled key rotation for Customer Managed Key '{resource_id}'."
             )
@@ -329,7 +376,7 @@ class SecurityHubRules:
             boolean -- True if remediation was succesfull
         """
         try:
-            self.iam_client.update_account_password_policy(
+            self.client_iam.update_account_password_policy(
                 MinimumPasswordLength=14,  # 14 characters
                 RequireSymbols=True,
                 RequireNumbers=True,
@@ -363,7 +410,7 @@ class SecurityHubRules:
             boolean -- True if remediation was successful
         """
         try:
-            paginator = self.iam_client.get_paginator("list_policies").paginate()
+            paginator = self.client_iam.get_paginator("list_policies").paginate()
         except:
             self.logging.error("Could not get a paginator to list all IAM Policies.")
             self.logging.error(sys.exc_info()[1])
@@ -374,7 +421,7 @@ class SecurityHubRules:
         ):
             # get policy
             try:
-                response = self.iam_client.get_policy(PolicyArn=policy_arn)
+                response = self.client_iam.get_policy(PolicyArn=policy_arn)
             except:
                 self.logging.error(f"Could not get IAM Policy '{policy_arn}' details.")
                 self.logging.error(sys.exc_info()[1])
@@ -384,7 +431,7 @@ class SecurityHubRules:
 
             # get default policy
             try:
-                response = self.iam_client.get_policy_version(
+                response = self.client_iam.get_policy_version(
                     PolicyArn=policy_arn, VersionId=default_version
                 )
             except:
@@ -409,7 +456,7 @@ class SecurityHubRules:
 
             # create new policy version with offending statement removed
             try:
-                self.iam_client.create_policy_version(
+                self.client_iam.create_policy_version(
                     PolicyArn=policy_arn,
                     PolicyDocument=json.dumps(policy),
                     SetAsDefault=True,
@@ -425,6 +472,36 @@ class SecurityHubRules:
                 return False
         return True
 
+    def iam_user_no_policies_check(self, resource_id):
+        """ Detaches user policies from IAM user
+
+        Arguments:
+            resource_id {string} -- IAM User ID
+
+        Returns:
+            boolean -- True if remediation was successful
+        """
+        try:
+            page_user = self.client_iam.get_paginator("list_users").paginate()
+            for username in page_user.search(
+                f"Users[?UserId == '{resource_id}'].UserName"
+            ):
+                page_policy = self.client_iam.get_paginator(
+                    "list_attached_user_policies"
+                ).paginate(UserName=username)
+                for policy_arn in page_policy.search(f"AttachedPolicies[].PolicyArn"):
+                    self.client_iam.detach_user_policy(
+                        UserName=username, PolicyArn=policy_arn
+                    )
+                    self.logging.info(
+                        f"Detached {policy_arn} from {username} {resource_id}."
+                    )
+                    return True
+        except:
+            self.logging.error(f"Could not detach user policies for {resource_id}.")
+            self.logging.error(sys.exc_info()[1])
+            return False
+
     def iam_user_unused_credentials_check(self, resource_id):
         """Deletes unused Access Keys and Login Profiles over 90 days old for a given IAM User.
         
@@ -435,7 +512,7 @@ class SecurityHubRules:
             boolean -- True if remediation was successful
         """
         try:
-            paginator = self.iam_client.get_paginator("list_users").paginate()
+            paginator = self.client_iam.get_paginator("list_users").paginate()
         except:
             self.logging.error("Could not get a paginator to list all IAM users.")
             self.logging.error(sys.exc_info()[1])
@@ -446,8 +523,8 @@ class SecurityHubRules:
         ):
             # check password usage
             try:
-                login_profile = self.iam_client.get_login_profile(UserName=user_name)
-            except self.iam_client.exceptions.NoSuchEntityException:
+                login_profile = self.client_iam.get_login_profile(UserName=user_name)
+            except self.client_iam.exceptions.NoSuchEntityException:
                 self.logging.debug(
                     f"IAM User '{user_name}' does not have a Login Profile to delete."
                 )
@@ -460,7 +537,7 @@ class SecurityHubRules:
                 login_profile_date = login_profile.get("LoginProfile").get("CreateDate")
                 if SecurityHubRules.get_day_delta(login_profile_date) > 90:
                     try:
-                        self.iam_client.delete_login_profile(UserName=user_name)
+                        self.client_iam.delete_login_profile(UserName=user_name)
                         self.logging.info(
                             f"Deleted IAM Login Profile for User '{user_name}'."
                         )
@@ -473,7 +550,7 @@ class SecurityHubRules:
 
             # check access keys usage
             try:
-                list_access_keys = self.iam_client.list_access_keys(UserName=user_name)
+                list_access_keys = self.client_iam.list_access_keys(UserName=user_name)
             except:
                 self.logging.error(
                     f"Could not list IAM Access Keys for User '{user_name}'."
@@ -491,7 +568,7 @@ class SecurityHubRules:
                     and SecurityHubRules.get_day_delta(access_key_date) > 90
                 ):
                     try:
-                        self.iam_client.delete_access_key(
+                        self.client_iam.delete_access_key(
                             UserName=user_name, AccessKeyId=access_key_id
                         )
                         self.logging.info(
@@ -518,8 +595,9 @@ class SecurityHubRules:
         Returns:
             boolean -- True if remediation was successful
         """
+
         try:
-            self.ec2_client.revoke_security_group_ingress(
+            self.client_ec2.revoke_security_group_ingress(
                 GroupId=resource_id,
                 IpPermissions=[
                     {
@@ -561,7 +639,7 @@ class SecurityHubRules:
             boolean -- True if remediation was successful
         """
         try:
-            self.ec2_client.revoke_security_group_ingress(
+            self.client_ec2.revoke_security_group_ingress(
                 GroupId=resource_id,
                 IpPermissions=[
                     {
@@ -600,7 +678,7 @@ class SecurityHubRules:
             boolean -- True if remediation was successful
         """
         try:
-            self.s3_client.put_bucket_acl(ACL="private", Bucket=resource_id)
+            self.client_s3.put_bucket_acl(ACL="private", Bucket=resource_id)
 
             self.logging.info(f"ACL set to 'private' for S3 Bucket '{resource_id}'.")
             return True
@@ -621,7 +699,7 @@ class SecurityHubRules:
             boolean -- True if remediation was successful
         """
         try:
-            self.s3_client.put_bucket_acl(ACL="private", Bucket=resource_id)
+            self.client_s3.put_bucket_acl(ACL="private", Bucket=resource_id)
 
             self.logging.info(f"ACL set to 'private' for S3 Bucket '{resource_id}'.")
             return True
@@ -646,11 +724,11 @@ class SecurityHubRules:
 
         # create new Bucket for logs
         try:
-            self.s3_client.create_bucket(
+            self.client_s3.create_bucket(
                 ACL="log-delivery-write",  # see https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl
                 Bucket=log_bucket,
                 CreateBucketConfiguration={
-                    "LocationConstraint": self.s3_client.meta.region_name
+                    "LocationConstraint": self.client_s3.meta.region_name
                 },
             )
 
@@ -668,7 +746,7 @@ class SecurityHubRules:
 
         # add log Bucket logging (into itself)
         try:
-            self.s3_client.put_bucket_logging(
+            self.client_s3.put_bucket_logging(
                 Bucket=log_bucket,
                 BucketLoggingStatus={
                     "LoggingEnabled": {
@@ -689,14 +767,16 @@ class SecurityHubRules:
             )
             self.logging.error(sys.exc_info()[1])
 
-            # rollback
-            self.delete_bucket(log_bucket)
-
+            try:
+                self.client_s3.delete_bucket(Bucket=log_bucket)
+                self.logging.info(f"Deleted S3 Bucket '{log_bucket}'.")
+            except:
+                self.logging.error(f"Could not delete S3 Bucket '{log_bucket}'.")
             return False
 
         # add original Bucket logging into the log Bucket
         try:
-            self.s3_client.put_bucket_logging(
+            self.client_s3.put_bucket_logging(
                 Bucket=resource_id,
                 BucketLoggingStatus={
                     "LoggingEnabled": {"TargetBucket": log_bucket, "TargetPrefix": ""}
@@ -714,10 +794,7 @@ class SecurityHubRules:
                 f"S3 Bucket '{resource_id}' to S3 Bucket '{log_bucket}'."
             )
             self.logging.error(sys.exc_info()[1])
-
-            # rollback
             self.delete_bucket(log_bucket)
-
             return False
 
     def vpc_default_security_group_closed(self, resource_id):
@@ -748,7 +825,6 @@ class SecurityHubRules:
                 self.logging.info(
                     f"Revoked all egress rules for default Security Group '{resource_id}'."
                 )
-                return True
             except:
                 self.logging.error(
                     f"Could not revoke egress rules for default Security Group '{resource_id}'."
@@ -765,13 +841,14 @@ class SecurityHubRules:
                 self.logging.info(
                     f"Revoked all ingress rules for default Security Group '{resource_id}'."
                 )
-                return True
             except:
                 self.logging.error(
                     f"Could not revoke ingress rules for default Security Group '{resource_id}'."
                 )
                 self.logging.error(sys.exc_info()[1])
                 return False
+
+            return True
 
     def vpc_flow_logs_enabled(self, resource_id):
         """Enables VPC Flow Logs by creating a new S3 Bucket with the name "<resource_id>-flow-logs".
@@ -786,11 +863,11 @@ class SecurityHubRules:
 
         # create new Bucket for logs
         try:
-            self.s3_client.create_bucket(
+            self.client_s3.create_bucket(
                 ACL="log-delivery-write",
                 Bucket=log_bucket,
                 CreateBucketConfiguration={
-                    "LocationConstraint": self.s3_client.meta.region_name
+                    "LocationConstraint": self.client_s3.meta.region_name
                 },
             )
 
@@ -808,7 +885,7 @@ class SecurityHubRules:
 
         # add log Bucket logging (into itself)
         try:
-            self.s3_client.put_bucket_logging(
+            self.client_s3.put_bucket_logging(
                 Bucket=log_bucket,
                 BucketLoggingStatus={
                     "LoggingEnabled": {
@@ -828,15 +905,12 @@ class SecurityHubRules:
                 f"S3 Bucket '{log_bucket}' to S3 Bucket '{log_bucket}'."
             )
             self.logging.error(sys.exc_info()[1])
-
-            # rollback
             self.delete_bucket(log_bucket)
-
             return False
 
         # add VPC flow logs
         try:
-            self.ec2_client.create_flow_logs(
+            self.client_ec2.create_flow_logs(
                 ResourceIds=[resource_id],
                 ResourceType="VPC",
                 TrafficType="REJECT",
@@ -855,10 +929,7 @@ class SecurityHubRules:
                 f"VPC '{resource_id}' to S3 Bucket '{log_bucket}'."
             )
             self.logging.error(sys.exc_info()[1])
-
-            # rollback
             self.delete_bucket(log_bucket)
-
             return False
 
     # ROLLBACK METHODS
@@ -866,7 +937,7 @@ class SecurityHubRules:
     # IAM
     def delete_log_group(self, log_group_name):
         try:
-            self.logs_client.delete_log_group(logGroupName=log_group_name)
+            self.client_logs.delete_log_group(logGroupName=log_group_name)
             self.logging.info(f"Deleted CloudWatch Log Group '{log_group_name}'.")
         except:
             self.logging.error(
@@ -876,7 +947,7 @@ class SecurityHubRules:
 
     def delete_role(self, role_name):
         try:
-            self.iam_client.delete_role(RoleName=role_name)
+            self.client_iam.delete_role(RoleName=role_name)
             self.logging.info(f"Deleted IAM Role '{role_name}'.")
         except:
             self.logging.error(f"Could not delete IAM Role '{role_name}'.")
@@ -884,7 +955,7 @@ class SecurityHubRules:
 
     def delete_role_policy(self, role_name, iam_policy_name):
         try:
-            self.iam_client.delete_role_policy(
+            self.client_iam.delete_role_policy(
                 RoleName=role_name, PolicyName=iam_policy_name
             )
             self.logging.info(
@@ -899,7 +970,7 @@ class SecurityHubRules:
     # KMS
     def schedule_key_deletion(self, key_id):
         try:
-            self.kms_client.schedule_key_deletion(KeyId=key_id, PendingWindowInDays=7)
+            self.client_kms.schedule_key_deletion(KeyId=key_id, PendingWindowInDays=7)
             self.logging.info(
                 f"Scheduled KMS Customer Managed Key '{key_id}' for deletion."
             )
@@ -909,7 +980,7 @@ class SecurityHubRules:
     # S3
     def delete_bucket(self, bucket):
         try:
-            self.s3_client.delete_bucket(Bucket=bucket)
+            self.client_s3.delete_bucket(Bucket=bucket)
             self.logging.info(f"Deleted S3 Bucket '{bucket}'.")
         except:
             self.logging.error(f"Could not delete S3 Bucket '{bucket}'.")
