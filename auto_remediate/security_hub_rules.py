@@ -10,12 +10,24 @@ class SecurityHubRules:
     def __init__(self, logging):
         self.logging = logging
 
+        self._client_cloudtrail = None
         self._client_ec2 = None
         self._client_iam = None
         self._client_kms = None
         self._client_logs = None
         self._client_s3 = None
+        self._client_sts = None
 
+    @property
+    def client_cloudtrail(self):
+        if not self._client_cloudtrail:
+            self._client_cloudtrail = boto3.client("cloudtrail")
+        return self._client_cloudtrail
+
+    @client_cloudtrail.setter
+    def client_cloudtrail(self, client):
+        self._client_cloudtrail = client
+        
     @property
     def client_ec2(self):
         if not self._client_ec2:
@@ -42,7 +54,7 @@ class SecurityHubRules:
             self._client_logs = boto3.client("logs")
         return self._client_logs
 
-    @client_kms.setter
+    @client_logs.setter
     def client_logs(self, client):
         self._client_logs = client
 
@@ -65,6 +77,16 @@ class SecurityHubRules:
     @client_s3.setter
     def client_s3(self, client):
         self._client_s3 = client
+    
+    @property
+    def client_sts(self):
+        if not self._client_sts:
+            self._client_sts = boto3.client("sts")
+        return self._client_sts
+
+    @client_sts.setter
+    def client_s3(self, client):
+        self._client_sts = client
 
     def access_keys_rotated(self, resource_id):
         """Deletes IAM User's Access Keys over 90 days old.
@@ -99,8 +121,8 @@ class SecurityHubRules:
 
         # get AWS Account Number and Region
         try:
-            account_number = self.sts_client.get_caller_identity().get("Account")
-            account_region = self.sts_client.meta.region_name
+            account_number = self.client_sts.get_caller_identity().get("Account")
+            account_region = self.client_sts.meta.region_name
         except:
             self.logging.error("Could not get Account Number and Region.")
             self.logging.error(sys.exc_info()[1])
@@ -108,7 +130,7 @@ class SecurityHubRules:
 
         # create CloudWatch Log Group
         try:
-            self.logs_client.create_log_group(logGroupName=cloudwatch_log_group_name)
+            self.client_logs.create_log_group(logGroupName=cloudwatch_log_group_name)
             self.logging.info(
                 f"Created new CloudWatch Log Group '{cloudwatch_log_group_name}'."
             )
@@ -120,7 +142,7 @@ class SecurityHubRules:
             return False
         else:
             try:
-                response = self.logs_client.describe_log_groups(
+                response = self.client_logs.describe_log_groups(
                     logGroupNamePrefix=cloudwatch_log_group_name
                 )
             except:
@@ -152,7 +174,7 @@ class SecurityHubRules:
         # create IAM Role for CloudTrail
         iam_role_name = f"CloudTrail-CloudWatchLogs-{resource_id}"
         try:
-            response = self.iam_client.create_role(
+            response = self.client_iam.create_role(
                 RoleName=iam_role_name,
                 AssumeRolePolicyDocument=trust_relationship,
                 Description="AWS CloudTrail will assume the role to deliver CloudTrail events to the CloudWatch Logs log group",
@@ -186,7 +208,7 @@ class SecurityHubRules:
                 iam_policy_name = f"CloudTrail-CloudWatch-{resource_id}"
 
                 try:
-                    self.iam_client.put_role_policy(
+                    self.client_iam.put_role_policy(
                         RoleName=iam_role_name,
                         PolicyName=iam_policy_name,
                         PolicyDocument=policy,
@@ -208,7 +230,7 @@ class SecurityHubRules:
         try:
             # TODO Not working with below error
             # ! [ERROR] An error occurred (InvalidCloudWatchLogsRoleArnException) when calling the UpdateTrail operation: Access denied. Check the trust relationships for your role. (security_hub_rules.py, cloud_trail_cloud_watch_logs_enabled(), line 186)
-            self.cloudtrail_client.update_trail(
+            self.client_cloudtrail.update_trail(
                 Name=resource_id,
                 CloudWatchLogsLogGroupArn=cloudwatch_log_group_arn,
                 CloudWatchLogsRoleArn=iam_role_arn,
@@ -236,8 +258,8 @@ class SecurityHubRules:
         """
         # get AWS Account Number and ARN
         try:
-            account_number = self.sts_client.get_caller_identity().get("Account")
-            account_arn = self.sts_client.get_caller_identity().get("Arn")
+            account_number = self.client_sts.get_caller_identity().get("Account")
+            account_arn = self.client_sts.get_caller_identity().get("Arn")
         except:
             self.logging.error("Could not get Account Number and ARN.")
             self.logging.error(sys.exc_info()[1])
@@ -260,7 +282,7 @@ class SecurityHubRules:
 
         # create KMS Customer Managed Key
         try:
-            response = self.kms_client.create_key(
+            response = self.client_kms.create_key(
                 Policy=kms_policy, Description=f"Key for CloudTrail {resource_id}"
             )
         except:
@@ -278,13 +300,13 @@ class SecurityHubRules:
         # create KMS Alias
         kms_alias_name = f"alias/cloudtrail/{resource_id}"
         try:
-            self.kms_client.create_alias(
+            self.client_kms.create_alias(
                 AliasName=kms_alias_name, TargetKeyId=kms_key_id
             )
             self.logging.info(
                 f"Created new KMS Alias '{kms_alias_name}' for KMS Key '{kms_key_id}'."
             )
-        except self.kms_client.exceptions.AlreadyExistsException:
+        except self.client_kms.exceptions.AlreadyExistsException:
             self.logging.info(f"KMS Alias '{kms_alias_name}' already exists.")
         except:
             self.logging.error(
@@ -296,7 +318,7 @@ class SecurityHubRules:
 
         # update CloudTrail with KMS Customer Managed Key
         try:
-            self.cloudtrail_client.update_trail(Name=resource_id, KmsKeyId=kms_key_id)
+            self.client_cloudtrail.update_trail(Name=resource_id, KmsKeyId=kms_key_id)
             self.logging.info(
                 f"Encrypted CloudTrail '{resource_id}' with new KMS Customer Managed Key '{kms_key_id}'."
             )
@@ -307,7 +329,7 @@ class SecurityHubRules:
             )
             self.logging.error(sys.exc_info()[1])
             try:
-                self.kms_client.delete_alias(AliasName=kms_alias_name)
+                self.client_kms.delete_alias(AliasName=kms_alias_name)
                 self.logging.info(f"Deleted KMS Alias '{kms_alias_name}'.")
             except:
                 self.logging.error(f"Could not delete KMS Alias '{kms_alias_name}'.")
@@ -785,7 +807,7 @@ class SecurityHubRules:
             boolean -- True if remediation was successful
         """
         try:
-            response = self.ec2_client.describe_security_groups(GroupIds=[resource_id])
+            response = self.client_ec2.describe_security_groups(GroupIds=[resource_id])
         except:
             self.logging.error(
                 f"Could not describe default Security Group '{resource_id}'."
@@ -796,7 +818,7 @@ class SecurityHubRules:
         for security_group in response.get("SecurityGroups"):
             # revoke egress rule
             try:
-                self.ec2_client.revoke_security_group_egress(
+                self.client_ec2.revoke_security_group_egress(
                     GroupId=resource_id,
                     IpPermissions=security_group.get("IpPermissionsEgress"),
                 )
@@ -812,7 +834,7 @@ class SecurityHubRules:
 
             # revoke ingress rules
             try:
-                self.ec2_client.revoke_security_group_ingress(
+                self.client_ec2.revoke_security_group_ingress(
                     GroupId=resource_id,
                     IpPermissions=security_group.get("IpPermissions"),
                 )
