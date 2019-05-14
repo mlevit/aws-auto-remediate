@@ -50,6 +50,7 @@ functions:
           - iam:CreatePolicyVersion
           - iam:DeleteAccessKey
           - iam:DeleteLoginProfile
+          - iam:DetachUserPolicy
           - iam:GetLoginProfile
           - iam:GetPolicy
           - iam:GetPolicyVersion
