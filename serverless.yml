@@ -26,6 +26,7 @@ functions:
     timeout: 60
     package:
       exclude:
+        - auto_remediate/test/**
         - auto_remediate_dlq/**
         - auto_remediate_setup/**
     environment:

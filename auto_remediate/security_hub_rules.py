@@ -27,7 +27,7 @@ class SecurityHubRules:
     @client_cloudtrail.setter
     def client_cloudtrail(self, client):
         self._client_cloudtrail = client
-        
+
     @property
     def client_ec2(self):
         if not self._client_ec2:
@@ -77,7 +77,7 @@ class SecurityHubRules:
     @client_s3.setter
     def client_s3(self, client):
         self._client_s3 = client
-    
+
     @property
     def client_sts(self):
         if not self._client_sts:
@@ -349,12 +349,18 @@ class SecurityHubRules:
         try:
             self.client_kms.enable_key_rotation(KeyId=resource_id)
             self.logging.info(
-                f"Enabled key rotation for Customer Managed Key '{resource_id}'."
+                f"Enabled key rotation for KMS Customer Managed Key '{resource_id}'."
             )
             return True
+        except self.client_kms.exceptions.KMSInvalidStateException:
+            self.logging.warning(
+                f"Could not enable key rotation for KMS Customer Managed Key '{resource_id}' due to invalid state."
+            )
+            self.logging.warning(sys.exc_info()[1])
+            return False
         except:
             self.logging.error(
-                f"Could not enable key rotation for Customer Managed Key '{resource_id}'."
+                f"Could not enable key rotation for KMS Customer Managed Key '{resource_id}'."
             )
             self.logging.error(sys.exc_info()[1])
             return False
