@@ -178,6 +178,7 @@ The tables below detail the auto remediated rules and scenarios.
 | IAM Password Policy Symbol Check           | Checks whether the IAM password policy enforces the inclusion of a symbol. | Enables "Require at least one non-alphanumeric character" option |
 | IAM Password Policy Uppercase Letter Check | Checks whether the account password policy for IAM users requires at least one uppercase character in password. | Enables "Require at least one uppercase letter" option       |
 | IAM Policy No Statements with Admin Access | Checks whether the default version of AWS Identity and Access Management (IAM) policies do not have administrator access.<br />If any statement has `"Effect": "Allow"` with `"Action": "*"` over `"Resource": "*"`, the rule is NON_COMPLIANT. | :warning: Creates new Policy with offending Statements removed |
+| IAM User No Policies Check                 | Checks that none of your IAM users have policies attached. IAM users must inherit permissions from IAM groups or roles. | Deletes all policies                                         |
 | IAM User Unused Credentials Check          | Checks whether AWS Identity and Access Management (IAM) users have passwords or active access keys that have not been used within 90 days. | :warning: Deletes Access Key / Login Profile                 |
 
 #### Storage
