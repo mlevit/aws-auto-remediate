@@ -128,8 +128,6 @@ class SecurityHubRules:
                     f"Could not describe CloudWatch Log Group '{cloudwatch_log_group_name}'."
                 )
                 self.logging.error(sys.exc_info()[1])
-
-                # rollback
                 self.delete_log_group(cloudwatch_log_group_name)
                 return False
             else:
@@ -148,8 +146,6 @@ class SecurityHubRules:
                 f"Could not read IAM Trust Relationship file '{trust_relationship_file}'."
             )
             self.logging.error(sys.exc_info()[1])
-
-            # rollback
             self.delete_log_group(cloudwatch_log_group_name)
             return False
 
@@ -165,8 +161,6 @@ class SecurityHubRules:
         except:
             self.logging.error(f"Could not create new IAM Role '{iam_role_name}'.")
             self.logging.error(sys.exc_info()[1])
-
-            # rollback
             self.delete_log_group(cloudwatch_log_group_name)
             return False
         else:
@@ -180,8 +174,6 @@ class SecurityHubRules:
             except:
                 self.logging.error(f"Could not read IAM Policy file '{policy_file}'.")
                 self.logging.error(sys.exc_info()[1])
-
-                # rollback
                 self.delete_log_group(cloudwatch_log_group_name)
                 return False
             else:
@@ -207,13 +199,9 @@ class SecurityHubRules:
                     self.logging.error(
                         f"Could not add IAM Policy '{iam_policy_name}' to IAM Role '{iam_role_name}'."
                     )
-
-                    # rollback
+                    self.logging.error(sys.exc_info()[1])
                     self.delete_role(iam_role_name)
                     self.delete_log_group(cloudwatch_log_group_name)
-                    return False
-
-                    self.logging.error(sys.exc_info()[1])
                     return False
 
         # update CloudTrail with CloudWatch Log Group
@@ -232,12 +220,9 @@ class SecurityHubRules:
         except:
             self.logging.error(f"Could not update CloudTrail '{resource_id}'.")
             self.logging.error(sys.exc_info()[1])
-
-            # rollback
             self.delete_role_policy(iam_role_name, iam_policy_name)
             self.delete_role(iam_role_name)
             self.delete_log_group(cloudwatch_log_group_name)
-
             return False
 
     def cloud_trail_encryption_enabled(self, resource_id):
@@ -306,10 +291,7 @@ class SecurityHubRules:
                 f"Could not create KMS Alias '{kms_alias_name}' for KMS Key '{kms_key_id}'."
             )
             self.logging.error(sys.exc_info()[1])
-
-            # schedule KMS Customer Managed Key for deletion
             self.schedule_key_deletion(kms_key_id)
-
             return False
 
         # update CloudTrail with KMS Customer Managed Key
@@ -324,17 +306,13 @@ class SecurityHubRules:
                 f"Could not encrypt CloudTrail '{resource_id}' with new KMS Customer Managed Key '{kms_key_id}'."
             )
             self.logging.error(sys.exc_info()[1])
-
-            # delete KMS Alias
             try:
                 self.kms_client.delete_alias(AliasName=kms_alias_name)
                 self.logging.info(f"Deleted KMS Alias '{kms_alias_name}'.")
             except:
                 self.logging.error(f"Could not delete KMS Alias '{kms_alias_name}'.")
-
-            # schedule KMS Customer Managed Key for deletion
+                self.logging.error(sys.exc_info()[1])
             self.schedule_key_deletion(kms_key_id)
-
             return False
 
     def cmk_backing_key_rotation_enabled(self, resource_id):
@@ -494,11 +472,11 @@ class SecurityHubRules:
                         UserName=username, PolicyArn=policy_arn
                     )
                     self.logging.info(
-                        f"Detached {policy_arn} from {username} {resource_id}."
+                        f"Detached '{policy_arn}' from '{username}' '{resource_id}'."
                     )
                     return True
         except:
-            self.logging.error(f"Could not detach user policies for {resource_id}.")
+            self.logging.error(f"Could not detach user policies for '{resource_id}'.")
             self.logging.error(sys.exc_info()[1])
             return False
 
