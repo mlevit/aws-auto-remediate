@@ -1,5 +1,4 @@
 import pytest
-import boto3
 import moto
 from .. import security_hub_rules
 import logging
