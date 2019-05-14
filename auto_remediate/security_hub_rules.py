@@ -206,7 +206,6 @@ class SecurityHubRules:
                 )
 
                 iam_policy_name = f"CloudTrail-CloudWatch-{resource_id}"
-
                 try:
                     self.client_iam.put_role_policy(
                         RoleName=iam_role_name,
