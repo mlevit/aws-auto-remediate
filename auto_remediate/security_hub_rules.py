@@ -725,9 +725,6 @@ class SecurityHubRules:
         Returns:
             boolean -- True if remediation was successful
         """
-        # TODO Create a single bucket with Account Id and region name
-        # TODO All access logs will be logged to this bucket with a prefix of bucket name
-
         log_bucket = f"{self.get_account_number()}-{self.get_region()}-acess-logs"
 
         # create new Bucket for logs
