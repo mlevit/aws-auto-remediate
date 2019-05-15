@@ -336,7 +336,7 @@ class SecurityHubRules:
             )
             return True
         except:
-            self.logging.info(
+            self.logging.error(
                 f"Could not enable Log File Validation for CloudTrail '{resource_id}'."
             )
             self.logging.error(sys.exc_info()[1])
@@ -612,7 +612,7 @@ class SecurityHubRules:
             )
             return True
         except:
-            self.logging.info(
+            self.logging.error(
                 f"Could not enable multi region trail for CloudTrail '{resource_id}'."
             )
             self.logging.error(sys.exc_info()[1])
