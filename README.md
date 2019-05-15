@@ -157,10 +157,10 @@ The tables below detail the auto remediated rules and scenarios.
 
 #### Network and Content Delivery
 
-| Rule                              | Description                                                  | Remediation                                                 |
-| --------------------------------- | ------------------------------------------------------------ | ----------------------------------------------------------- |
-| VPC Flow Logs Enables             | Checks whether Amazon Virtual Private Cloud flow logs are found and enabled for Amazon VPC. | Creates new S3 Bucket `<bucket_name>-flow-logs` for logging |
-| VPC Default Security Group Closed | Checks that the default security group of any Amazon Virtual Private Cloud (VPC) does not allow inbound or outbound traffic. The rule is NON_COMPLIANT if the default security group has one or more inbound or outbound traffic. | Deletes all egress and ingress rules                        |
+| Rule                              | Description                                                  | Remediation                                                  |
+| --------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| VPC Flow Logs Enables             | Checks whether Amazon Virtual Private Cloud flow logs are found and enabled for Amazon VPC. | Creates new S3 Bucket `<Account Number>-<Region>-flow-logs` for logging with a prefix of `<VPC ID>/` |
+| VPC Default Security Group Closed | Checks that the default security group of any Amazon Virtual Private Cloud (VPC) does not allow inbound or outbound traffic. The rule is NON_COMPLIANT if the default security group has one or more inbound or outbound traffic. | Deletes all egress and ingress rules                         |
 
 #### Security, Identity & Compliance
 
@@ -185,7 +185,7 @@ The tables below detail the auto remediated rules and scenarios.
 
 | Rule                              | Description                                            | Remediation                                                  |
 | --------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------ |
-| S3 Bucket Logging Enabled         | Checks whether logging is enabled for your S3 buckets. | Creates new S3 Bucket `<bucket_name>-access-logs` for logging |
+| S3 Bucket Logging Enabled         | Checks whether logging is enabled for your S3 buckets. | Creates new S3 Bucket `<Account Number>-<Region>-access-logs` for logging with a prefix of `<Bucket Name>/` |
 | S3 Bucket Public Read Prohibited  | Checks to see if S3 buckets are publicly readable.     | :warning: Sets S3 Bucket ACL to `private`                    |
 | S3 Bucket Public Write Prohibited | Checks to see if S3 buckets allow public write.        | :warning: Sets S3 Bucket ACL to `private`                    |
 
