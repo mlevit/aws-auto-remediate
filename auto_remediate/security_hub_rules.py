@@ -85,7 +85,7 @@ class SecurityHubRules:
         return self._client_sts
 
     @client_sts.setter
-    def client_s3(self, client):
+    def client_sts(self, client):
         self._client_sts = client
 
     def access_keys_rotated(self, resource_id):
