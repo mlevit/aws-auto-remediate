@@ -119,15 +119,6 @@ class SecurityHubRules:
         """
         cloudwatch_log_group_name = f"/aws/cloudtrail/{resource_id}"
 
-        # get AWS Account Number and Region
-        try:
-            account_number = self.get_account_number()
-            account_region = self.get_region()
-        except:
-            self.logging.error("Could not get Account Number and Region.")
-            self.logging.error(sys.exc_info()[1])
-            return False
-
         # create CloudWatch Log Group
         try:
             self.client_logs.create_log_group(logGroupName=cloudwatch_log_group_name)
@@ -199,8 +190,8 @@ class SecurityHubRules:
                 self.delete_log_group(cloudwatch_log_group_name)
                 return False
             else:
-                policy = policy.replace("account_number", account_number)
-                policy = policy.replace("region", account_region)
+                policy = policy.replace("account_number", self.get_account_number())
+                policy = policy.replace("region", self.get_region())
                 policy = policy.replace(
                     "cloudwatch_log_group_name", cloudwatch_log_group_name
                 )
@@ -255,15 +246,6 @@ class SecurityHubRules:
         Returns:
             boolean -- True if remediation was successful
         """
-        # get AWS Account Number and ARN
-        try:
-            account_number = self.get_account_number()
-            account_arn = self.get_account_arn()
-        except:
-            self.logging.error("Could not get Account Number and ARN.")
-            self.logging.error(sys.exc_info()[1])
-            return False
-
         # create KMS Policy
         try:
             kms_policy_file = (
@@ -276,8 +258,8 @@ class SecurityHubRules:
             self.logging.error(sys.exc_info()[1])
             return False
         else:
-            kms_policy = kms_policy.replace("account_number", account_number)
-            kms_policy = kms_policy.replace("account_arn", account_arn)
+            kms_policy = kms_policy.replace("account_number", self.get_account_number())
+            kms_policy = kms_policy.replace("account_arn", self.get_account_arn())
 
         # create KMS Customer Managed Key
         try:
