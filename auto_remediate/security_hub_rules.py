@@ -232,7 +232,9 @@ class SecurityHubRules:
                 )
                 return True
             except self.client_cloudtrail.exceptions.InvalidCloudWatchLogsRoleArnException:
-                self.logging.debug(f"Waiting for IAM Role '{iam_role_name}' to be created. Sleeping for {backoff} second(s).")
+                self.logging.debug(
+                    f"Waiting for IAM Role '{iam_role_name}' to be created. Sleeping for {backoff} second(s)."
+                )
             except:
                 self.logging.error(f"Could not update CloudTrail '{resource_id}'.")
                 self.logging.error(sys.exc_info()[1])
@@ -240,7 +242,7 @@ class SecurityHubRules:
                 self.delete_role(iam_role_name)
                 self.delete_log_group(cloudwatch_log_group_name)
                 return False
-            
+
             time.sleep(backoff)
             backoff = 2 * backoff
 
@@ -624,7 +626,7 @@ class SecurityHubRules:
             )
             self.logging.error(sys.exc_info()[1])
             return False
-    
+
     def restricted_rdp(self, resource_id):
         """Deletes inbound rules within Security Groups that match:
             Protocol: TCP
