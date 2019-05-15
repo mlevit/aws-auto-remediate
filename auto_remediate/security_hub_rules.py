@@ -121,8 +121,8 @@ class SecurityHubRules:
 
         # get AWS Account Number and Region
         try:
-            account_number = self.client_sts.get_caller_identity().get("Account")
-            account_region = self.client_sts.meta.region_name
+            account_number = self.get_account_number()
+            account_region = self.get_region()
         except:
             self.logging.error("Could not get Account Number and Region.")
             self.logging.error(sys.exc_info()[1])
@@ -257,8 +257,8 @@ class SecurityHubRules:
         """
         # get AWS Account Number and ARN
         try:
-            account_number = self.client_sts.get_caller_identity().get("Account")
-            account_arn = self.client_sts.get_caller_identity().get("Arn")
+            account_number = self.get_account_number()
+            account_arn = self.get_account_arn()
         except:
             self.logging.error("Could not get Account Number and ARN.")
             self.logging.error(sys.exc_info()[1])
@@ -725,21 +725,26 @@ class SecurityHubRules:
         Returns:
             boolean -- True if remediation was successful
         """
-        log_bucket = f"{resource_id}-access-logs"
+        # TODO Create a single bucket with Account Id and region name
+        # TODO All access logs will be logged to this bucket with a prefix of bucket name
+
+        log_bucket = f"{self.get_account_number()}-{self.get_region()}-acess-logs"
 
         # create new Bucket for logs
         try:
             self.client_s3.create_bucket(
                 ACL="log-delivery-write",  # see https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl
                 Bucket=log_bucket,
-                CreateBucketConfiguration={
-                    "LocationConstraint": self.client_s3.meta.region_name
-                },
+                CreateBucketConfiguration={"LocationConstraint": self.get_region()},
             )
 
             self.logging.info(
                 f"Created new S3 Bucket '{log_bucket}' "
                 f"for storing server access logs for S3 Bucket '{resource_id}'."
+            )
+        except self.client_s3.exceptions.BucketAlreadyOwnedByYou:
+            self.logging.info(
+                f"Skipped creation of S3 Bucket '{log_bucket}' as it already exists."
             )
         except:
             self.logging.error(
@@ -749,57 +754,29 @@ class SecurityHubRules:
             self.logging.error(sys.exc_info()[1])
             return False
 
-        # add log Bucket logging (into itself)
+        # add original Bucket logging into the log Bucket
         try:
             self.client_s3.put_bucket_logging(
-                Bucket=log_bucket,
+                Bucket=resource_id,
                 BucketLoggingStatus={
                     "LoggingEnabled": {
                         "TargetBucket": log_bucket,
-                        "TargetPrefix": "self/",
+                        "TargetPrefix": f"{resource_id}/",
                     }
                 },
             )
 
             self.logging.info(
                 f"Server access logging enabled for "
-                f"S3 Bucket '{log_bucket}' to S3 Bucket '{log_bucket}'."
-            )
-        except:
-            self.logging.error(
-                f"Could not enable server access logging enabled for "
-                f"S3 Bucket '{log_bucket}' to S3 Bucket '{log_bucket}'."
-            )
-            self.logging.error(sys.exc_info()[1])
-
-            try:
-                self.client_s3.delete_bucket(Bucket=log_bucket)
-                self.logging.info(f"Deleted S3 Bucket '{log_bucket}'.")
-            except:
-                self.logging.error(f"Could not delete S3 Bucket '{log_bucket}'.")
-            return False
-
-        # add original Bucket logging into the log Bucket
-        try:
-            self.client_s3.put_bucket_logging(
-                Bucket=resource_id,
-                BucketLoggingStatus={
-                    "LoggingEnabled": {"TargetBucket": log_bucket, "TargetPrefix": ""}
-                },
-            )
-
-            self.logging.info(
-                f"Server access logging enabled for "
-                f"S3 Bucket '{resource_id}' to S3 Bucket '{log_bucket}'."
+                f"S3 Bucket '{resource_id}' to S3 Bucket '{log_bucket}/{resource_id}'."
             )
             return True
         except:
             self.logging.error(
                 f"Could not enable server access logging enabled for "
-                f"S3 Bucket '{resource_id}' to S3 Bucket '{log_bucket}'."
+                f"S3 Bucket '{resource_id}' to S3 Bucket '{log_bucket}/{resource_id}'."
             )
             self.logging.error(sys.exc_info()[1])
-            self.delete_bucket(log_bucket)
             return False
 
     def vpc_default_security_group_closed(self, resource_id):
@@ -864,53 +841,30 @@ class SecurityHubRules:
         Returns:
             boolean -- True if remediation was successful
         """
-        log_bucket = f"{resource_id}-flow-logs"
+        log_bucket = f"{self.get_account_number()}-{self.get_region()}-flow-logs"
 
         # create new Bucket for logs
         try:
             self.client_s3.create_bucket(
                 ACL="log-delivery-write",
                 Bucket=log_bucket,
-                CreateBucketConfiguration={
-                    "LocationConstraint": self.client_s3.meta.region_name
-                },
+                CreateBucketConfiguration={"LocationConstraint": self.get_region()},
             )
 
             self.logging.info(
                 f"Created new S3 Bucket '{log_bucket}' "
                 f"for storing server access logs for S3 Bucket '{resource_id}'."
             )
+        except self.client_s3.exceptions.BucketAlreadyOwnedByYou:
+            self.logging.info(
+                f"Skipped creation of S3 Bucket '{log_bucket}' as it already exists."
+            )
         except:
             self.logging.error(
                 f"Could not create new S3 Bucket '{log_bucket}' "
-                f"for storing server access logs for S3 Bucket '{resource_id}'."
+                f"for storing VPC Flow Logs for VPC '{resource_id}'."
             )
             self.logging.error(sys.exc_info()[1])
-            return False
-
-        # add log Bucket logging (into itself)
-        try:
-            self.client_s3.put_bucket_logging(
-                Bucket=log_bucket,
-                BucketLoggingStatus={
-                    "LoggingEnabled": {
-                        "TargetBucket": log_bucket,
-                        "TargetPrefix": "self/",
-                    }
-                },
-            )
-
-            self.logging.info(
-                f"Server access logging enabled for "
-                f"S3 Bucket '{log_bucket}' to S3 Bucket '{log_bucket}'."
-            )
-        except:
-            self.logging.error(
-                f"Could not enable server access logging enabled for "
-                f"S3 Bucket '{log_bucket}' to S3 Bucket '{log_bucket}'."
-            )
-            self.logging.error(sys.exc_info()[1])
-            self.delete_bucket(log_bucket)
             return False
 
         # add VPC flow logs
@@ -920,21 +874,20 @@ class SecurityHubRules:
                 ResourceType="VPC",
                 TrafficType="REJECT",
                 LogDestinationType="s3",
-                LogDestination=f"arn:aws:s3:::{log_bucket}",
+                LogDestination=f"arn:aws:s3:::{log_bucket}/{resource_id}",
             )
 
             self.logging.info(
                 f"VPC Flow Logs have been enabled for "
-                f"VPC '{resource_id}' to S3 Bucket '{log_bucket}'."
+                f"VPC '{resource_id}' to S3 Bucket '{log_bucket}/{resource_id}'."
             )
             return True
         except:
             self.logging.error(
                 f"Could not enable VPC Flow Logs for "
-                f"VPC '{resource_id}' to S3 Bucket '{log_bucket}'."
+                f"VPC '{resource_id}' to S3 Bucket '{log_bucket}/{resource_id}'."
             )
             self.logging.error(sys.exc_info()[1])
-            self.delete_bucket(log_bucket)
             return False
 
     # ROLLBACK METHODS
@@ -989,6 +942,17 @@ class SecurityHubRules:
             self.logging.info(f"Deleted S3 Bucket '{bucket}'.")
         except:
             self.logging.error(f"Could not delete S3 Bucket '{bucket}'.")
+
+    # HELPER METHODS
+
+    def get_account_arn(self):
+        return self.client_sts.get_caller_identity().get("Arn")
+
+    def get_account_number(self):
+        return self.client_sts.get_caller_identity().get("Account")
+
+    def get_region(self):
+        return self.client_sts.meta.region_name
 
     # STATIC METHODS
 
