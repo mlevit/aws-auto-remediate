@@ -318,6 +318,22 @@ class SecurityHubRules:
             self.schedule_key_deletion(kms_key_id)
             return False
 
+    def cloud_trail_log_file_validation_enabled(self, resource_id):
+        try:
+            self.client_cloudtrail.update_trail(
+                Name=resource_id, EnableLogFileValidation=True
+            )
+            self.logging.info(
+                f"Enabled Log File Validation for CloudTrail '{resource_id}'."
+            )
+            return True
+        except:
+            self.logging.info(
+                f"Could not enable Log File Validation for CloudTrail '{resource_id}'."
+            )
+            self.logging.error(sys.exc_info()[1])
+            return False
+
     def cmk_backing_key_rotation_enabled(self, resource_id):
         """Enables key rotation for KMS Customer Managed Keys.
         
