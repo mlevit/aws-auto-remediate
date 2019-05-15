@@ -1,6 +1,7 @@
 import datetime
 import json
 import sys
+import time
 
 import boto3
 import dateutil.parser
@@ -216,26 +217,32 @@ class SecurityHubRules:
                     self.delete_log_group(cloudwatch_log_group_name)
                     return False
 
-        # update CloudTrail with CloudWatch Log Group
-        try:
-            # TODO Not working with below error
-            # ! [ERROR] An error occurred (InvalidCloudWatchLogsRoleArnException) when calling the UpdateTrail operation: Access denied. Check the trust relationships for your role. (security_hub_rules.py, cloud_trail_cloud_watch_logs_enabled(), line 186)
-            self.client_cloudtrail.update_trail(
-                Name=resource_id,
-                CloudWatchLogsLogGroupArn=cloudwatch_log_group_arn,
-                CloudWatchLogsRoleArn=iam_role_arn,
-            )
-            self.logging.info(
-                f"Added CloudWatch Log Group '{cloudwatch_log_group_name}' to CloudTrail '{resource_id}'."
-            )
-            return True
-        except:
-            self.logging.error(f"Could not update CloudTrail '{resource_id}'.")
-            self.logging.error(sys.exc_info()[1])
-            self.delete_role_policy(iam_role_name, iam_policy_name)
-            self.delete_role(iam_role_name)
-            self.delete_log_group(cloudwatch_log_group_name)
-            return False
+        # update CloudTrail with CloudWatch Log Group with a backoff
+        # to allow AWS the time to create the IAM Role
+        backoff = 1
+        while backoff <= 16:
+            try:
+                self.client_cloudtrail.update_trail(
+                    Name=resource_id,
+                    CloudWatchLogsLogGroupArn=cloudwatch_log_group_arn,
+                    CloudWatchLogsRoleArn=iam_role_arn,
+                )
+                self.logging.info(
+                    f"Added CloudWatch Log Group '{cloudwatch_log_group_name}' to CloudTrail '{resource_id}'."
+                )
+                return True
+            except self.client_cloudtrail.exceptions.InvalidCloudWatchLogsRoleArnException:
+                self.logging.debug(f"Waiting for IAM Role '{iam_role_name}' to be created. Sleeping for {backoff} second(s).")
+            except:
+                self.logging.error(f"Could not update CloudTrail '{resource_id}'.")
+                self.logging.error(sys.exc_info()[1])
+                self.delete_role_policy(iam_role_name, iam_policy_name)
+                self.delete_role(iam_role_name)
+                self.delete_log_group(cloudwatch_log_group_name)
+                return False
+            
+            time.sleep(backoff)
+            backoff = 2 * backoff
 
     def cloud_trail_encryption_enabled(self, resource_id):
         """Encrypts CloudTrail logs with a KMS Customer Managed Key.
