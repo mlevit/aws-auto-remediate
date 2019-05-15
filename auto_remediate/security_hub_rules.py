@@ -319,6 +319,14 @@ class SecurityHubRules:
             return False
 
     def cloud_trail_log_file_validation_enabled(self, resource_id):
+        """Enables CloudTrail file validation
+        
+        Arguments:
+            resource_id {string} -- CloudTrail Name
+        
+        Returns:
+            boolean -- True if remediation is successful
+        """
         try:
             self.client_cloudtrail.update_trail(
                 Name=resource_id, EnableLogFileValidation=True
@@ -586,6 +594,30 @@ class SecurityHubRules:
 
             return True
 
+    def multi_region_cloud_trail_enabled(self, resource_id):
+        """Enables multi region CloudTrail
+        
+        Arguments:
+            resource_id {string} -- CloudTrail Name
+        
+        Returns:
+            boolean -- True if remediation is successful
+        """
+        try:
+            self.client_cloudtrail.update_trail(
+                Name=resource_id, IsMultiRegionTrail=True
+            )
+            self.logging.info(
+                f"Enabled multi region trail for CloudTrail '{resource_id}'."
+            )
+            return True
+        except:
+            self.logging.info(
+                f"Could not enable multi region trail for CloudTrail '{resource_id}'."
+            )
+            self.logging.error(sys.exc_info()[1])
+            return False
+    
     def restricted_rdp(self, resource_id):
         """Deletes inbound rules within Security Groups that match:
             Protocol: TCP

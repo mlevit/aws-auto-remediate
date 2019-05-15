@@ -162,6 +162,7 @@ The tables below detail the auto remediated rules and scenarios.
 | CloudTrail CloudWatch Logs Enabled     | Checks whether AWS CloudTrail trails are configured to send logs to Amazon CloudWatch logs. | Enables CloudWatch logs to Log Group `cloudtrail/<CloudTrail Name>` |
 | CloudTrail Encryption Enabled          | Ensure CloudTrail logs are encrypted at rest using KMS CMKs. | Enables CloudWatch encryption with KMS CMK `cloudtrail/<CloudTrail Name>` |
 | CloudTrail Log File Validation Enabled | Checks whether AWS CloudTrail creates a signed digest file with logs. AWS recommends that the file validation must be enabled on all trails. The rule is NON_COMPLIANT if the validation is not enabled. | Enables CloudTrail Validation                                |
+| Multi Region Cloud Trail Enabled       | Checks that there is at least one multi-region AWS CloudTrail. The rule is NON_COMPLIANT if the trails do not match inputs parameters. | Enables Multi Region CloudTrail                              |
 
 #### Network and Content Delivery
 

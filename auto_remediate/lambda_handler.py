@@ -49,6 +49,7 @@ class Remediate:
             "securityhub-iam-policy-no-statements-with-admin-access": self.security_hub.iam_policy_no_statements_with_admin_access,
             "securityhub-iam-user-no-policies-check": self.security_hub.iam_user_no_policies_check,
             "securityhub-iam-user-unused-credentials-check": self.security_hub.iam_user_unused_credentials_check,
+            "securityhub-multi-region-cloud-trail-enabled": self.security_hub.multi_region_cloud_trail_enabled,
             "securityhub-restricted-rdp": self.security_hub.restricted_rdp,
             "securityhub-restricted-ssh": self.security_hub.restricted_ssh,
             "securityhub-s3-bucket-logging-enabled": self.security_hub.s3_bucket_logging_enabled,
