@@ -155,6 +155,14 @@ The tables below detail the auto remediated rules and scenarios.
 | Restricted RDP | Checks whether the incoming RDP traffic is allowed from `0.0.0.0/0` or `::/0`. This rule is compliant when incoming RDP traffic is restricted. | :warning: Deletes offending inbound rule |
 | Restricted SSH | Checks whether the incoming SSH traffic is allowed from `0.0.0.0/0` or `::/0`. This rule is compliant when incoming SSH traffic is restricted. | :warning: Deletes offending inbound rule |
 
+#### Management and Governance
+
+| Rule                                   | Description                                                  | Remediation                                                  |
+| -------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| CloudTrail CloudWatch Logs Enabled     | Checks whether AWS CloudTrail trails are configured to send logs to Amazon CloudWatch logs. | Enables CloudWatch logs to Log Group `cloudtrail/<CloudTrail Name>` |
+| CloudTrail Encryption Enabled          | Ensure CloudTrail logs are encrypted at rest using KMS CMKs. | Enables CloudWatch encryption with KMS CMK `cloudtrail/<CloudTrail Name>` |
+| CloudTrail Log File Validation Enabled | Checks whether AWS CloudTrail creates a signed digest file with logs. AWS recommends that the file validation must be enabled on all trails. The rule is NON_COMPLIANT if the validation is not enabled. | Enables CloudTrail Validation                                |
+
 #### Network and Content Delivery
 
 | Rule                              | Description                                                  | Remediation                                                  |
@@ -167,8 +175,6 @@ The tables below detail the auto remediated rules and scenarios.
 | Rule                                       | Description                                                  | Remediation                                                  |
 | ------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | Access Keys Rotated                        | Checks whether the active access keys are rotated within the number of days specified in 90 days. | :warning: Deletes Access Key                                 |
-| CloudTrail CloudWatch Logs Enabled         | Checks whether AWS CloudTrail trails are configured to send logs to Amazon CloudWatch logs. | Enables CloudWatch logs to Log Group `cloudtrail/<CloudTrail Name>` |
-| CloudTrail Encryption Enabled              | Ensure CloudTrail logs are encrypted at rest using KMS CMKs. | Enables CloudWatch encryption with KMS CMK `cloudtrail/<CloudTrail Name>` |
 | Customer Managed Key Rotation Enabled      | Checks that key rotation is enabled for customer created customer master key (CMK). | Enables key rotation                                         |
 | IAM Password Policy Ensure Expires         | Checks whether the IAM password policy ensures that passwords expire. | Enables password expiration                                  |
 | IAM Password Policy Lowercase Letter Check | Checks whether the IAM password policy enforces the inclusion of a lowercase letter. | Enables "Require at least one lowercase letter" option       |
