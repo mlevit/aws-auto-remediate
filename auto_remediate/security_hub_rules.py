@@ -617,11 +617,11 @@ class SecurityHubRules:
                 f"Users[?UserId == '{resource_id}'].UserName"
             ):
                 self.client_iam.delete_login_profile(UserName=username)
-                self.logging.info(f"Deleted login profile for user {username}.")
+                self.logging.info(f"Deleted login profile for IAM User '{username}'.")
                 return True
         except:
             self.logging.error(
-                f"Could not delete login profile for user '{resource_id}'."
+                f"Could not delete login profile for IAM User '{resource_id}'."
             )
             self.logging.error(sys.exc_info()[1])
             return False
