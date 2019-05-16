@@ -153,8 +153,8 @@ class SecurityHubRules:
         # get trust relationship
         try:
             trust_relationship_file = "auto_remediate/data/cloud_trail_cloud_watch_logs_enabled_trust_relationship.json"
-            with open(trust_relationship_file) as file:
-                trust_relationship = str(file.read())
+            with open(trust_relationship_file, "r") as file:
+                trust_relationship = file.read()
         except:
             self.logging.error(
                 f"Could not read IAM Trust Relationship file '{trust_relationship_file}'."
@@ -183,8 +183,8 @@ class SecurityHubRules:
             # create policy
             try:
                 policy_file = "auto_remediate/data/cloud_trail_cloud_watch_logs_enabled_policy.json"
-                with open(policy_file) as file:
-                    policy = str(file.read())
+                with open(policy_file, "r") as file:
+                    policy = file.read()
             except:
                 self.logging.error(f"Could not read IAM Policy file '{policy_file}'.")
                 self.logging.error(sys.exc_info()[1])
@@ -258,8 +258,8 @@ class SecurityHubRules:
             kms_policy_file = (
                 "auto_remediate/data/cloud_trail_encryption_enabled_kms_policy.json"
             )
-            with open(kms_policy_file) as file:
-                kms_policy = str(file.read())
+            with open(kms_policy_file, "r") as file:
+                kms_policy = file.read()
         except:
             self.logging.error(f"Could not read KMS Policy file '{kms_policy_file}'.")
             self.logging.error(sys.exc_info()[1])
