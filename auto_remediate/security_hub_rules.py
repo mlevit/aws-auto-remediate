@@ -18,6 +18,10 @@ class SecurityHubRules:
         self._client_logs = None
         self._client_s3 = None
         self._client_sts = None
+        
+        self._account_number = None
+        self._account_arn = None
+        self._region = None
 
     @property
     def client_cloudtrail(self):
@@ -88,6 +92,36 @@ class SecurityHubRules:
     @client_sts.setter
     def client_sts(self, client):
         self._client_sts = client
+    
+    @property
+    def account_number(self):
+        if not self._account_number:
+            self._account_number = self.client_sts.get_caller_identity().get("Account")
+        return self._account_number
+
+    @_account_number.setter
+    def account_number(self, account_number):
+        self._account_number = account_number
+    
+    @property
+    def account_arn(self):
+        if not self._account_arn:
+            self._account_arn = self.client_sts.get_caller_identity().get("Arn")
+        return self._account_arn
+
+    @_account_arn.setter
+    def account_arn(self, account_arn):
+        self._account_arn = account_arn
+    
+    @property
+    def region(self):
+        if not self._region:
+            self._region = self.client_sts.meta.region_name
+        return self._region
+
+    @_region.setter
+    def region(self, region):
+        self._region = region
 
     def access_keys_rotated(self, resource_id):
         """Deletes IAM User's Access Keys over 90 days old.
@@ -180,8 +214,8 @@ class SecurityHubRules:
             with open(policy_file, "r") as file:
                 policy = file.read()
 
-            policy = policy.replace("_ACCOUNT_NUMBER_", self.get_account_number())
-            policy = policy.replace("_REGION_", self.get_region())
+            policy = policy.replace("_ACCOUNT_NUMBER_", self.account_number)
+            policy = policy.replace("_REGION_", self.region)
             policy = policy.replace("_LOG_GROUP_", cloudwatch_log_group_name)
 
             try:
@@ -242,8 +276,8 @@ class SecurityHubRules:
         with open(kms_policy_file, "r") as file:
             kms_policy = file.read()
 
-        kms_policy = kms_policy.replace("_ACCOUNT_NUMBER_", self.get_account_number())
-        kms_policy = kms_policy.replace("_ACCOUNT_ARN_", self.get_account_arn())
+        kms_policy = kms_policy.replace("_ACCOUNT_NUMBER_", self.account_number)
+        kms_policy = kms_policy.replace("_ACCOUNT_ARN_", self.account_arn)
 
         # create KMS Customer Managed Key
         try:
@@ -739,14 +773,14 @@ class SecurityHubRules:
         Returns:
             boolean -- True if remediation was successful
         """
-        log_bucket = f"{self.get_account_number()}-{self.get_region()}-access-logs"
+        log_bucket = f"{self.account_number}-{self.region}-access-logs"
 
         # create new Bucket for logs
         try:
             self.client_s3.create_bucket(
                 ACL="log-delivery-write",  # see https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl
                 Bucket=log_bucket,
-                CreateBucketConfiguration={"LocationConstraint": self.get_region()},
+                CreateBucketConfiguration={"LocationConstraint": self.region},
             )
 
             self.logging.info(
@@ -852,14 +886,14 @@ class SecurityHubRules:
         Returns:
             boolean -- True if remediation was successful
         """
-        log_bucket = f"{self.get_account_number()}-{self.get_region()}-flow-logs"
+        log_bucket = f"{self.account_number}-{self.region}-flow-logs"
 
         # create new Bucket for logs
         try:
             self.client_s3.create_bucket(
                 ACL="log-delivery-write",
                 Bucket=log_bucket,
-                CreateBucketConfiguration={"LocationConstraint": self.get_region()},
+                CreateBucketConfiguration={"LocationConstraint": self.region},
             )
 
             self.logging.info(
@@ -953,17 +987,6 @@ class SecurityHubRules:
             self.logging.info(f"Deleted S3 Bucket '{bucket}'.")
         except:
             self.logging.error(f"Could not delete S3 Bucket '{bucket}'.")
-
-    # HELPER METHODS
-
-    def get_account_arn(self):
-        return self.client_sts.get_caller_identity().get("Arn")
-
-    def get_account_number(self):
-        return self.client_sts.get_caller_identity().get("Account")
-
-    def get_region(self):
-        return self.client_sts.meta.region_name
 
     # STATIC METHODS
 
