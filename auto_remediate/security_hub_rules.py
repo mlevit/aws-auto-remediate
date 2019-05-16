@@ -764,7 +764,7 @@ class SecurityHubRules:
         Returns:
             boolean -- True if remediation was successful
         """
-        log_bucket = f"{self.get_account_number()}-{self.get_region()}-acess-logs"
+        log_bucket = f"{self.get_account_number()}-{self.get_region()}-access-logs"
 
         # create new Bucket for logs
         try:
