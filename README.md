@@ -155,11 +155,21 @@ The tables below detail the auto remediated rules and scenarios.
 | Restricted RDP | Checks whether the incoming RDP traffic is allowed from `0.0.0.0/0` or `::/0`. This rule is compliant when incoming RDP traffic is restricted. | :warning: Deletes offending inbound rule |
 | Restricted SSH | Checks whether the incoming SSH traffic is allowed from `0.0.0.0/0` or `::/0`. This rule is compliant when incoming SSH traffic is restricted. | :warning: Deletes offending inbound rule |
 
+#### Management and Governance
+
+| Rule                                   | Description                                                  | Remediation                                                  |
+| -------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| CloudTrail CloudWatch Logs Enabled     | Checks whether AWS CloudTrail trails are configured to send logs to Amazon CloudWatch logs. | Enables CloudWatch logs to Log Group `cloudtrail/<CloudTrail Name>` |
+| CloudTrail Encryption Enabled          | Ensure CloudTrail logs are encrypted at rest using KMS CMKs. | Enables CloudWatch encryption with KMS CMK `cloudtrail/<CloudTrail Name>` |
+| CloudTrail Log File Validation Enabled | Checks whether AWS CloudTrail creates a signed digest file with logs. AWS recommends that the file validation must be enabled on all trails. The rule is NON_COMPLIANT if the validation is not enabled. | Enables CloudTrail Validation                                |
+| Multi Region Cloud Trail Enabled       | Checks that there is at least one multi-region AWS CloudTrail. The rule is NON_COMPLIANT if the trails do not match inputs parameters. | Enables Multi Region CloudTrail                              |
+
 #### Network and Content Delivery
 
-| Rule                  | Description                                                  | Remediation                                                 |
-| --------------------- | ------------------------------------------------------------ | ----------------------------------------------------------- |
-| VPC Flow Logs Enables | Checks whether Amazon Virtual Private Cloud flow logs are found and enabled for Amazon VPC. | Creates new S3 Bucket `<bucket_name>-flow-logs` for logging |
+| Rule                              | Description                                                  | Remediation                                                  |
+| --------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| VPC Flow Logs Enables             | Checks whether Amazon Virtual Private Cloud flow logs are found and enabled for Amazon VPC. | Creates new S3 Bucket `<Account Number>-<Region>-flow-logs` for logging with a prefix of `<VPC ID>/` |
+| VPC Default Security Group Closed | Checks that the default security group of any Amazon Virtual Private Cloud (VPC) does not allow inbound or outbound traffic. The rule is NON_COMPLIANT if the default security group has one or more inbound or outbound traffic. | Deletes all egress and ingress rules                         |
 
 #### Security, Identity & Compliance
 
@@ -175,13 +185,14 @@ The tables below detail the auto remediated rules and scenarios.
 | IAM Password Policy Symbol Check           | Checks whether the IAM password policy enforces the inclusion of a symbol. | Enables "Require at least one non-alphanumeric character" option |
 | IAM Password Policy Uppercase Letter Check | Checks whether the account password policy for IAM users requires at least one uppercase character in password. | Enables "Require at least one uppercase letter" option       |
 | IAM Policy No Statements with Admin Access | Checks whether the default version of AWS Identity and Access Management (IAM) policies do not have administrator access.<br />If any statement has `"Effect": "Allow"` with `"Action": "*"` over `"Resource": "*"`, the rule is NON_COMPLIANT. | :warning: Creates new Policy with offending Statements removed |
+| IAM User No Policies Check                 | Checks that none of your IAM users have policies attached. IAM users must inherit permissions from IAM groups or roles. | Detaches Managed Policies from offending IAM User            |
 | IAM User Unused Credentials Check          | Checks whether AWS Identity and Access Management (IAM) users have passwords or active access keys that have not been used within 90 days. | :warning: Deletes Access Key / Login Profile                 |
 
 #### Storage
 
 | Rule                              | Description                                            | Remediation                                                  |
 | --------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------ |
-| S3 Bucket Logging Enabled         | Checks whether logging is enabled for your S3 buckets. | Creates new S3 Bucket `<bucket_name>-access-logs` for logging |
+| S3 Bucket Logging Enabled         | Checks whether logging is enabled for your S3 buckets. | Creates new S3 Bucket `<Account Number>-<Region>-access-logs` for logging with a prefix of `<Bucket Name>/` |
 | S3 Bucket Public Read Prohibited  | Checks to see if S3 buckets are publicly readable.     | :warning: Sets S3 Bucket ACL to `private`                    |
 | S3 Bucket Public Write Prohibited | Checks to see if S3 buckets allow public write.        | :warning: Sets S3 Bucket ACL to `private`                    |
 

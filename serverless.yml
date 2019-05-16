@@ -26,6 +26,7 @@ functions:
     timeout: 60
     package:
       exclude:
+        - auto_remediate/test/**
         - auto_remediate_dlq/**
         - auto_remediate_setup/**
     environment:
@@ -43,22 +44,39 @@ functions:
     iamRoleStatements:
       - Effect: Allow
         Action:
+          - cloudtrail:UpdateTrail
           - dynamodb:GetItem
           - dynamodb:Scan
           - ec2:CreateFlowLogs
+          - ec2:DescribeSecurityGroups
+          - ec2:RevokeSecurityGroupEgress
+          - ec2:RevokeSecurityGroupIngress
           - ec2:RevokeSecurityGroupIngress
           - iam:CreatePolicyVersion
+          - iam:CreateRole
           - iam:DeleteAccessKey
           - iam:DeleteLoginProfile
+          - iam:DeleteRole
+          - iam:DeleteRolePolicy
           - iam:DetachUserPolicy
           - iam:GetLoginProfile
           - iam:GetPolicy
           - iam:GetPolicyVersion
+          - iam:GetRole
           - iam:ListAccessKeys
           - iam:ListPolicies
           - iam:ListUsers
+          - iam:PassRole
+          - iam:PutRolePolicy
           - iam:UpdateAccountPasswordPolicy
+          - kms:CreateAlias
+          - kms:CreateKey
+          - kms:DeleteAlias
           - kms:EnableKeyRotation
+          - kms:ScheduleKeyDeletion
+          - logs:CreateLogGroup
+          - logs:DeleteLogGroup
+          - logs:DescribeLogGroups
           - rds:DescribeDBInstances
           - rds:ModifyDBInstance
           - s3:CreateBucket
@@ -67,6 +85,7 @@ functions:
           - sns:Publish
           - sqs:GetQueueUrl
           - sqs:SendMessage
+          - sts:GetCallerIdentity
         Resource: "*"
     events:
       - sqs:
@@ -147,7 +166,10 @@ resources:
               Fn::GetAtt:
                 - SQSConfigComplianceQueue
                 - Arn
-            Id: 12345
+            Id:
+              Fn::GetAtt:
+                - SQSConfigComplianceQueue
+                - QueueName
       DependsOn: SQSConfigComplianceQueue
     DynamoDBSettingsTable:
       Type: AWS::DynamoDB::Table
@@ -179,6 +201,28 @@ resources:
       Type: AWS::SQS::Queue
       Properties:
         QueueName: auto-remediate-dlq-${self:provider.stage}
+    SQSConfigComplianceQueuePolicy:
+      Type: AWS::SQS::QueuePolicy
+      Properties:
+        PolicyDocument:
+          Version: '2012-10-17'
+          Id: SQSConfigComplianceQueuePolicy
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - events.amazonaws.com
+                  - sqs.amazonaws.com
+              Action: sqs:SendMessage
+              Resource:
+                Fn::GetAtt:
+                  - SQSConfigComplianceQueue
+                  - Arn
+        Queues:
+          - Ref: SQSConfigComplianceQueue
+      DependsOn:
+        - SQSConfigComplianceQueue
+        - CloudWatchComplianceEvent
 
 plugins:
   - serverless-iam-roles-per-function

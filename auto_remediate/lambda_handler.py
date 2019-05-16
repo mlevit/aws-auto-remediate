@@ -35,6 +35,9 @@ class Remediate:
             "auto-remediate-rds-instance-public-access-check": self.config.rds_instance_public_access_check,
             # security hub
             "securityhub-access-keys-rotated": self.security_hub.access_keys_rotated,
+            "securityhub-cloud-trail-cloud-watch-logs-enabled": self.security_hub.cloud_trail_cloud_watch_logs_enabled,
+            "securityhub-cloud-trail-encryption-enabled": self.security_hub.cloud_trail_encryption_enabled,
+            "securityhub-cloud-trail-log-file-validation-enabled": self.security_hub.cloud_trail_log_file_validation_enabled,
             "securityhub-cmk-backing-key-rotation-enabled": self.security_hub.cmk_backing_key_rotation_enabled,
             "securityhub-iam-password-policy-ensure-expires": self.security_hub.iam_password_policy,
             "securityhub-iam-password-policy-lowercase-letter-check": self.security_hub.iam_password_policy,
@@ -46,11 +49,13 @@ class Remediate:
             "securityhub-iam-policy-no-statements-with-admin-access": self.security_hub.iam_policy_no_statements_with_admin_access,
             "securityhub-iam-user-no-policies-check": self.security_hub.iam_user_no_policies_check,
             "securityhub-iam-user-unused-credentials-check": self.security_hub.iam_user_unused_credentials_check,
+            "securityhub-multi-region-cloud-trail-enabled": self.security_hub.multi_region_cloud_trail_enabled,
             "securityhub-restricted-rdp": self.security_hub.restricted_rdp,
             "securityhub-restricted-ssh": self.security_hub.restricted_ssh,
             "securityhub-s3-bucket-logging-enabled": self.security_hub.s3_bucket_logging_enabled,
             "securityhub-s3-bucket-public-read-prohibited": self.security_hub.s3_bucket_public_read_prohibited,
             "securityhub-s3-bucket-public-write-prohibited": self.security_hub.s3_bucket_public_write_prohibited,
+            "securityhub-vpc-default-security-group-closed": self.security_hub.vpc_default_security_group_closed,
             "securityhub-vpc-flow-logs-enabled": self.security_hub.vpc_flow_logs_enabled
             # custom
         }
@@ -99,7 +104,7 @@ class Remediate:
         """Retrieves the AWS Config rule compliance variable
         
         Arguments:
-            config_payload {JSON} -- AWS Config payload
+            config_payload {dictionary} -- AWS Config payload
         
         Returns:
             string -- COMPLIANT | NON_COMPLIANT
@@ -116,7 +121,7 @@ class Remediate:
         suffixed alphanumeric characters will be removed.
         
         Arguments:
-            config_payload {JSON} -- AWS Config payload
+            config_payload {dictionary} -- AWS Config payload
         
         Returns:
             string -- AWS Config rule name
@@ -134,7 +139,7 @@ class Remediate:
         """Retrieves the AWS Config Resource ID from the AWS Config payload
         
         Arguments:
-            config_payload {JSON} -- AWS Config payload
+            config_payload {dictionary} -- AWS Config payload
         
         Returns:
             string -- Resource ID relating to the AWS Resource that triggered the AWS Config Rule
@@ -168,7 +173,7 @@ class Remediate:
         SQS Message Attribute
         
         Arguments:
-            record {JSON} -- SQS Record payload
+            record {dictionary} -- SQS Record payload
         
         Returns:
             string -- Number of attempted remediations for a given AWS Config Rule
@@ -189,7 +194,9 @@ class Remediate:
             boolean -- True | False
         """
         return (
-            self.settings.get("rules").get(config_rule_name, {}).get("remediate", True)
+            self.settings.get("rules", {})
+            .get(config_rule_name, {})
+            .get("remediate", True)
         )
 
     def send_to_dead_letter_queue(self, config_payload, try_count):
@@ -197,7 +204,7 @@ class Remediate:
         the "try_count" variable it is below the user defined "RETRYCOUNT" setting.
         
         Arguments:
-            config_payload {dict} -- AWS Config payload
+            config_payload {dictionary} -- AWS Config payload
             try_count {string} -- Number of previos remediation attemps for this AWS Config payload
         """
         client = boto3.client("sqs")
@@ -236,7 +243,7 @@ class Remediate:
         
         Arguments:
             config_rule_name {string} -- AWS Config Rule name
-            config_payload {dict} -- AWS Config Rule payload
+            config_payload {dictionary} -- AWS Config Rule payload
         """
         client = boto3.client("sns")
         topic_arn = os.environ.get("MISSINGREMEDIATIONTOPIC")

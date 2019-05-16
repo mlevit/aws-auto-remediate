@@ -42,6 +42,27 @@
             }
           }
         },
+        "securityhub-cloud-trail-cloud-watch-logs-enabled": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            }
+          }
+        },
+        "securityhub-cloud-trail-encryption-enabled": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            }
+          }
+        },
+        "securityhub-cloud-trail-log-file-validation-enabled": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            }
+          }
+        },
         "securityhub-cmk-backing-key-rotation-enabled": {
           "M": {
             "remediate": {
@@ -105,7 +126,21 @@
             }
           }
         },
+        "securityhub-iam-user-no-policies-check": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            }
+          }
+        },
         "securityhub-iam-user-unused-credentials-check": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            }
+          }
+        },
+        "securityhub-multi-region-cloud-trail-enabled": {
           "M": {
             "remediate": {
               "BOOL": true
@@ -126,6 +161,13 @@
             }
           }
         },
+        "securityhub-s3-bucket-logging-enabled": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            }
+          }
+        },
         "securityhub-s3-bucket-public-read-prohibited": {
           "M": {
             "remediate": {
@@ -140,7 +182,7 @@
             }
           }
         },
-        "securityhub-s3-bucket-logging-enabled": {
+        "securityhub-vpc-default-security-group-closed": {
           "M": {
             "remediate": {
               "BOOL": true

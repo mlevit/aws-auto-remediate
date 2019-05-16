@@ -1,0 +1,25 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AWSCloudTrailCreateLogStream20141101",
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogStream"
+            ],
+            "Resource": [
+                "arn:aws:logs:_REGION_:_ACCOUNT_NUMBER_:log-group:_LOG_GROUP_:log-stream:_ACCOUNT_NUMBER__CloudTrail__REGION_*"
+            ]
+        },
+        {
+            "Sid": "AWSCloudTrailPutLogEvents20141101",
+            "Effect": "Allow",
+            "Action": [
+                "logs:PutLogEvents"
+            ],
+            "Resource": [
+                "arn:aws:logs:_REGION_:_ACCOUNT_NUMBER_:log-group:_LOG_GROUP_:log-stream:_ACCOUNT_NUMBER__CloudTrail__REGION_*"
+            ]
+        }
+    ]
+}
