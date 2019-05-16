@@ -4,6 +4,10 @@ custom:
   company: servian                  # company name
   log_level: DEBUG                  # DEBUG for dev | INFO for production
   region: ap-southeast-2            # AWS region
+  pythonRequirements:
+    slim: true
+    useStaticCache: true
+    useDownloadCache: true
 
 provider:
   name: aws

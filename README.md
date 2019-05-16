@@ -10,6 +10,9 @@ Open source application to instantly remediate common security issues through th
 
 - [About](#about)
 - [Setup](#setup)
+  - [Deployment](#deployment)
+  - [Update](#update)
+  - [Removal](#removal)
 - [Settings](#settings)
 - [Config Rules](#config-rules)
   - [AWS Config Managed Rules](#aws-config-managed-rules)
@@ -106,6 +109,32 @@ serverless invoke -f AutoRemediateSetup
 
 ```bash
 serverless logs -f AutoRemediateSetup
+```
+
+### Update
+
+01. Change into the Auto Remediate directory
+
+```bash
+cd aws-auto-remediate
+```
+
+02. Pull latest changes
+
+```bash
+git pull
+```
+
+03. Deploy update
+
+```bash
+serverless deploy
+```
+
+04. Invoke Auto Remediate Setup to deploy new AWS Config rules and Settings
+
+```bash
+serverless invoke -f AutoRemediateSetup
 ```
 
 ### Removal
