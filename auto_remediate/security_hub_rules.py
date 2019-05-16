@@ -18,7 +18,7 @@ class SecurityHubRules:
         self._client_logs = None
         self._client_s3 = None
         self._client_sts = None
-        
+
     @property
     def client_cloudtrail(self):
         if not self._client_cloudtrail:
@@ -511,11 +511,13 @@ class SecurityHubRules:
                         UserName=username, PolicyArn=policy_arn
                     )
                     self.logging.info(
-                        f"Detached '{policy_arn}' from '{username}' '{resource_id}'."
+                        f"Detached IAM Policy '{policy_arn}' from IAM User '{username}'."
                     )
                     return True
         except:
-            self.logging.error(f"Could not detach user policies for '{resource_id}'.")
+            self.logging.error(
+                f"Could not detach IAM Policy '{policy_arn}' from IAM User '{username}'."
+            )
             self.logging.error(sys.exc_info()[1])
             return False
 
