@@ -64,6 +64,7 @@ functions:
           - iam:GetPolicyVersion
           - iam:GetRole
           - iam:ListAccessKeys
+          - iam:ListAttachedUserPolicies
           - iam:ListPolicies
           - iam:ListUsers
           - iam:PassRole
