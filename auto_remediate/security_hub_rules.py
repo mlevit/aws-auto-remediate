@@ -99,7 +99,7 @@ class SecurityHubRules:
             self._account_number = self.client_sts.get_caller_identity().get("Account")
         return self._account_number
 
-    @_account_number.setter
+    @account_number.setter
     def account_number(self, account_number):
         self._account_number = account_number
     
@@ -109,7 +109,7 @@ class SecurityHubRules:
             self._account_arn = self.client_sts.get_caller_identity().get("Arn")
         return self._account_arn
 
-    @_account_arn.setter
+    @account_arn.setter
     def account_arn(self, account_arn):
         self._account_arn = account_arn
     
@@ -119,7 +119,7 @@ class SecurityHubRules:
             self._region = self.client_sts.meta.region_name
         return self._region
 
-    @_region.setter
+    @region.setter
     def region(self, region):
         self._region = region
 
@@ -239,8 +239,15 @@ class SecurityHubRules:
 
         # update CloudTrail with CloudWatch Log Group with a backoff
         # to allow AWS the time to create the IAM Role
-        waiter = self.client_iam.get_waiter("role_exists")
-        waiter.wait(RoleName=iam_role_name, WaiterConfig={"Delay": 2})
+        try:
+            waiter = self.client_iam.get_waiter("role_exists")
+            waiter.wait(RoleName=iam_role_name, WaiterConfig={"Delay": 2})
+        except:
+            self.logging.error(sys.exc_info()[1])
+            self.delete_role_policy(iam_role_name, iam_policy_name)
+            self.delete_role(iam_role_name)
+            self.delete_log_group(cloudwatch_log_group_name)
+            return False
 
         try:
             self.client_cloudtrail.update_trail(

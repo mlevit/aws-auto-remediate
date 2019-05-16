@@ -4,6 +4,15 @@ custom:
   company: servian                  # company name
   log_level: DEBUG                  # DEBUG for dev | INFO for production
   region: ap-southeast-2            # AWS region
+  pythonRequirements:       # allows us to deploy a newer version of boto3
+    noDeploy: [
+      'docutils',
+      'jmespath',
+      'python-dateutil',
+      's3transfer',
+      'six',
+      'pip',
+      'setuptools']
 
 provider:
   name: aws
@@ -62,6 +71,7 @@ functions:
           - iam:GetLoginProfile
           - iam:GetPolicy
           - iam:GetPolicyVersion
+          - iam:GetRole
           - iam:ListAccessKeys
           - iam:ListPolicies
           - iam:ListUsers
