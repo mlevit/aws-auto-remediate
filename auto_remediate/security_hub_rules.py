@@ -19,10 +19,6 @@ class SecurityHubRules:
         self._client_s3 = None
         self._client_sts = None
         
-        self._account_number = None
-        self._account_arn = None
-        self._region = None
-
     @property
     def client_cloudtrail(self):
         if not self._client_cloudtrail:
@@ -92,36 +88,18 @@ class SecurityHubRules:
     @client_sts.setter
     def client_sts(self, client):
         self._client_sts = client
-    
+
     @property
     def account_number(self):
-        if not self._account_number:
-            self._account_number = self.client_sts.get_caller_identity().get("Account")
-        return self._account_number
+        return self.client_sts.get_caller_identity().get("Account")
 
-    @account_number.setter
-    def account_number(self, account_number):
-        self._account_number = account_number
-    
     @property
     def account_arn(self):
-        if not self._account_arn:
-            self._account_arn = self.client_sts.get_caller_identity().get("Arn")
-        return self._account_arn
+        return self.client_sts.get_caller_identity().get("Arn")
 
-    @account_arn.setter
-    def account_arn(self, account_arn):
-        self._account_arn = account_arn
-    
     @property
     def region(self):
-        if not self._region:
-            self._region = self.client_sts.meta.region_name
-        return self._region
-
-    @region.setter
-    def region(self, region):
-        self._region = region
+        return self.client_sts.meta.region_name
 
     def access_keys_rotated(self, resource_id):
         """Deletes IAM User's Access Keys over 90 days old.
@@ -258,7 +236,7 @@ class SecurityHubRules:
             except self.client_cloudtrail.exceptions.InvalidCloudWatchLogsLogGroupArnException:
                 self.logging.debug(
                     f"Waiting for CloudWatch Log Group '{cloudwatch_log_group_name}' to be created. Sleeping for {backoff} second(s)."
-                ) 
+                )
             except:
                 self.logging.error(f"Could not update CloudTrail '{resource_id}'.")
                 self.logging.error(sys.exc_info()[1])
