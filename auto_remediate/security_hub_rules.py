@@ -255,6 +255,10 @@ class SecurityHubRules:
                 self.logging.debug(
                     f"Waiting for IAM Role '{iam_role_name}' to be created. Sleeping for {backoff} second(s)."
                 )
+            except self.client_cloudtrail.exceptions.InvalidCloudWatchLogsLogGroupArnException:
+                self.logging.debug(
+                    f"Waiting for CloudWatch Log Group '{cloudwatch_log_group_name}' to be created. Sleeping for {backoff} second(s)."
+                ) 
             except:
                 self.logging.error(f"Could not update CloudTrail '{resource_id}'.")
                 self.logging.error(sys.exc_info()[1])
