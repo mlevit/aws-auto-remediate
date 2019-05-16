@@ -187,6 +187,7 @@ The tables below detail the auto remediated rules and scenarios.
 | IAM Policy No Statements with Admin Access | Checks whether the default version of AWS Identity and Access Management (IAM) policies do not have administrator access.<br />If any statement has `"Effect": "Allow"` with `"Action": "*"` over `"Resource": "*"`, the rule is NON_COMPLIANT. | :warning: Creates new Policy with offending Statements removed |
 | IAM User No Policies Check                 | Checks that none of your IAM users have policies attached. IAM users must inherit permissions from IAM groups or roles. | Detaches Managed Policies from offending IAM User            |
 | IAM User Unused Credentials Check          | Checks whether AWS Identity and Access Management (IAM) users have passwords or active access keys that have not been used within 90 days. | :warning: Deletes Access Key / Login Profile                 |
+| MFA Enabled for IAM Console Access         | Checks whether AWS Multi-Factor Authentication (MFA) is enabled for all AWS Identity and Access Management (IAM) users that use a console password. | :warning: Deletes user's Login Profile only. [Deleting a user's password does not prevent a user from accessing AWS through the command line interface or the API.](https://docs.aws.amazon.com/cli/latest/reference/iam/delete-login-profile.html)
 
 #### Storage
 
