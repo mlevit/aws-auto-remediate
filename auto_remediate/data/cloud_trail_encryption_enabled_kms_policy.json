@@ -7,8 +7,8 @@
             "Effect": "Allow",
             "Principal": {
                 "AWS": [
-                    "account_arn",
-                    "arn:aws:iam::account_number:root"
+                    "_ACCOUNT_ARN_",
+                    "arn:aws:iam::_ACCOUNT_NUMBER_:root"
                 ]
             },
             "Action": "kms:*",
@@ -24,7 +24,7 @@
             "Resource": "*",
             "Condition": {
                 "StringLike": {
-                    "kms:EncryptionContext:aws:cloudtrail:arn": "arn:aws:cloudtrail:*:account_number:trail/*"
+                    "kms:EncryptionContext:aws:cloudtrail:arn": "arn:aws:cloudtrail:*:_ACCOUNT_NUMBER_:trail/*"
                 }
             }
         },
@@ -50,10 +50,10 @@
             "Resource": "*",
             "Condition": {
                 "StringEquals": {
-                    "kms:CallerAccount": "account_number"
+                    "kms:CallerAccount": "_ACCOUNT_NUMBER_"
                 },
                 "StringLike": {
-                    "kms:EncryptionContext:aws:cloudtrail:arn": "arn:aws:cloudtrail:*:account_number:trail/*"
+                    "kms:EncryptionContext:aws:cloudtrail:arn": "arn:aws:cloudtrail:*:_ACCOUNT_NUMBER_:trail/*"
                 }
             }
         },
@@ -70,10 +70,10 @@
             "Resource": "*",
             "Condition": {
                 "StringEquals": {
-                    "kms:CallerAccount": "account_number"
+                    "kms:CallerAccount": "_ACCOUNT_NUMBER_"
                 },
                 "StringLike": {
-                    "kms:EncryptionContext:aws:cloudtrail:arn": "arn:aws:cloudtrail:*:account_number:trail/*"
+                    "kms:EncryptionContext:aws:cloudtrail:arn": "arn:aws:cloudtrail:*:_ACCOUNT_NUMBER_:trail/*"
                 }
             }
         }

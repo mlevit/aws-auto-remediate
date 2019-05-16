@@ -191,11 +191,9 @@ class SecurityHubRules:
                 self.delete_log_group(cloudwatch_log_group_name)
                 return False
             else:
-                policy = policy.replace("account_number", self.get_account_number())
-                policy = policy.replace("region", self.get_region())
-                policy = policy.replace(
-                    "cloudwatch_log_group_name", cloudwatch_log_group_name
-                )
+                policy = policy.replace("_ACCOUNT_NUMBER_", self.get_account_number())
+                policy = policy.replace("_REGION_", self.get_region())
+                policy = policy.replace("_LOG_GROUP_", cloudwatch_log_group_name)
 
                 iam_policy_name = f"CloudTrail-CloudWatch-{resource_id}"
                 try:
@@ -267,8 +265,10 @@ class SecurityHubRules:
             self.logging.error(sys.exc_info()[1])
             return False
         else:
-            kms_policy = kms_policy.replace("account_number", self.get_account_number())
-            kms_policy = kms_policy.replace("account_arn", self.get_account_arn())
+            kms_policy = kms_policy.replace(
+                "_ACCOUNT_NUMBER_", self.get_account_number()
+            )
+            kms_policy = kms_policy.replace("_ACCOUNT_ARN_", self.get_account_arn())
 
         # create KMS Customer Managed Key
         try:

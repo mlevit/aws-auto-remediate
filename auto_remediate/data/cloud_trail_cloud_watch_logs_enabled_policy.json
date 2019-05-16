@@ -8,7 +8,7 @@
                 "logs:CreateLogStream"
             ],
             "Resource": [
-                "arn:aws:logs:region:account_number:log-group:cloudwatch_log_group_name:log-stream:account_number_CloudTrail_region*"
+                "arn:aws:logs:_REGION_:_ACCOUNT_NUMBER_:log-group:_LOG_GROUP_:log-stream:_ACCOUNT_NUMBER__CloudTrail__REGION_*"
             ]
         },
         {
@@ -18,7 +18,7 @@
                 "logs:PutLogEvents"
             ],
             "Resource": [
-                "arn:aws:logs:region:account_number:log-group:cloudwatch_log_group_name:log-stream:account_number_CloudTrail_region*"
+                "arn:aws:logs:_REGION_:_ACCOUNT_NUMBER_:log-group:_LOG_GROUP_:log-stream:_ACCOUNT_NUMBER__CloudTrail__REGION_*"
             ]
         }
     ]
