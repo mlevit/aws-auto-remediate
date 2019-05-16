@@ -198,10 +198,6 @@ resources:
       Properties:
         QueueName: auto-remediate-config-compliance-${self:provider.stage}
         VisibilityTimeout: 60
-    SQSDeadLetterQueue:
-      Type: AWS::SQS::Queue
-      Properties:
-        QueueName: auto-remediate-dlq-${self:provider.stage}
     SQSConfigComplianceQueuePolicy:
       Type: AWS::SQS::QueuePolicy
       Properties:
@@ -224,6 +220,10 @@ resources:
       DependsOn:
         - SQSConfigComplianceQueue
         - CloudWatchComplianceEvent
+    SQSDeadLetterQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: auto-remediate-dlq-${self:provider.stage}
 
 plugins:
   - serverless-iam-roles-per-function
