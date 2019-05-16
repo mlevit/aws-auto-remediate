@@ -140,6 +140,13 @@
             }
           }
         },
+        "securityhub-mfa-enabled-for-iam-console-access": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            }
+          }
+        },
         "securityhub-multi-region-cloud-trail-enabled": {
           "M": {
             "remediate": {
