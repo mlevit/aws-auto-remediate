@@ -151,17 +151,9 @@ class SecurityHubRules:
                 )
 
         # get trust relationship
-        try:
-            trust_relationship_file = "auto_remediate/data/cloud_trail_cloud_watch_logs_enabled_trust_relationship.json"
-            with open(trust_relationship_file, "r") as file:
-                trust_relationship = file.read()
-        except:
-            self.logging.error(
-                f"Could not read IAM Trust Relationship file '{trust_relationship_file}'."
-            )
-            self.logging.error(sys.exc_info()[1])
-            self.delete_log_group(cloudwatch_log_group_name)
-            return False
+        trust_relationship_file = "auto_remediate/data/cloud_trail_cloud_watch_logs_enabled_trust_relationship.json"
+        with open(trust_relationship_file, "r") as file:
+            trust_relationship = file.read()
 
         # create IAM Role for CloudTrail
         iam_role_name = f"CloudTrail-CloudWatchLogs-{resource_id}"
@@ -179,41 +171,37 @@ class SecurityHubRules:
             return False
         else:
             iam_role_arn = response.get("Role").get("Arn")
+            iam_policy_name = f"CloudTrail-CloudWatch-{resource_id}"
 
             # create policy
+            policy_file = (
+                "auto_remediate/data/cloud_trail_cloud_watch_logs_enabled_policy.json"
+            )
+            with open(policy_file, "r") as file:
+                policy = file.read()
+
+            policy = policy.replace("_ACCOUNT_NUMBER_", self.get_account_number())
+            policy = policy.replace("_REGION_", self.get_region())
+            policy = policy.replace("_LOG_GROUP_", cloudwatch_log_group_name)
+
             try:
-                policy_file = "auto_remediate/data/cloud_trail_cloud_watch_logs_enabled_policy.json"
-                with open(policy_file, "r") as file:
-                    policy = file.read()
+                self.client_iam.put_role_policy(
+                    RoleName=iam_role_name,
+                    PolicyName=iam_policy_name,
+                    PolicyDocument=policy,
+                )
+
+                self.logging.info(
+                    f"Added IAM Policy '{iam_policy_name}' to IAM Role '{iam_role_name}'."
+                )
             except:
-                self.logging.error(f"Could not read IAM Policy file '{policy_file}'.")
+                self.logging.error(
+                    f"Could not add IAM Policy '{iam_policy_name}' to IAM Role '{iam_role_name}'."
+                )
                 self.logging.error(sys.exc_info()[1])
+                self.delete_role(iam_role_name)
                 self.delete_log_group(cloudwatch_log_group_name)
                 return False
-            else:
-                policy = policy.replace("_ACCOUNT_NUMBER_", self.get_account_number())
-                policy = policy.replace("_REGION_", self.get_region())
-                policy = policy.replace("_LOG_GROUP_", cloudwatch_log_group_name)
-
-                iam_policy_name = f"CloudTrail-CloudWatch-{resource_id}"
-                try:
-                    self.client_iam.put_role_policy(
-                        RoleName=iam_role_name,
-                        PolicyName=iam_policy_name,
-                        PolicyDocument=policy,
-                    )
-
-                    self.logging.info(
-                        f"Added IAM Policy '{iam_policy_name}' to IAM Role '{iam_role_name}'."
-                    )
-                except:
-                    self.logging.error(
-                        f"Could not add IAM Policy '{iam_policy_name}' to IAM Role '{iam_role_name}'."
-                    )
-                    self.logging.error(sys.exc_info()[1])
-                    self.delete_role(iam_role_name)
-                    self.delete_log_group(cloudwatch_log_group_name)
-                    return False
 
         # update CloudTrail with CloudWatch Log Group with a backoff
         # to allow AWS the time to create the IAM Role
@@ -254,21 +242,14 @@ class SecurityHubRules:
             boolean -- True if remediation was successful
         """
         # create KMS Policy
-        try:
-            kms_policy_file = (
-                "auto_remediate/data/cloud_trail_encryption_enabled_kms_policy.json"
-            )
-            with open(kms_policy_file, "r") as file:
-                kms_policy = file.read()
-        except:
-            self.logging.error(f"Could not read KMS Policy file '{kms_policy_file}'.")
-            self.logging.error(sys.exc_info()[1])
-            return False
-        else:
-            kms_policy = kms_policy.replace(
-                "_ACCOUNT_NUMBER_", self.get_account_number()
-            )
-            kms_policy = kms_policy.replace("_ACCOUNT_ARN_", self.get_account_arn())
+        kms_policy_file = (
+            "auto_remediate/data/cloud_trail_encryption_enabled_kms_policy.json"
+        )
+        with open(kms_policy_file, "r") as file:
+            kms_policy = file.read()
+
+        kms_policy = kms_policy.replace("_ACCOUNT_NUMBER_", self.get_account_number())
+        kms_policy = kms_policy.replace("_ACCOUNT_ARN_", self.get_account_arn())
 
         # create KMS Customer Managed Key
         try:
