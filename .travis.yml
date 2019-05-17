@@ -1,11 +1,17 @@
-dist: xenial   # required for Python >= 3.7
+dist: xenial
 language: python
 python:
-  - "3.7"
-# command to install dependencies
+  - '3.7'
 install:
+  - pip install awscli --upgrade
   - pip install moto
+  - npm install serverless
+  - npm install serverless-iam-roles-per-function
+  - serverless plugin install -n serverless-python-requirements
 before_script:
   - export BOTO_CONFIG=/dev/null
-# command to run tests
-script: pytest
+script:
+  - pytest
+  - serverless deploy --stage ci --aws-profile default
+  - serverless invoke -f AutoRemediateSetup
+  - serverless remove --stage ci --aws-profile default
