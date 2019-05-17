@@ -13,7 +13,7 @@ class TestSecurityHubCmkBackingKeyRotationEnabled:
             yield sh
 
     @pytest.fixture
-    def iam_test_key_id(self, sh):
+    def kms_test_key_id(self, sh):
         """Creates new KMS Customer Managed Key
         
         Arguments:
@@ -22,15 +22,15 @@ class TestSecurityHubCmkBackingKeyRotationEnabled:
         res = sh.client_kms.create_key()
         yield res["KeyMetadata"]["KeyId"]
 
-    def test_kms_cmk_backing_key_ration_enabled_check(self, iam_test_key_id, sh):
+    def test_kms_cmk_backing_key_rotation_enabled_check(self, kms_test_key_id, sh):
         """Tests if KMS Customer Managed Key rotation is turned on
         
         Arguments:
-            iam_test_key_id {string} -- KMS CMK ID
+            kms_test_key_id {string} -- KMS CMK ID
             sh {SecurityHubRules} -- Instance of class SecurityHubRules
         """
-        sh.cmk_backing_key_rotation_enabled(iam_test_key_id)
-        response = sh.client_kms.get_key_rotation_status(KeyId=iam_test_key_id)
+        sh.cmk_backing_key_rotation_enabled(kms_test_key_id)
+        response = sh.client_kms.get_key_rotation_status(KeyId=kms_test_key_id)
         assert response["KeyRotationEnabled"]
 
 
