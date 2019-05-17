@@ -230,15 +230,19 @@ The tables below detail the auto remediated rules and scenarios.
 
 The table below details all AWS resources created when deploying the application.
 
-| Service               | Resource ID                          |
-| --------------------- | ------------------------------------ |
-| CloudFormation Stack  | `auto-remediate`                     |
-| CloudWatch Event Rule | `auto-remediate-config-compliance`   |
-| DynamoDB Table        | `auto-remediate-settings`            |
-| Lambda Function       | `auto-remediate`                     |
-|                       | `auto-remediate-dlq`                 |
-|                       | `auto-remediate-setup`               |
-| SNS Topic             | `auto-remediate-log`                 |
-|                       | `auto-remediate-missing-remediation` |
-| SQS Queue             | `auto-remediate-config-compliance`   |
-|                       | `auto-remediate-dlq`                 |
+| Service               | Resource ID                                                  |
+| --------------------- | ------------------------------------------------------------ |
+| CloudFormation Stack  | `auto-remediate`                                             |
+| CloudWatch Event Rule | `auto-remediate-config-compliance`                           |
+| DynamoDB Table        | `auto-remediate-settings`                                    |
+| Lambda Function       | `auto-remediate`                                             |
+|                       | `auto-remediate-dlq`                                         |
+|                       | `auto-remediate-setup`                                       |
+| SNS Topic             | `auto-remediate-log` (not functional [#19](https://github.com/servian/aws-auto-remediate/issues/19)) |
+|                       | `auto-remediate-missing-remediation`                         |
+| SQS Queue             | `auto-remediate-config-compliance`                           |
+|                       | `auto-remediate-dlq`                                         |
+
+## Coverage
+
+[Full list of development and automated testing coverage found here.](COVERAGE.md)
