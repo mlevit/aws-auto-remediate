@@ -117,7 +117,6 @@ npm-debug.log
 
 # node
 node_modules
-package-lock.json
 
 # runtime data
 pids
