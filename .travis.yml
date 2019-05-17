@@ -13,5 +13,4 @@ before_script:
 script:
   - pytest
   - serverless deploy --stage ci
-  - serverless invoke --stage ci --function AutoRemediateSetup --log
   - serverless remove --stage ci
