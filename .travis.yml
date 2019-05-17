@@ -5,7 +5,7 @@ python:
 install:
   - pip install awscli --upgrade
   - pip install moto
-  - npm install serverless
+  - npm install serverless -g
   - npm install serverless-iam-roles-per-function
   - serverless plugin install -n serverless-python-requirements
 before_script:
