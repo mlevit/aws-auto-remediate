@@ -18,6 +18,7 @@ Open source application to instantly remediate common security issues through th
   - [AWS Config Managed Rules](#aws-config-managed-rules)
   - [AWS Security Hub Rules](#aws-security-hub-rules)
 - [Resources](#resources)
+- [Coverage](#coverage)
 
 ## About
 
