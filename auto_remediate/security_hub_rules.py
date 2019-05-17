@@ -32,7 +32,7 @@ class SecurityHubRules:
     @property
     def client_ec2(self):
         if not self._client_ec2:
-            self._client_ec2 = boto3.client("ec2")
+            self._client_ec2 = boto3.client("ec2", self.region)
         return self._client_ec2
 
     @client_ec2.setter

@@ -1,8 +1,10 @@
-import pytest
-import moto
-from .. import security_hub_rules
-import logging
 import datetime
+import logging
+
+import moto
+import pytest
+
+from .. import security_hub_rules
 
 
 class TestSecurityHubIamUserNoPoliciesCheck:
