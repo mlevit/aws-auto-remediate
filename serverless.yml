@@ -1,8 +1,8 @@
 service: auto-remediate
 
 custom:
-  log_level: INFO                   # DEBUG for dev | INFO for prod
-  region: ap-southeast-2            # AWS deployment region
+  log_level: INFO                     # DEBUG for dev | INFO for prod
+  region: ap-southeast-2              # AWS deployment region
   pythonRequirements:
     slim: true
     useStaticCache: true
@@ -11,9 +11,9 @@ custom:
 provider:
   name: aws
   runtime: python3.7
-  stage: prod                       # dev | prod
+  stage: ${opt:stage, 'dev'}          # Override via CLI "--stage prod"
   region: ${self:custom.region}
-  # profile: saml                     # uncomment if AWS CLI profiles are required
+  profile: ${opt:profile, ''}         # Override via CLI "--aws-profile saml"
 
 package:
   individually: true
