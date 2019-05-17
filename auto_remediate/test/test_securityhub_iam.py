@@ -14,8 +14,8 @@ class TestSecurityHubIamUserNoPoliciesCheck:
 
     @pytest.fixture
     def iam_test_user_id(self, sh):
-        res = sh.client_iam.create_user(UserName="marat")
-        yield res["User"]["UserId"]
+        response = sh.client_iam.create_user(UserName="test")
+        yield response["User"]["UserId"]
 
     @pytest.fixture
     def iam_test_user_with_policy(self, iam_test_user_id, sh):
@@ -23,7 +23,7 @@ class TestSecurityHubIamUserNoPoliciesCheck:
         Sets up a user with attached user policy to test iam_no_user_policies_check
         """
         sh.client_iam.attach_user_policy(
-            UserName="marat", PolicyArn="arn:aws:iam::aws:policy/IAMReadOnlyAccess"
+            UserName="test", PolicyArn="arn:aws:iam::aws:policy/IAMReadOnlyAccess"
         )
         yield sh
 
@@ -31,10 +31,10 @@ class TestSecurityHubIamUserNoPoliciesCheck:
         self, iam_test_user_id, iam_test_user_with_policy
     ):
         iam_test_user_with_policy.iam_user_no_policies_check(iam_test_user_id)
-        user_policies = iam_test_user_with_policy.client_iam.list_attached_user_policies(
-            UserName="marat"
+        response = iam_test_user_with_policy.client_iam.list_attached_user_policies(
+            UserName="test"
         )
-        assert not user_policies["AttachedPolicies"]
+        assert not response["AttachedPolicies"]
 
 
 class TestSecurityHubMfaEnabledForIamConsoleAccess:
@@ -50,23 +50,19 @@ class TestSecurityHubMfaEnabledForIamConsoleAccess:
 
     @pytest.fixture
     def iam_test_user_id(self, sh):
-        res = sh.client_iam.create_user(UserName="marat")
-        yield res["User"]["UserId"]
+        response = sh.client_iam.create_user(UserName="test")
+        yield response["User"]["UserId"]
 
     @pytest.fixture
     def iam_test_user_login_profile(self, iam_test_user_id, sh):
-        sh.client_iam.create_login_profile(
-            UserName="marat", Password="!@#$QWERasdf1234"
-        )
+        sh.client_iam.create_login_profile(UserName="test", Password="!@#$QWERasdf1234")
         yield sh
 
     def test_securityhub_mfa_enabled_for_iam_console_access(
         self, iam_test_user_login_profile, iam_test_user_id
     ):
         # before remediation, user must have login profile
-        assert iam_test_user_login_profile.client_iam.get_login_profile(
-            UserName="marat"
-        )
+        assert iam_test_user_login_profile.client_iam.get_login_profile(UserName="test")
 
         # run remediation
         iam_test_user_login_profile.mfa_enabled_for_iam_console_access(
@@ -77,7 +73,7 @@ class TestSecurityHubMfaEnabledForIamConsoleAccess:
         with pytest.raises(
             iam_test_user_login_profile.client_iam.exceptions.NoSuchEntityException
         ):
-            iam_test_user_login_profile.client_iam.get_login_profile(UserName="marat")
+            iam_test_user_login_profile.client_iam.get_login_profile(UserName="test")
 
 
 class TestSecurityHubStatic:
