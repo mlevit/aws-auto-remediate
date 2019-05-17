@@ -37,6 +37,49 @@ class TestSecurityHubIamUserNoPoliciesCheck:
         assert not user_policies["AttachedPolicies"]
 
 
+class TestSecurityHubMfaEnabledForIamConsoleAccess:
+    """
+    Tests that the remediation removes a login profile from a user
+    """
+
+    @pytest.fixture
+    def sh(self):
+        with moto.mock_iam():
+            sh = security_hub_rules.SecurityHubRules(logging)
+            yield sh
+
+    @pytest.fixture
+    def iam_test_user_id(self, sh):
+        res = sh.client_iam.create_user(UserName="marat")
+        yield res["User"]["UserId"]
+
+    @pytest.fixture
+    def iam_test_user_login_profile(self, iam_test_user_id, sh):
+        sh.client_iam.create_login_profile(
+            UserName="marat", Password="!@#$QWERasdf1234"
+        )
+        yield sh
+
+    def test_securityhub_mfa_enabled_for_iam_console_access(
+        self, iam_test_user_login_profile, iam_test_user_id
+    ):
+        # before remediation, user must have login profile
+        assert iam_test_user_login_profile.client_iam.get_login_profile(
+            UserName="marat"
+        )
+
+        # run remediation
+        iam_test_user_login_profile.mfa_enabled_for_iam_console_access(
+            resource_id=iam_test_user_id
+        )
+
+        # assert user doesn't have login profile after remediation
+        with pytest.raises(
+            iam_test_user_login_profile.client_iam.exceptions.NoSuchEntityException
+        ):
+            iam_test_user_login_profile.client_iam.get_login_profile(UserName="marat")
+
+
 class TestSecurityHubStatic:
     @pytest.fixture
     def sh(self):

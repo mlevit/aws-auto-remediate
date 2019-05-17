@@ -28,7 +28,6 @@ class Remediate:
         self.config = ConfigRules(self.logging)
         self.security_hub = SecurityHubRules(self.logging)
         self.custom = CustomRules(self.logging)
-
         # remediation function dict
         self.remediation_functions = {
             # config
@@ -49,6 +48,7 @@ class Remediate:
             "securityhub-iam-policy-no-statements-with-admin-access": self.security_hub.iam_policy_no_statements_with_admin_access,
             "securityhub-iam-user-no-policies-check": self.security_hub.iam_user_no_policies_check,
             "securityhub-iam-user-unused-credentials-check": self.security_hub.iam_user_unused_credentials_check,
+            "securityhub-mfa-enabled-for-iam-console-access": self.security_hub.mfa_enabled_for_iam_console_access,
             "securityhub-multi-region-cloud-trail-enabled": self.security_hub.multi_region_cloud_trail_enabled,
             "securityhub-restricted-rdp": self.security_hub.restricted_rdp,
             "securityhub-restricted-ssh": self.security_hub.restricted_ssh,

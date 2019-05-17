@@ -602,6 +602,30 @@ class SecurityHubRules:
 
             return True
 
+    def mfa_enabled_for_iam_console_access(self, resource_id):
+        """Deletes login profile for user with console access that doesn't have MFA enabled
+
+        Arguments:
+            resource_id {string} -- IAM User ID
+
+        Returns:
+            boolean -- True if remediation is successful
+        """
+        try:
+            page_user = self.client_iam.get_paginator("list_users").paginate()
+            for username in page_user.search(
+                f"Users[?UserId == '{resource_id}'].UserName"
+            ):
+                self.client_iam.delete_login_profile(UserName=username)
+                self.logging.info(f"Deleted login profile for IAM User '{username}'.")
+                return True
+        except:
+            self.logging.error(
+                f"Could not delete login profile for IAM User '{resource_id}'."
+            )
+            self.logging.error(sys.exc_info()[1])
+            return False
+
     def multi_region_cloud_trail_enabled(self, resource_id):
         """Enables multi region CloudTrail
         
