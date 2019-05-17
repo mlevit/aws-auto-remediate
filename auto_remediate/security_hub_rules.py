@@ -62,7 +62,7 @@ class SecurityHubRules:
     @property
     def client_kms(self):
         if not self._client_kms:
-            self._client_kms = boto3.client("kms")
+            self._client_kms = boto3.client("kms", self.region)
         return self._client_kms
 
     @client_kms.setter
@@ -99,7 +99,10 @@ class SecurityHubRules:
 
     @property
     def region(self):
-        return self.client_sts.meta.region_name
+        if self.client_sts.meta.region_name != "aws-global":
+            return self.client_sts.meta.region_name
+        else:
+            return "us-east-1"
 
     def access_keys_rotated(self, resource_id):
         """Deletes IAM User's Access Keys over 90 days old.
