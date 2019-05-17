@@ -1,9 +1,8 @@
 service: auto-remediate
 
 custom:
-  company: servian                  # company name
-  log_level: INFO                   # DEBUG for dev | INFO for production
-  region: ap-southeast-2            # AWS region
+  log_level: INFO                   # DEBUG for dev | INFO for prod
+  region: ap-southeast-2            # AWS deployment region
   pythonRequirements:
     slim: true
     useStaticCache: true
@@ -12,9 +11,9 @@ custom:
 provider:
   name: aws
   runtime: python3.7
-  stage: production                 # dev | production
+  stage: prod                       # dev | prod
   region: ${self:custom.region}
-  profile: saml                     # AWS profile
+  profile: saml                     # AWS CLI profile
 
 package:
   individually: true
@@ -24,7 +23,7 @@ package:
 functions:
   AutoRemediate:
     handler: auto_remediate.lambda_handler.lambda_handler
-    name: auto-remediate-${self:provider.stage}
+    name: ${self:service}-${self:provider.stage}
     description: Auto Remediate instantly remediates common security issues
     memorySize: 128
     timeout: 60
@@ -101,7 +100,7 @@ functions:
           batchSize: 1
   AutoRemediateDLQ:
     handler: auto_remediate_dlq.lambda_handler.lambda_handler
-    name: auto-remediate-dlq-${self:provider.stage}
+    name: ${self:service}-dlq-${self:provider.stage}
     description: Auto Remediate DLQ retries failed remediation attempts
     memorySize: 128
     timeout: 60
@@ -130,7 +129,7 @@ functions:
           enabled: true
   AutoRemediateSetup:
     handler: auto_remediate_setup.lambda_handler.lambda_handler
-    name: auto-remediate-setup-${self:provider.stage}
+    name: ${self:service}-setup-${self:provider.stage}
     description: Auto Remediate Setup creates CloudFormation Stacks for AWS Config
     memorySize: 128
     timeout: 60
@@ -163,8 +162,12 @@ resources:
     CloudWatchComplianceEvent:
       Type: AWS::Events::Rule
       Properties:
-        Name: auto-remediate-config-compliance-${self:provider.stage}
-        EventPattern: "{\"source\":[\"aws.config\"],\"detail-type\":[\"Config Rules Compliance Change\"]}"
+        Name: ${self:service}-config-compliance-${self:provider.stage}
+        EventPattern:
+          source:
+            - aws.config
+          detail-type:
+            - Config Rules Compliance Change
         State: ENABLED
         Targets:
           - Arn:
@@ -179,7 +182,7 @@ resources:
     DynamoDBSettingsTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: auto-remediate-settings-${self:provider.stage}
+        TableName: ${self:service}-settings-${self:provider.stage}
         AttributeDefinitions:
           - AttributeName: key
             AttributeType: S
@@ -192,15 +195,15 @@ resources:
     SNSLogTopic:
       Type: AWS::SNS::Topic
       Properties:
-        TopicName: auto-remediate-log-${self:provider.stage}
+        TopicName: ${self:service}-log-${self:provider.stage}
     SNSMissingRemediationTopic:
       Type: AWS::SNS::Topic
       Properties:
-        TopicName: auto-remediate-missing-remediation-${self:provider.stage}
+        TopicName: ${self:service}-missing-remediation-${self:provider.stage}
     SQSConfigComplianceQueue:
       Type: AWS::SQS::Queue
       Properties:
-        QueueName: auto-remediate-config-compliance-${self:provider.stage}
+        QueueName: ${self:service}-config-compliance-${self:provider.stage}
         VisibilityTimeout: 60
     SQSConfigComplianceQueuePolicy:
       Type: AWS::SQS::QueuePolicy
@@ -222,12 +225,12 @@ resources:
         Queues:
           - Ref: SQSConfigComplianceQueue
       DependsOn:
-        - SQSConfigComplianceQueue
         - CloudWatchComplianceEvent
+        - SQSConfigComplianceQueue
     SQSDeadLetterQueue:
       Type: AWS::SQS::Queue
       Properties:
-        QueueName: auto-remediate-dlq-${self:provider.stage}
+        QueueName: ${self:service}-dlq-${self:provider.stage}
 
 plugins:
   - serverless-iam-roles-per-function
