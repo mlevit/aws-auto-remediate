@@ -12,6 +12,6 @@ before_script:
   - export BOTO_CONFIG=/dev/null
 script:
   - pytest
-  - serverless deploy --stage ci --aws-profile default
+  - serverless deploy --stage ci
   - serverless invoke -f AutoRemediateSetup
-  - serverless remove --stage ci --aws-profile default
+  - serverless remove --stage ci
