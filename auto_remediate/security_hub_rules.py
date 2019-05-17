@@ -738,48 +738,6 @@ class SecurityHubRules:
             self.logging.error(sys.exc_info()[1])
             return False
 
-    def s3_bucket_public_read_prohibited(self, resource_id):
-        """Sets the S3 Bucket ACL to "private" to prevent the Bucket from being publicly read.
-        
-        Arguments:
-            resource_id {string} -- S3 Bucket Name
-        
-        Returns:
-            boolean -- True if remediation was successful
-        """
-        try:
-            self.client_s3.put_bucket_acl(ACL="private", Bucket=resource_id)
-
-            self.logging.info(f"ACL set to 'private' for S3 Bucket '{resource_id}'.")
-            return True
-        except:
-            self.logging.error(
-                f"Could not set ACL set to 'private' for S3 Bucket '{resource_id}'."
-            )
-            self.logging.error(sys.exc_info()[1])
-            return False
-
-    def s3_bucket_public_write_prohibited(self, resource_id):
-        """Sets the S3 Bucket ACL to "private" to prevent the Bucket from being publicly written to.
-        
-        Arguments:
-            resource_id {string} -- S3 Bucket Name
-        
-        Returns:
-            boolean -- True if remediation was successful
-        """
-        try:
-            self.client_s3.put_bucket_acl(ACL="private", Bucket=resource_id)
-
-            self.logging.info(f"ACL set to 'private' for S3 Bucket '{resource_id}'.")
-            return True
-        except:
-            self.logging.error(
-                f"Could not set ACL set to 'private' for S3 Bucket '{resource_id}'."
-            )
-            self.logging.error(sys.exc_info()[1])
-            return False
-
     def s3_bucket_logging_enabled(self, resource_id):
         """Enables server access logging for an S3 Bucket by creating a new S3 Bucket
         with the name "<resource_id>-access-logs".
@@ -837,6 +795,48 @@ class SecurityHubRules:
             self.logging.error(
                 f"Could not enable server access logging enabled for "
                 f"S3 Bucket '{resource_id}' to S3 Bucket '{log_bucket}/{resource_id}'."
+            )
+            self.logging.error(sys.exc_info()[1])
+            return False
+
+    def s3_bucket_public_read_prohibited(self, resource_id):
+        """Sets the S3 Bucket ACL to "private" to prevent the Bucket from being publicly read.
+        
+        Arguments:
+            resource_id {string} -- S3 Bucket Name
+        
+        Returns:
+            boolean -- True if remediation was successful
+        """
+        try:
+            self.client_s3.put_bucket_acl(ACL="private", Bucket=resource_id)
+
+            self.logging.info(f"ACL set to 'private' for S3 Bucket '{resource_id}'.")
+            return True
+        except:
+            self.logging.error(
+                f"Could not set ACL set to 'private' for S3 Bucket '{resource_id}'."
+            )
+            self.logging.error(sys.exc_info()[1])
+            return False
+
+    def s3_bucket_public_write_prohibited(self, resource_id):
+        """Sets the S3 Bucket ACL to "private" to prevent the Bucket from being publicly written to.
+        
+        Arguments:
+            resource_id {string} -- S3 Bucket Name
+        
+        Returns:
+            boolean -- True if remediation was successful
+        """
+        try:
+            self.client_s3.put_bucket_acl(ACL="private", Bucket=resource_id)
+
+            self.logging.info(f"ACL set to 'private' for S3 Bucket '{resource_id}'.")
+            return True
+        except:
+            self.logging.error(
+                f"Could not set ACL set to 'private' for S3 Bucket '{resource_id}'."
             )
             self.logging.error(sys.exc_info()[1])
             return False

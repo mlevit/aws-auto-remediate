@@ -32,6 +32,17 @@ class TestSecurityHubS3BucketPublicReadProhibited:
         sh.client_s3.create_bucket(ACL="public-read", Bucket="test")
         yield "test"
 
+    # def test_s3_bucket_logging_enabled_check(self, s3_test_bucket_public_read, sh):
+    #     """Tests if S3 Bucket logging has been enabled
+
+    #     Arguments:
+    #         s3_test_bucket_public_read {string} -- S3 bucket name
+    #         sh {SecurityHubRules} -- Instance of class SecurityHubRules
+    #     """
+    #     sh.s3_bucket_logging_enabled(s3_test_bucket_public_read)
+    #     response = sh.client_s3.get_bucket_logging(Bucket=s3_test_bucket_public_read)
+    #     assert "LoggingEnabled" in response
+
     def test_s3_bucket_public_read_disabled_check(self, s3_test_bucket_public_read, sh):
         """Tests if S3 Bucket public read has been turned off
         
