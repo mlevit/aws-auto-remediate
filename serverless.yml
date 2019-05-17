@@ -13,7 +13,7 @@ provider:
   runtime: python3.7
   stage: prod                       # dev | prod
   region: ${self:custom.region}
-  profile: saml                     # AWS CLI profile
+  # profile: saml                     # uncomment if AWS CLI profiles are required
 
 package:
   individually: true
