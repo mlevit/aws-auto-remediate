@@ -1,6 +1,6 @@
 # AWS Auto Remediate
 
-[![Build Status](https://travis-ci.org/servian/aws-auto-remediate.svg?branch=master)](https://travis-ci.org/servian/aws-auto-remediate) ![Pre-release](https://img.shields.io/github/release-pre/servian/aws-auto-remediate.svg?label=pre-release) ![Pre-release Date](https://img.shields.io/github/release-date-pre/servian/aws-auto-remediate.svg) ![Serverless](https://img.shields.io/github/package-json/dependency-version/servian/aws-auto-cleanup/serverless.svg) ![Language](https://img.shields.io/github/languages/top/servian/aws-auto-remediate.svg) [![Python Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5bce55175d32494c89f0648b27719f43)](https://www.codacy.com/app/servian/aws-auto-remediate?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=servian/aws-auto-remediate&amp;utm_campaign=Badge_Grade)
+[![Build Status](https://travis-ci.org/servian/aws-auto-remediate.svg?branch=master)](https://travis-ci.org/servian/aws-auto-remediate) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5bce55175d32494c89f0648b27719f43)](https://www.codacy.com/app/servian/aws-auto-remediate?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=servian/aws-auto-remediate&amp;utm_campaign=Badge_Grade) ![Pre-release](https://img.shields.io/github/release-pre/servian/aws-auto-remediate.svg?label=pre-release) ![Pre-release Date](https://img.shields.io/github/release-date-pre/servian/aws-auto-remediate.svg) ![Language](https://img.shields.io/github/languages/top/servian/aws-auto-remediate.svg) [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com) [![Python Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 
 Open source application to instantly remediate common security issues through the use of AWS Config.
 
@@ -57,7 +57,7 @@ To deploy Auto Remediate to your AWS account, follow the below steps:
 01. Install Serverless
 
 ```bash
-npm install serverless -g
+npm install serverless --global
 ```
 
 02. Install AWS CLI
@@ -87,7 +87,7 @@ cd aws-auto-remediate
 08. Install Serverless plugins
 
 ```bash
-serverless plugin install -n serverless-python-requirements
+serverless plugin install -name serverless-python-requirements
 ```
 
 ```bash
