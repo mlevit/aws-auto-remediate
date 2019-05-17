@@ -7,7 +7,7 @@ install:
   - pip install moto
   - npm install serverless --global
   - npm install serverless-iam-roles-per-function
-  - serverless plugin install -name serverless-python-requirements
+  - serverless plugin install --name serverless-python-requirements
 before_script:
   - export BOTO_CONFIG=/dev/null
 script:
