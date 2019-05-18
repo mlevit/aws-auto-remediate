@@ -23,20 +23,20 @@ Test coverage: **29% (7/24)**
 | securityhub-iam-password-policy-symbol-check           | Done               |                 |
 | securityhub-iam-password-policy-uppercase-letter-check | Done               |                 |
 | securityhub-iam-policy-no-statements-with-admin-access | Done               |                 |
-| securityhub-iam-root-access-key-check                  | Not possible       |                 |
+| securityhub-iam-root-access-key-check                  | Not possible       | N/A             |
 | securityhub-iam-user-no-policies-check                 | Done               | Done            |
 | securityhub-iam-user-unused-credentials-check          | Done               |                 |
 | securityhub-mfa-enabled-for-iam-console-access         | Done               | Done            |
 | securityhub-multi-region-cloud-trail-enabled           | Done               |                 |
 | securityhub-restricted-rdp                             | Done               | Done            |
 | securityhub-restricted-ssh                             | Done               | Done            |
-| securityhub-root-account-hardware-mfa-enabled          | Not possible       |                 |
-| securityhub-root-account-mfa-enabled                   | Not possible       |                 |
+| securityhub-root-account-hardware-mfa-enabled          | Not possible       | N/A             |
+| securityhub-root-account-mfa-enabled                   | Not possible       | N/A             |
 | securityhub-s3-bucket-logging-enabled                  | Done               | No Moto support |
 | securityhub-s3-bucket-public-read-prohibited           | Done               | Done            |
 | securityhub-s3-bucket-public-write-prohibited          | Done               | Done            |
 | securityhub-vpc-default-security-group-closed          | Done               |                 |
-| securityhub-vpc-flow-logs-enabled                      | Done               |                 |
+| securityhub-vpc-flow-logs-enabled                      | Done               | No Moto support |
 
 ## AWS Config Managed Rules
 
