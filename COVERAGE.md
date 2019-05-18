@@ -15,19 +15,19 @@ Test coverage: **29% (7/24)**
 | securityhub-cloud-trail-encryption-enabled             | Done               | No Moto support |
 | securityhub-cloud-trail-log-file-validation            | Done               | No Moto support |
 | securityhub-cmk-backing-key-rotation-enabled           | Done               | Done            |
-| securityhub-iam-password-policy-ensure-expires         | Done               |                 |
-| securityhub-iam-password-policy-lowercase-letter-check | Done               |                 |
-| securityhub-iam-password-policy-minimum-length-check   | Done               |                 |
-| securityhub-iam-password-policy-number-check           | Done               |                 |
-| securityhub-iam-password-policy-prevent-reuse-check    | Done               |                 |
-| securityhub-iam-password-policy-symbol-check           | Done               |                 |
-| securityhub-iam-password-policy-uppercase-letter-check | Done               |                 |
+| securityhub-iam-password-policy-ensure-expires         | Done               | No Moto support |
+| securityhub-iam-password-policy-lowercase-letter-check | Done               | No Moto support |
+| securityhub-iam-password-policy-minimum-length-check   | Done               | No Moto support |
+| securityhub-iam-password-policy-number-check           | Done               | No Moto support |
+| securityhub-iam-password-policy-prevent-reuse-check    | Done               | No Moto support |
+| securityhub-iam-password-policy-symbol-check           | Done               | No Moto support |
+| securityhub-iam-password-policy-uppercase-letter-check | Done               | No Moto support |
 | securityhub-iam-policy-no-statements-with-admin-access | Done               |                 |
 | securityhub-iam-root-access-key-check                  | Not possible       | N/A             |
 | securityhub-iam-user-no-policies-check                 | Done               | Done            |
 | securityhub-iam-user-unused-credentials-check          | Done               |                 |
 | securityhub-mfa-enabled-for-iam-console-access         | Done               | Done            |
-| securityhub-multi-region-cloud-trail-enabled           | Done               |                 |
+| securityhub-multi-region-cloud-trail-enabled           | Done               | No Moto support |
 | securityhub-restricted-rdp                             | Done               | Done            |
 | securityhub-restricted-ssh                             | Done               | Done            |
 | securityhub-root-account-hardware-mfa-enabled          | Not possible       | N/A             |
