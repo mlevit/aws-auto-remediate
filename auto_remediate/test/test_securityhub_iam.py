@@ -16,13 +16,13 @@ class TestSecurityHubAccessKeysRotatedCheck:
 
     @pytest.fixture
     def iam_test_user_name(self, sh):
-        res = sh.client_iam.create_user(UserName="test")
-        yield res["User"]["UserName"]
+        response = sh.client_iam.create_user(UserName="test")
+        yield response["User"]["UserName"]
 
     @pytest.fixture
     def iam_test_access_key_id(self, iam_test_user_name, sh):
-        res = sh.client_iam.create_access_key(UserName=iam_test_user_name)
-        yield res["AccessKey"]["AccessKeyId"]
+        response = sh.client_iam.create_access_key(UserName=iam_test_user_name)
+        yield response["AccessKey"]["AccessKeyId"]
 
     def test_access_key_rotated_check(
         self, iam_test_user_name, iam_test_access_key_id, sh
@@ -30,6 +30,14 @@ class TestSecurityHubAccessKeysRotatedCheck:
         sh.access_keys_rotated(iam_test_access_key_id)
         response = sh.client_iam.list_access_keys(UserName=iam_test_user_name)
         assert not response["AccessKeyMetadata"]
+
+    def test_iam_user_name_not_found_check(self, sh):
+        """Tests if an error is thrown if the Access Key ID cannot be found
+        
+        Arguments:
+            sh {SecurityHubRules} -- Instance of SecurityHubRules class
+        """
+        assert not sh.access_keys_rotated("FAKE_KEY_ID")
 
 
 class TestSecurityHubIamPolicyNoStatementsWithAdminAccessCheck:
