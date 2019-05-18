@@ -25,7 +25,7 @@ class TestSecurityHubRestrictedRDPCheck:
     def ec2_test_security_group_with_non_restricted_rdp(
         self, ec2_test_security_group_id, sh
     ):
-        self.client_ec2.authorize_security_group_ingress(
+        sh.client_ec2.authorize_security_group_ingress(
             GroupId=ec2_test_security_group_id,
             IpPermissions=[
                 {
@@ -55,7 +55,58 @@ class TestSecurityHubRestrictedRDPCheck:
         response = ec2_test_security_group_with_non_restricted_rdp.client_ec2.describe_security_groups(
             GroupIds=[ec2_test_security_group_id]
         )
-        assert len(response["SecurityGroups"]["IpPermissions"]) == 0
+        assert len(response["SecurityGroups"][0]["IpPermissions"]) == 0
+
+
+class TestSecurityHubRestrictedSSHCheck:
+    @pytest.fixture
+    def sh(self):
+        with moto.mock_ec2():
+            sh = security_hub_rules.SecurityHubRules(logging)
+            yield sh
+
+    @pytest.fixture
+    def ec2_test_security_group_id(self, sh):
+        response = sh.client_ec2.create_security_group(
+            Description="test", GroupName="test"
+        )
+        yield response["GroupId"]
+
+    @pytest.fixture
+    def ec2_test_security_group_with_non_restricted_ssh(
+        self, ec2_test_security_group_id, sh
+    ):
+        sh.client_ec2.authorize_security_group_ingress(
+            GroupId=ec2_test_security_group_id,
+            IpPermissions=[
+                {
+                    "FromPort": 22,
+                    "ToPort": 22,
+                    "IpProtocol": "tcp",
+                    "IpRanges": [{"CidrIp": "0.0.0.0/0"}],
+                },
+                {
+                    "FromPort": 22,
+                    "ToPort": 22,
+                    "IpProtocol": "tcp",
+                    "Ipv6Ranges": [{"CidrIpv6": "::/0"}],
+                },
+            ],
+        )
+        yield sh
+
+    def test_ec2_security_group_restricted_ssh_check(
+        self,
+        ec2_test_security_group_id,
+        ec2_test_security_group_with_non_restricted_ssh,
+    ):
+        ec2_test_security_group_with_non_restricted_ssh.restricted_ssh(
+            ec2_test_security_group_id
+        )
+        response = ec2_test_security_group_with_non_restricted_ssh.client_ec2.describe_security_groups(
+            GroupIds=[ec2_test_security_group_id]
+        )
+        assert len(response["SecurityGroups"][0]["IpPermissions"]) == 0
 
 
 class TestSecurityHubStatic:
