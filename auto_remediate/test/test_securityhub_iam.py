@@ -7,7 +7,32 @@ import pytest
 from .. import security_hub_rules
 
 
-class TestSecurityHubIamPolicyNoStatementsWithAdminAccess:
+class TestSecurityHubAccessKeysRotatedCheck:
+    @pytest.fixture
+    def sh(self):
+        with moto.mock_iam():
+            sh = security_hub_rules.SecurityHubRules(logging)
+            yield sh
+
+    @pytest.fixture
+    def iam_test_user_name(self, sh):
+        res = sh.client_iam.create_user(UserName="test")
+        yield res["User"]["UserName"]
+
+    @pytest.fixture
+    def iam_test_access_key_id(self, iam_test_user_name, sh):
+        res = sh.client_iam.create_access_key(UserName=iam_test_user_name)
+        yield res["AccessKey"]["AccessKeyId"]
+
+    def test_access_key_rotated_check(
+        self, iam_test_user_name, iam_test_access_key_id, sh
+    ):
+        sh.access_keys_rotated(iam_test_access_key_id)
+        response = sh.client_iam.list_access_keys(UserName=iam_test_user_name)
+        assert not response["AccessKeyMetadata"]
+
+
+class TestSecurityHubIamPolicyNoStatementsWithAdminAccessCheck:
     @pytest.fixture
     def sh(self):
         with moto.mock_iam():

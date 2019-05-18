@@ -114,12 +114,30 @@ class SecurityHubRules:
             boolean -- True if remediation is successful
         """
         try:
-            self.client_iam.delete_access_key(AccessKeyId=resource_id)
-            self.logging.info(f"Deleted unrotated IAM Access Key '{resource_id}'.")
+            response = self.client_iam.get_access_key_last_used(AccessKeyId=resource_id)
+        except:
+            self.logging.error(
+                f"Could not retrieve IAM User Name for IAM Access Key '{resource_id}'."
+            )
+            self.logging.error(sys.exc_info()[1])
+            return False
+        else:
+            user_name = response.get("UserName")
+            self.logging.info(
+                f"Retrieved IAM User Name '{user_name}' for IAM Access Key '{resource_id}'."
+            )
+
+        try:
+            self.client_iam.delete_access_key(
+                UserName=user_name, AccessKeyId=resource_id
+            )
+            self.logging.info(
+                f"Deleted unrotated IAM Access Key '{resource_id}' for IAM User Name '{user_name}'."
+            )
             return True
         except:
             self.logging.error(
-                f"Could not delete unrotated IAM Access Key '{resource_id}'."
+                f"Could not delete unrotated IAM Access Key '{resource_id}' for IAM User Name '{user_name}'."
             )
             self.logging.error(sys.exc_info()[1])
             return False

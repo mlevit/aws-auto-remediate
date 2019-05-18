@@ -10,7 +10,7 @@ Test coverage: **9 of 24**
 
 | Rule                                                   | Development Status | Testing Status  |
 | ------------------------------------------------------ | ------------------ | --------------- |
-| securityhub-access-keys-rotated                        | Done               |                 |
+| securityhub-access-keys-rotated                        | Done               | Done            |
 | securityhub-cloud-trail-cloud-watch-logs-enabled       | Done ​              | No Moto support |
 | securityhub-cloud-trail-encryption-enabled             | Done               | No Moto support |
 | securityhub-cloud-trail-log-file-validation            | Done               | No Moto support |
