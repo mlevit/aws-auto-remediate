@@ -4,9 +4,9 @@ Below tables represent the coverage of Auto Remediate. Automated testing of Auto
 
 ## Security Hub Rules
 
-Development coverage: **100% (24/24)**
+Development coverage: **24 of 24**
 
-Test coverage: **29% (7/24)**
+Test coverage: **9 of 24**
 
 | Rule                                                   | Development Status | Testing Status  |
 | ------------------------------------------------------ | ------------------ | --------------- |
@@ -22,7 +22,7 @@ Test coverage: **29% (7/24)**
 | securityhub-iam-password-policy-prevent-reuse-check    | Done               | No Moto support |
 | securityhub-iam-password-policy-symbol-check           | Done               | No Moto support |
 | securityhub-iam-password-policy-uppercase-letter-check | Done               | No Moto support |
-| securityhub-iam-policy-no-statements-with-admin-access | Done               |                 |
+| securityhub-iam-policy-no-statements-with-admin-access | Done               | Done            |
 | securityhub-iam-root-access-key-check                  | Not possible       | N/A             |
 | securityhub-iam-user-no-policies-check                 | Done               | Done            |
 | securityhub-iam-user-unused-credentials-check          | Done               |                 |
@@ -35,14 +35,14 @@ Test coverage: **29% (7/24)**
 | securityhub-s3-bucket-logging-enabled                  | Done               | No Moto support |
 | securityhub-s3-bucket-public-read-prohibited           | Done               | Done            |
 | securityhub-s3-bucket-public-write-prohibited          | Done               | Done            |
-| securityhub-vpc-default-security-group-closed          | Done               |                 |
+| securityhub-vpc-default-security-group-closed          | Done               | Done            |
 | securityhub-vpc-flow-logs-enabled                      | Done               | No Moto support |
 
 ## AWS Config Managed Rules
 
-Development coverage: **2.5% (1/40)**
+Development coverage: **1 of 40**
 
-Test coverage: **0% (0/40)**
+Test coverage: **0 of 40**
 
 | Rule                                                    | Development Status | Testing Status |
 | ------------------------------------------------------- | ------------------ | -------------- |
