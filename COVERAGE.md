@@ -6,7 +6,7 @@ Below tables represent the coverage of Auto Remediate. Automated testing of Auto
 
 Development coverage: **100% (24/24)**
 
-Test coverage: **20% (5/24)**
+Test coverage: **29% (7/24)**
 
 | Rule                                                   | Development Status | Testing Status  |
 | ------------------------------------------------------ | ------------------ | --------------- |
@@ -28,8 +28,8 @@ Test coverage: **20% (5/24)**
 | securityhub-iam-user-unused-credentials-check          | Done               |                 |
 | securityhub-mfa-enabled-for-iam-console-access         | Done               | Done            |
 | securityhub-multi-region-cloud-trail-enabled           | Done               |                 |
-| securityhub-restricted-rdp                             | Done               |                 |
-| securityhub-restricted-ssh                             | Done               |                 |
+| securityhub-restricted-rdp                             | Done               | Done            |
+| securityhub-restricted-ssh                             | Done               | Done            |
 | securityhub-root-account-hardware-mfa-enabled          | Not possible       |                 |
 | securityhub-root-account-mfa-enabled                   | Not possible       |                 |
 | securityhub-s3-bucket-logging-enabled                  | Done               | No Moto support |
