@@ -6,7 +6,7 @@ Below tables represent the coverage of Auto Remediate. Automated testing of Auto
 
 Development coverage: **24 of 24**
 
-Test coverage: **9 of 24**
+Test coverage: **10 of 24**
 
 | Rule                                                   | Development Status | Testing Status  |
 | ------------------------------------------------------ | ------------------ | --------------- |

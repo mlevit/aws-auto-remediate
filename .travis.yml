@@ -11,6 +11,6 @@ install:
 before_script:
   - export BOTO_CONFIG=/dev/null
 script:
-  - pytest
+  - pytest --disable-warnings
   - serverless deploy --stage ci
   - serverless remove --stage ci
