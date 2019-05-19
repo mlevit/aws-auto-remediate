@@ -1,6 +1,6 @@
 # AWS Auto Remediate
 
-[![Build Status](https://travis-ci.org/servian/aws-auto-remediate.svg?branch=master)](https://travis-ci.org/servian/aws-auto-remediate) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5bce55175d32494c89f0648b27719f43)](https://www.codacy.com/app/servian/aws-auto-remediate?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=servian/aws-auto-remediate&amp;utm_campaign=Badge_Grade) ![Pre-release](https://img.shields.io/github/release-pre/servian/aws-auto-remediate.svg?label=pre-release) ![Pre-release Date](https://img.shields.io/github/release-date-pre/servian/aws-auto-remediate.svg) ![Language](https://img.shields.io/github/languages/top/servian/aws-auto-remediate.svg) [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com) [![Python Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
+[![Build Status](https://travis-ci.org/servian/aws-auto-remediate.svg?branch=master)](https://travis-ci.org/servian/aws-auto-remediate) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5bce55175d32494c89f0648b27719f43)](https://www.codacy.com/app/servian/aws-auto-remediate?utm_source=github.com&utm_medium=referral&utm_content=servian/aws-auto-remediate&utm_campaign=Badge_Grade) ![Pre-release](https://img.shields.io/github/release-pre/servian/aws-auto-remediate.svg?label=pre-release) ![Pre-release Date](https://img.shields.io/github/release-date-pre/servian/aws-auto-remediate.svg) ![Language](https://img.shields.io/github/languages/top/servian/aws-auto-remediate.svg) [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com) [![Python Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 
 Open source application to instantly remediate common security issues through the use of AWS Config.
 
@@ -54,37 +54,37 @@ Once AWS Config is cleared of all AWS Security Hub related rules, you may procee
 
 To deploy Auto Remediate to your AWS account, follow the below steps:
 
-01. Install Serverless
+1.  Install Serverless
 
 ```bash
 npm install serverless --global
 ```
 
-02. Install AWS CLI
+2.  Install AWS CLI
 
 ```bash
 pip3 install awscli --upgrade --user
 ```
 
-03. Clone this repository
+3.  Clone this repository
 
 ```bash
 git clone https://github.com/servian/aws-auto-remediate
 ```
 
-04. Configure AWS CLI following the instruction at [Quickly Configuring the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html#cli-quick-configuration). Ensure the user you're configuring has the appropriate IAM permissions to create Lambda Functions, S3 Buckets, IAM Roles, and CloudFormation Stacks. It is best for administrators to deploy Auto Remediate.
+4.  Configure AWS CLI following the instruction at [Quickly Configuring the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html#cli-quick-configuration). Ensure the user you're configuring has the appropriate IAM permissions to create Lambda Functions, S3 Buckets, IAM Roles, and CloudFormation Stacks. It is best for administrators to deploy Auto Remediate.
 
-05. If you've configure the AWS CLI using a profile, open the `serverless.yml` file and modify the `provider > profile` attribute to match your profile name.
+5.  If you've configure the AWS CLI using a profile, open the `serverless.yml` file and modify the `provider > profile` attribute to match your profile name.
 
-06. Change the custom `company` attribute within the `serverless.yml` file to your company name in order to prevent S3 Bucket name collision
+6.  Change the custom `company` attribute within the `serverless.yml` file to your company name in order to prevent S3 Bucket name collision
 
-07. Change into the Auto Remediate directory
+7.  Change into the Auto Remediate directory
 
 ```bash
 cd aws-auto-remediate
 ```
 
-08. Install Serverless plugins
+8.  Install Serverless plugins
 
 ```bash
 serverless plugin install --name serverless-python-requirements
@@ -94,7 +94,7 @@ serverless plugin install --name serverless-python-requirements
 npm install serverless-iam-roles-per-function
 ```
 
-09. Deploy Auto Remediate
+9.  Deploy Auto Remediate
 
 ```bash
 serverless deploy
@@ -114,25 +114,25 @@ serverless logs -f AutoRemediateSetup
 
 ### Update
 
-01. Change into the Auto Remediate directory
+1.  Change into the Auto Remediate directory
 
 ```bash
 cd aws-auto-remediate
 ```
 
-02. Pull latest changes
+2.  Pull latest changes
 
 ```bash
 git pull
 ```
 
-03. Deploy update
+3.  Deploy update
 
 ```bash
 serverless deploy
 ```
 
-04. Invoke Auto Remediate Setup to deploy new AWS Config rules and Settings
+4.  Invoke Auto Remediate Setup to deploy new AWS Config rules and Settings
 
 ```bash
 serverless invoke -f AutoRemediateSetup
@@ -144,13 +144,13 @@ Auto Remediate is deployed using the Serverless Framework which under the hood c
 
 To remove Auto Remediate from your AWS account, follow the below steps:
 
-1. Change into the Auto Remediate directory
+1.  Change into the Auto Remediate directory
 
 ```bash
 cd aws-auto-remediate
 ```
 
-2. Remove Auto Remediate
+2.  Remove Auto Remediate
 
 ```bash
 serverless remove
@@ -172,77 +172,77 @@ The tables below detail the auto remediated rules and scenarios.
 
 #### Database
 
-| Rule                             | Description                                                  | Remediation                                          |
-| -------------------------------- | ------------------------------------------------------------ | ---------------------------------------------------- |
+| Rule                             | Description                                                                                                                                                                                              | Remediation                                          |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
 | RDS Instance Public Access Check | Check whether the Amazon Relational Database Service instances are not publicly accessible.<br />The rule is NON_COMPLIANT if the `publiclyAccessible` field is true in the instance configuration item. | :warning: Sets `publiclyAccessible` field to `False` |
 
 ### AWS Security Hub Rules
 
 #### Compute
 
-| Rule           | Description                                                  | Remediation                              |
-| -------------- | ------------------------------------------------------------ | ---------------------------------------- |
+| Rule           | Description                                                                                                                                    | Remediation                              |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
 | Restricted RDP | Checks whether the incoming RDP traffic is allowed from `0.0.0.0/0` or `::/0`. This rule is compliant when incoming RDP traffic is restricted. | :warning: Deletes offending inbound rule |
 | Restricted SSH | Checks whether the incoming SSH traffic is allowed from `0.0.0.0/0` or `::/0`. This rule is compliant when incoming SSH traffic is restricted. | :warning: Deletes offending inbound rule |
 
 #### Management and Governance
 
-| Rule                                   | Description                                                  | Remediation                                                  |
-| -------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| CloudTrail CloudWatch Logs Enabled     | Checks whether AWS CloudTrail trails are configured to send logs to Amazon CloudWatch logs. | Enables CloudWatch logs to Log Group `cloudtrail/<CloudTrail Name>` |
-| CloudTrail Encryption Enabled          | Ensure CloudTrail logs are encrypted at rest using KMS CMKs. | Enables CloudWatch encryption with KMS CMK `cloudtrail/<CloudTrail Name>` |
-| CloudTrail Log File Validation Enabled | Checks whether AWS CloudTrail creates a signed digest file with logs. AWS recommends that the file validation must be enabled on all trails. The rule is NON_COMPLIANT if the validation is not enabled. | Enables CloudTrail Validation                                |
-| Multi Region Cloud Trail Enabled       | Checks that there is at least one multi-region AWS CloudTrail. The rule is NON_COMPLIANT if the trails do not match inputs parameters. | Enables Multi Region CloudTrail                              |
+| Rule                                   | Description                                                                                                                                                                                              | Remediation                                                               |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| CloudTrail CloudWatch Logs Enabled     | Checks whether AWS CloudTrail trails are configured to send logs to Amazon CloudWatch logs.                                                                                                              | Enables CloudWatch logs to Log Group `cloudtrail/<CloudTrail Name>`       |
+| CloudTrail Encryption Enabled          | Ensure CloudTrail logs are encrypted at rest using KMS CMKs.                                                                                                                                             | Enables CloudWatch encryption with KMS CMK `cloudtrail/<CloudTrail Name>` |
+| CloudTrail Log File Validation Enabled | Checks whether AWS CloudTrail creates a signed digest file with logs. AWS recommends that the file validation must be enabled on all trails. The rule is NON_COMPLIANT if the validation is not enabled. | Enables CloudTrail Validation                                             |
+| Multi Region Cloud Trail Enabled       | Checks that there is at least one multi-region AWS CloudTrail. The rule is NON_COMPLIANT if the trails do not match inputs parameters.                                                                   | Enables Multi Region CloudTrail                                           |
 
 #### Network and Content Delivery
 
-| Rule                              | Description                                                  | Remediation                                                  |
-| --------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| VPC Flow Logs Enables             | Checks whether Amazon Virtual Private Cloud flow logs are found and enabled for Amazon VPC. | Creates new S3 Bucket `<Account Number>-<Region>-flow-logs` for logging with a prefix of `<VPC ID>/` |
-| VPC Default Security Group Closed | Checks that the default security group of any Amazon Virtual Private Cloud (VPC) does not allow inbound or outbound traffic. The rule is NON_COMPLIANT if the default security group has one or more inbound or outbound traffic. | Deletes all egress and ingress rules                         |
+| Rule                              | Description                                                                                                                                                                                                                       | Remediation                                                                                          |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| VPC Flow Logs Enables             | Checks whether Amazon Virtual Private Cloud flow logs are found and enabled for Amazon VPC.                                                                                                                                       | Creates new S3 Bucket `<Account Number>-<Region>-flow-logs` for logging with a prefix of `<VPC ID>/` |
+| VPC Default Security Group Closed | Checks that the default security group of any Amazon Virtual Private Cloud (VPC) does not allow inbound or outbound traffic. The rule is NON_COMPLIANT if the default security group has one or more inbound or outbound traffic. | Deletes all egress and ingress rules                                                                 |
 
 #### Security, Identity & Compliance
 
-| Rule                                       | Description                                                  | Remediation                                                  |
-| ------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| Access Keys Rotated                        | Checks whether the active access keys are rotated within the number of days specified in 90 days. | :warning: Deletes Access Key                                 |
-| Customer Managed Key Rotation Enabled      | Checks that key rotation is enabled for customer created customer master key (CMK). | Enables key rotation                                         |
-| IAM Password Policy Ensure Expires         | Checks whether the IAM password policy ensures that passwords expire. | Enables password expiration                                  |
-| IAM Password Policy Lowercase Letter Check | Checks whether the IAM password policy enforces the inclusion of a lowercase letter. | Enables "Require at least one lowercase letter" option       |
-| IAM Password Policy Minimum Length Check   | Checks whether the IAM password policy enforces a minimum length. | Sets minimum password length to 14.                          |
-| IAM Password Policy Number Check           | Checks whether the IAM password policy enforces the inclusion of a number. | Enables "Require at least one number" option                 |
-| IAM Password Policy Prevent Reuse Check    | Checks whether the IAM password policy prevents password reuse. | Sets number of passwords to remember to 24.                  |
-| IAM Password Policy Symbol Check           | Checks whether the IAM password policy enforces the inclusion of a symbol. | Enables "Require at least one non-alphanumeric character" option |
-| IAM Password Policy Uppercase Letter Check | Checks whether the account password policy for IAM users requires at least one uppercase character in password. | Enables "Require at least one uppercase letter" option       |
-| IAM Policy No Statements with Admin Access | Checks whether the default version of AWS Identity and Access Management (IAM) policies do not have administrator access.<br />If any statement has `"Effect": "Allow"` with `"Action": "*"` over `"Resource": "*"`, the rule is NON_COMPLIANT. | :warning: Creates new Policy with offending Statements removed |
-| IAM User No Policies Check                 | Checks that none of your IAM users have policies attached. IAM users must inherit permissions from IAM groups or roles. | Detaches Managed Policies from offending IAM User            |
-| IAM User Unused Credentials Check          | Checks whether AWS Identity and Access Management (IAM) users have passwords or active access keys that have not been used within 90 days. | :warning: Deletes Access Key / Login Profile                 |
-| MFA Enabled for IAM Console Access         | Checks whether AWS Multi-Factor Authentication (MFA) is enabled for all AWS Identity and Access Management (IAM) users that use a console password. | :warning: Deletes user's Login Profile only. [Deleting a user's password does not prevent a user from accessing AWS through the command line interface or the API.](https://docs.aws.amazon.com/cli/latest/reference/iam/delete-login-profile.html)
+| Rule                                       | Description                                                                                                                                                                                                                                     | Remediation                                                                                                                                                                                                                                         |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Access Keys Rotated                        | Checks whether the active access keys are rotated within the number of days specified in 90 days.                                                                                                                                               | :warning: Deletes Access Key                                                                                                                                                                                                                        |
+| Customer Managed Key Rotation Enabled      | Checks that key rotation is enabled for customer created customer master key (CMK).                                                                                                                                                             | Enables key rotation                                                                                                                                                                                                                                |
+| IAM Password Policy Ensure Expires         | Checks whether the IAM password policy ensures that passwords expire.                                                                                                                                                                           | Enables password expiration                                                                                                                                                                                                                         |
+| IAM Password Policy Lowercase Letter Check | Checks whether the IAM password policy enforces the inclusion of a lowercase letter.                                                                                                                                                            | Enables "Require at least one lowercase letter" option                                                                                                                                                                                              |
+| IAM Password Policy Minimum Length Check   | Checks whether the IAM password policy enforces a minimum length.                                                                                                                                                                               | Sets minimum password length to 14.                                                                                                                                                                                                                 |
+| IAM Password Policy Number Check           | Checks whether the IAM password policy enforces the inclusion of a number.                                                                                                                                                                      | Enables "Require at least one number" option                                                                                                                                                                                                        |
+| IAM Password Policy Prevent Reuse Check    | Checks whether the IAM password policy prevents password reuse.                                                                                                                                                                                 | Sets number of passwords to remember to 24.                                                                                                                                                                                                         |
+| IAM Password Policy Symbol Check           | Checks whether the IAM password policy enforces the inclusion of a symbol.                                                                                                                                                                      | Enables "Require at least one non-alphanumeric character" option                                                                                                                                                                                    |
+| IAM Password Policy Uppercase Letter Check | Checks whether the account password policy for IAM users requires at least one uppercase character in password.                                                                                                                                 | Enables "Require at least one uppercase letter" option                                                                                                                                                                                              |
+| IAM Policy No Statements with Admin Access | Checks whether the default version of AWS Identity and Access Management (IAM) policies do not have administrator access.<br />If any statement has `"Effect": "Allow"` with `"Action": "*"` over `"Resource": "*"`, the rule is NON_COMPLIANT. | :warning: Creates new Policy with offending Statements removed                                                                                                                                                                                      |
+| IAM User No Policies Check                 | Checks that none of your IAM users have policies attached. IAM users must inherit permissions from IAM groups or roles.                                                                                                                         | Detaches Managed Policies from offending IAM User                                                                                                                                                                                                   |
+| IAM User Unused Credentials Check          | Checks whether AWS Identity and Access Management (IAM) users have passwords or active access keys that have not been used within 90 days.                                                                                                      | :warning: Deletes Access Key / Login Profile                                                                                                                                                                                                        |
+| MFA Enabled for IAM Console Access         | Checks whether AWS Multi-Factor Authentication (MFA) is enabled for all AWS Identity and Access Management (IAM) users that use a console password.                                                                                             | :warning: Deletes user's Login Profile only. [Deleting a user's password does not prevent a user from accessing AWS through the command line interface or the API.](https://docs.aws.amazon.com/cli/latest/reference/iam/delete-login-profile.html) |
 
 #### Storage
 
-| Rule                              | Description                                            | Remediation                                                  |
-| --------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------ |
+| Rule                              | Description                                            | Remediation                                                                                                 |
+| --------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
 | S3 Bucket Logging Enabled         | Checks whether logging is enabled for your S3 buckets. | Creates new S3 Bucket `<Account Number>-<Region>-access-logs` for logging with a prefix of `<Bucket Name>/` |
-| S3 Bucket Public Read Prohibited  | Checks to see if S3 buckets are publicly readable.     | :warning: Sets S3 Bucket ACL to `private`                    |
-| S3 Bucket Public Write Prohibited | Checks to see if S3 buckets allow public write.        | :warning: Sets S3 Bucket ACL to `private`                    |
+| S3 Bucket Public Read Prohibited  | Checks to see if S3 buckets are publicly readable.     | :warning: Sets S3 Bucket ACL to `private`                                                                   |
+| S3 Bucket Public Write Prohibited | Checks to see if S3 buckets allow public write.        | :warning: Sets S3 Bucket ACL to `private`                                                                   |
 
 ## Resources
 
 The table below details all AWS resources created when deploying the application.
 
-| Service               | Resource ID                                                  |
-| --------------------- | ------------------------------------------------------------ |
-| CloudFormation Stack  | `auto-remediate`                                             |
-| CloudWatch Event Rule | `auto-remediate-config-compliance`                           |
-| DynamoDB Table        | `auto-remediate-settings`                                    |
-| Lambda Function       | `auto-remediate`                                             |
-|                       | `auto-remediate-dlq`                                         |
-|                       | `auto-remediate-setup`                                       |
+| Service               | Resource ID                                                                                          |
+| --------------------- | ---------------------------------------------------------------------------------------------------- |
+| CloudFormation Stack  | `auto-remediate`                                                                                     |
+| CloudWatch Event Rule | `auto-remediate-config-compliance`                                                                   |
+| DynamoDB Table        | `auto-remediate-settings`                                                                            |
+| Lambda Function       | `auto-remediate`                                                                                     |
+|                       | `auto-remediate-dlq`                                                                                 |
+|                       | `auto-remediate-setup`                                                                               |
 | SNS Topic             | `auto-remediate-log` (not functional [#19](https://github.com/servian/aws-auto-remediate/issues/19)) |
-|                       | `auto-remediate-missing-remediation`                         |
-| SQS Queue             | `auto-remediate-config-compliance`                           |
-|                       | `auto-remediate-dlq`                                         |
+|                       | `auto-remediate-missing-remediation`                                                                 |
+| SQS Queue             | `auto-remediate-config-compliance`                                                                   |
+|                       | `auto-remediate-dlq`                                                                                 |
 
 ## Coverage
 
