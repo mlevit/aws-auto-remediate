@@ -1,6 +1,6 @@
 # AWS Auto Remediate
 
-[![Build Status](https://travis-ci.org/servian/aws-auto-remediate.svg?branch=master)](https://travis-ci.org/servian/aws-auto-remediate) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5bce55175d32494c89f0648b27719f43)](https://www.codacy.com/app/servian/aws-auto-remediate?utm_source=github.com&utm_medium=referral&utm_content=servian/aws-auto-remediate&utm_campaign=Badge_Grade) ![Pre-release](https://img.shields.io/github/release-pre/servian/aws-auto-remediate.svg?label=pre-release) ![Pre-release Date](https://img.shields.io/github/release-date-pre/servian/aws-auto-remediate.svg) ![Language](https://img.shields.io/github/languages/top/servian/aws-auto-remediate.svg) [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com) [![Python Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
+[![Build Status](https://travis-ci.org/servian/aws-auto-remediate.svg?branch=master)](https://travis-ci.org/servian/aws-auto-remediate) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5bce55175d32494c89f0648b27719f43)](https://www.codacy.com/app/servian/aws-auto-remediate?utm_source=github.com&utm_medium=referral&utm_content=servian/aws-auto-remediate&utm_campaign=Badge_Grade) ![Pre-release](https://img.shields.io/github/release-pre/servian/aws-auto-remediate.svg?label=pre-release) ![Pre-release Date](https://img.shields.io/github/release-date-pre/servian/aws-auto-remediate.svg) ![Language](https://img.shields.io/github/languages/top/servian/aws-auto-remediate.svg) [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com) [![Python Black](https://img.shields.io/badge/code%20style-black-000000.svg?label=Python%20code%20style)](https://github.com/python/black) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?label=Markdown%252FYAML%2520code%2520style)](https://github.com/prettier/prettier)
 
 Open source application to instantly remediate common security issues through the use of AWS Config.
 
@@ -52,39 +52,33 @@ Once AWS Config is cleared of all AWS Security Hub related rules, you may procee
 
 ### Deployment
 
-To deploy Auto Remediate to your AWS account, follow the below steps:
-
-1.  Install Serverless
+1.  Install the [Serverless Framework](https://serverless.com/)
 
 ```bash
 npm install serverless --global
 ```
 
-2.  Install AWS CLI
+2.  Install [AWS CLI](https://aws.amazon.com/cli/)
 
 ```bash
 pip3 install awscli --upgrade --user
 ```
 
-3.  Clone this repository
+3.  Configure the AWS CLI following the instruction at [Quickly Configuring the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html#cli-quick-configuration). Ensure the user you're configuring has the appropriate IAM permissions to create Lambda Functions, S3 Buckets, IAM Roles, and CloudFormation Stacks. It is best for administrators to deploy Auto Remediate.
+
+4.  Install Auto Remediate
 
 ```bash
-git clone https://github.com/servian/aws-auto-remediate
+serverless create --template-url https://github.com/servian/aws-auto-remediate --path aws-auto-remediate
 ```
 
-4.  Configure AWS CLI following the instruction at [Quickly Configuring the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html#cli-quick-configuration). Ensure the user you're configuring has the appropriate IAM permissions to create Lambda Functions, S3 Buckets, IAM Roles, and CloudFormation Stacks. It is best for administrators to deploy Auto Remediate.
-
-5.  If you've configure the AWS CLI using a profile, open the `serverless.yml` file and modify the `provider > profile` attribute to match your profile name.
-
-6.  Change the custom `company` attribute within the `serverless.yml` file to your company name in order to prevent S3 Bucket name collision
-
-7.  Change into the Auto Remediate directory
+5.  Change into the Auto Remediate directory
 
 ```bash
 cd aws-auto-remediate
 ```
 
-8.  Install Serverless plugins
+8.  Install Serverless plugins needed for deployment
 
 ```bash
 serverless plugin install --name serverless-python-requirements
@@ -94,53 +88,49 @@ serverless plugin install --name serverless-python-requirements
 npm install serverless-iam-roles-per-function
 ```
 
-9.  Deploy Auto Remediate
+9.  Deploy Auto Remediate to your AWS account
 
 ```bash
-serverless deploy
+serverless deploy [--region <AWS region>] [--aws-profile <AWS CLI profile>]
 ```
 
-10. Invoke Auto Remediate Setup for the first time to create the necessary AWS Config rules and Settings
+10. Invoke Auto Remediate Setup for the first time to create the necessary AWS Config rules and settings
 
 ```bash
-serverless invoke -f AutoRemediateSetup
+serverless invoke -f AutoRemediateSetup [--region <AWS region>] [--aws-profile <AWS CLI profile>]
 ```
 
 11. Check Auto Remediate Setup logs
 
 ```bash
-serverless logs -f AutoRemediateSetup
+serverless logs -f AutoRemediateSetup [--region <AWS region>] [--aws-profile <AWS CLI profile>]
 ```
 
 ### Update
 
-1.  Change into the Auto Remediate directory
+1.  Remove existing Auto Remediate directory
+
+2.  Install Auto Remediate
 
 ```bash
-cd aws-auto-remediate
+serverless create --template-url https://github.com/servian/aws-auto-remediate --path aws-auto-remediate
 ```
 
-2.  Pull latest changes
+3.  Deploy Auto Remediate update to your AWS account
 
 ```bash
-git pull
+serverless deploy [--region <AWS region>] [--aws-profile <AWS CLI profile>]
 ```
 
-3.  Deploy update
+4.  Invoke Auto Remediate Setup to deploy new AWS Config rules and settings
 
 ```bash
-serverless deploy
-```
-
-4.  Invoke Auto Remediate Setup to deploy new AWS Config rules and Settings
-
-```bash
-serverless invoke -f AutoRemediateSetup
+serverless invoke --function AutoRemediateSetup [--region <AWS region>] [--aws-profile <AWS CLI profile>]
 ```
 
 ### Removal
 
-Auto Remediate is deployed using the Serverless Framework which under the hood creates an AWS CloudFormation Stack. This means removal is clean and simple.
+Auto Remediate is deployed using the Serverless Framework which under the hood creates an AWS CloudFormation Stack allowing for a clean and simple removal process.
 
 To remove Auto Remediate from your AWS account, follow the below steps:
 
@@ -150,10 +140,10 @@ To remove Auto Remediate from your AWS account, follow the below steps:
 cd aws-auto-remediate
 ```
 
-2.  Remove Auto Remediate
+2.  Remove Auto Remediate from your AWS account
 
 ```bash
-serverless remove
+serverless remove [--region <AWS region>] [--aws-profile <AWS CLI profile>]
 ```
 
 ## Settings

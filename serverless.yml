@@ -1,8 +1,8 @@
 service: auto-remediate
 
 custom:
-  log_level: INFO                     # DEBUG for dev | INFO for prod
-  region: ap-southeast-2              # AWS deployment region
+  log_level: INFO # DEBUG for dev | INFO for prod
+  region: ${opt:region, "ap-southeast-2"} # AWS deployment region
   pythonRequirements:
     slim: true
     useStaticCache: true
@@ -11,9 +11,9 @@ custom:
 provider:
   name: aws
   runtime: python3.7
-  stage: ${opt:stage, 'dev'}          # Override via CLI "--stage prod"
+  stage: ${opt:stage, "prod"} # Override via CLI "--stage dev"
   region: ${self:custom.region}
-  profile: ${opt:profile, ''}         # Override via CLI "--aws-profile saml"
+  profile: ${opt:profile, ""} # Override via CLI "--aws-profile saml"
 
 package:
   individually: true
@@ -209,7 +209,7 @@ resources:
       Type: AWS::SQS::QueuePolicy
       Properties:
         PolicyDocument:
-          Version: '2012-10-17'
+          Version: "2012-10-17"
           Id: SQSConfigComplianceQueuePolicy
           Statement:
             - Effect: Allow
