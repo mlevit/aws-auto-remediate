@@ -14,49 +14,30 @@ class TestSecurityHubS3BucketPublicReadProhibited:
             sh = security_hub_rules.SecurityHubRules(logging)
             yield sh
 
-    @pytest.fixture
-    def s3_test_bucket_public_read(self, sh):
-        """Creates new publicly readable S3 Bucket
-        
-        Arguments:
-            sh {SecurityHubRules} -- Instance of class SecurityHubRules
-        """
-        sh.client_s3.create_bucket(ACL="public-read", Bucket="test")
-        yield "test"
-
-    @pytest.fixture
-    def s3_test_bucket_public_write(self, sh):
-        """Creates new publicly writable S3 Bucket
-        
-        Arguments:
-            sh {SecurityHubRules} -- Instance of class SecurityHubRules
-        """
-        sh.client_s3.create_bucket(ACL="public-read", Bucket="test")
-        yield "test"
-
-    def test_s3_bucket_public_read_disabled_check(self, s3_test_bucket_public_read, sh):
+    def test_s3_bucket_public_read_disabled(self, sh):
         """Tests if S3 Bucket public read has been turned off
         
         Arguments:
             s3_test_bucket_public_read {string} -- S3 bucket name
             sh {SecurityHubRules} -- Instance of class SecurityHubRules
         """
-        sh.s3_bucket_public_read_prohibited(s3_test_bucket_public_read)
-        response = sh.client_s3.get_bucket_acl(Bucket=s3_test_bucket_public_read)
+
+        # create bucket
+        sh.client_s3.create_bucket(ACL="public-read", Bucket="test")
+
+        # test s3_bucket_public_read_prohibited function
+        sh.s3_bucket_public_read_prohibited("test")
+
+        # validate test
+        response = sh.client_s3.get_bucket_acl(Bucket="test")
         assert response["Grants"][0]["Permission"] == "FULL_CONTROL"
 
-    def test_s3_bucket_public_write_disabled_check(
-        self, s3_test_bucket_public_write, sh
-    ):
-        """Tests if S3 Bucket public write has been turned off
-        
-        Arguments:
-            s3_test_bucket_public_write {string} -- S3 bucket name
-            sh {SecurityHubRules} -- Instance of class SecurityHubRules
-        """
-        sh.s3_bucket_public_write_prohibited(s3_test_bucket_public_write)
-        response = sh.client_s3.get_bucket_acl(Bucket=s3_test_bucket_public_write)
-        assert response["Grants"][0]["Permission"] == "FULL_CONTROL"
+    def test_invalid_bucket(self, sh):
+        # create bucket
+        sh.client_s3.create_bucket(ACL="public-read", Bucket="test")
+
+        # validate test
+        assert not sh.s3_bucket_public_read_prohibited("test123")
 
 
 class TestSecurityHubS3BucketPublicWriteProhibited:
@@ -66,28 +47,30 @@ class TestSecurityHubS3BucketPublicWriteProhibited:
             sh = security_hub_rules.SecurityHubRules(logging)
             yield sh
 
-    @pytest.fixture
-    def s3_test_bucket_public_write(self, sh):
-        """Creates new publicly writable S3 Bucket
-        
-        Arguments:
-            sh {SecurityHubRules} -- Instance of class SecurityHubRules
-        """
-        sh.client_s3.create_bucket(ACL="public-read-write", Bucket="test")
-        yield "test"
-
-    def test_s3_bucket_public_write_disabled_check(
-        self, s3_test_bucket_public_write, sh
-    ):
+    def test_s3_bucket_public_write_disabled(self, sh):
         """Tests if S3 Bucket public write has been turned off
         
         Arguments:
             s3_test_bucket_public_write {string} -- S3 bucket name
             sh {SecurityHubRules} -- Instance of class SecurityHubRules
         """
-        sh.s3_bucket_public_write_prohibited(s3_test_bucket_public_write)
-        response = sh.client_s3.get_bucket_acl(Bucket=s3_test_bucket_public_write)
+
+        # create bucket
+        sh.client_s3.create_bucket(ACL="public-read", Bucket="test")
+
+        # test s3_bucket_public_read_prohibited function
+        sh.s3_bucket_public_write_prohibited("test")
+
+        # validate test
+        response = sh.client_s3.get_bucket_acl(Bucket="test")
         assert response["Grants"][0]["Permission"] == "FULL_CONTROL"
+
+    def test_invalid_bucket(self, sh):
+        # create bucket
+        sh.client_s3.create_bucket(ACL="public-read", Bucket="test")
+
+        # validate test
+        assert not sh.s3_bucket_public_write_prohibited("test123")
 
 
 class TestSecurityHubStatic:
