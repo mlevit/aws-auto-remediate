@@ -62,6 +62,7 @@ functions:
           - iam:DeleteRole
           - iam:DeleteRolePolicy
           - iam:DetachUserPolicy
+          - iam:GetAccessKeyLastUsed
           - iam:GetLoginProfile
           - iam:GetPolicy
           - iam:GetPolicyVersion
