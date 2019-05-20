@@ -12,5 +12,5 @@ before_script:
   - export BOTO_CONFIG=/dev/null
 script:
   - pytest --disable-warnings
-  - serverless deploy --stage ci --region ap-southeast-2
-  - serverless remove --stage ci --region ap-southeast-2
+  - serverless deploy --stage $TRAVIS_BUILD_NUMBER --region ap-southeast-2
+  - serverless remove --stage $TRAVIS_BUILD_NUMBER --region ap-southeast-2
