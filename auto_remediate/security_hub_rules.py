@@ -32,7 +32,7 @@ class SecurityHubRules:
     @property
     def client_ec2(self):
         if not self._client_ec2:
-            self._client_ec2 = boto3.client("ec2")
+            self._client_ec2 = boto3.client("ec2", self.region)
         return self._client_ec2
 
     @client_ec2.setter
@@ -62,7 +62,7 @@ class SecurityHubRules:
     @property
     def client_kms(self):
         if not self._client_kms:
-            self._client_kms = boto3.client("kms")
+            self._client_kms = boto3.client("kms", self.region)
         return self._client_kms
 
     @client_kms.setter
@@ -99,7 +99,10 @@ class SecurityHubRules:
 
     @property
     def region(self):
-        return self.client_sts.meta.region_name
+        if self.client_sts.meta.region_name != "aws-global":
+            return self.client_sts.meta.region_name
+        else:
+            return "us-east-1"
 
     def access_keys_rotated(self, resource_id):
         """Deletes IAM User's Access Keys over 90 days old.
@@ -111,12 +114,30 @@ class SecurityHubRules:
             boolean -- True if remediation is successful
         """
         try:
-            self.client_iam.delete_access_key(AccessKeyId=resource_id)
-            self.logging.info(f"Deleted unrotated IAM Access Key '{resource_id}'.")
+            response = self.client_iam.get_access_key_last_used(AccessKeyId=resource_id)
+        except:
+            self.logging.error(
+                f"Could not retrieve IAM User Name for IAM Access Key '{resource_id}'."
+            )
+            self.logging.error(sys.exc_info()[1])
+            return False
+        else:
+            user_name = response.get("UserName")
+            self.logging.info(
+                f"Retrieved IAM User Name '{user_name}' for IAM Access Key '{resource_id}'."
+            )
+
+        try:
+            self.client_iam.delete_access_key(
+                UserName=user_name, AccessKeyId=resource_id
+            )
+            self.logging.info(
+                f"Deleted unrotated IAM Access Key '{resource_id}' for IAM User Name '{user_name}'."
+            )
             return True
         except:
             self.logging.error(
-                f"Could not delete unrotated IAM Access Key '{resource_id}'."
+                f"Could not delete unrotated IAM Access Key '{resource_id}' for IAM User Name '{user_name}'."
             )
             self.logging.error(sys.exc_info()[1])
             return False
@@ -735,48 +756,6 @@ class SecurityHubRules:
             self.logging.error(sys.exc_info()[1])
             return False
 
-    def s3_bucket_public_read_prohibited(self, resource_id):
-        """Sets the S3 Bucket ACL to "private" to prevent the Bucket from being publicly read.
-        
-        Arguments:
-            resource_id {string} -- S3 Bucket Name
-        
-        Returns:
-            boolean -- True if remediation was successful
-        """
-        try:
-            self.client_s3.put_bucket_acl(ACL="private", Bucket=resource_id)
-
-            self.logging.info(f"ACL set to 'private' for S3 Bucket '{resource_id}'.")
-            return True
-        except:
-            self.logging.error(
-                f"Could not set ACL set to 'private' for S3 Bucket '{resource_id}'."
-            )
-            self.logging.error(sys.exc_info()[1])
-            return False
-
-    def s3_bucket_public_write_prohibited(self, resource_id):
-        """Sets the S3 Bucket ACL to "private" to prevent the Bucket from being publicly written to.
-        
-        Arguments:
-            resource_id {string} -- S3 Bucket Name
-        
-        Returns:
-            boolean -- True if remediation was successful
-        """
-        try:
-            self.client_s3.put_bucket_acl(ACL="private", Bucket=resource_id)
-
-            self.logging.info(f"ACL set to 'private' for S3 Bucket '{resource_id}'.")
-            return True
-        except:
-            self.logging.error(
-                f"Could not set ACL set to 'private' for S3 Bucket '{resource_id}'."
-            )
-            self.logging.error(sys.exc_info()[1])
-            return False
-
     def s3_bucket_logging_enabled(self, resource_id):
         """Enables server access logging for an S3 Bucket by creating a new S3 Bucket
         with the name "<resource_id>-access-logs".
@@ -834,6 +813,48 @@ class SecurityHubRules:
             self.logging.error(
                 f"Could not enable server access logging enabled for "
                 f"S3 Bucket '{resource_id}' to S3 Bucket '{log_bucket}/{resource_id}'."
+            )
+            self.logging.error(sys.exc_info()[1])
+            return False
+
+    def s3_bucket_public_read_prohibited(self, resource_id):
+        """Sets the S3 Bucket ACL to "private" to prevent the Bucket from being publicly read.
+        
+        Arguments:
+            resource_id {string} -- S3 Bucket Name
+        
+        Returns:
+            boolean -- True if remediation was successful
+        """
+        try:
+            self.client_s3.put_bucket_acl(ACL="private", Bucket=resource_id)
+
+            self.logging.info(f"ACL set to 'private' for S3 Bucket '{resource_id}'.")
+            return True
+        except:
+            self.logging.error(
+                f"Could not set ACL set to 'private' for S3 Bucket '{resource_id}'."
+            )
+            self.logging.error(sys.exc_info()[1])
+            return False
+
+    def s3_bucket_public_write_prohibited(self, resource_id):
+        """Sets the S3 Bucket ACL to "private" to prevent the Bucket from being publicly written to.
+        
+        Arguments:
+            resource_id {string} -- S3 Bucket Name
+        
+        Returns:
+            boolean -- True if remediation was successful
+        """
+        try:
+            self.client_s3.put_bucket_acl(ACL="private", Bucket=resource_id)
+
+            self.logging.info(f"ACL set to 'private' for S3 Bucket '{resource_id}'.")
+            return True
+        except:
+            self.logging.error(
+                f"Could not set ACL set to 'private' for S3 Bucket '{resource_id}'."
             )
             self.logging.error(sys.exc_info()[1])
             return False

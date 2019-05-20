@@ -1,0 +1,16 @@
+dist: xenial
+language: python
+python:
+  - "3.7"
+install:
+  - pip install awscli --upgrade
+  - pip install moto
+  - npm install serverless --global
+  - npm install serverless-iam-roles-per-function
+  - serverless plugin install --name serverless-python-requirements
+before_script:
+  - export BOTO_CONFIG=/dev/null
+script:
+  - pytest --disable-warnings
+  - serverless deploy --stage ci --region ap-southeast-2
+  - serverless remove --stage ci --region ap-southeast-2
