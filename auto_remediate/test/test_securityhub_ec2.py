@@ -267,14 +267,3 @@ class TestSecurityHubVPCDefaultSecurityGroupClosedCheck:
 
     def test_invalid_security_group_id(self, sh):
         assert not sh.vpc_default_security_group_closed("test")
-
-
-class TestSecurityHubStatic:
-    @pytest.fixture
-    def sh(self):
-        yield security_hub_rules.SecurityHubRules(logging)
-
-    def test_convert_to_datetime(self, sh):
-        assert sh.convert_to_datetime(datetime.date(1999, 12, 31)) == datetime.datetime(
-            1999, 12, 31, 0, 0, 0
-        )

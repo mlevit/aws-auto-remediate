@@ -43,14 +43,3 @@ class TestSecurityHubCmkBackingKeyRotationEnabled:
             "e85f5843-1111-4bcb-b711-7e17fa181804"
         )
         assert not response
-
-
-class TestSecurityHubStatic:
-    @pytest.fixture
-    def sh(self):
-        yield security_hub_rules.SecurityHubRules(logging)
-
-    def test_convert_to_datetime(self, sh):
-        assert sh.convert_to_datetime(datetime.date(1999, 12, 31)) == datetime.datetime(
-            1999, 12, 31, 0, 0, 0
-        )
