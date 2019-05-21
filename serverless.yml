@@ -147,7 +147,9 @@ functions:
       - Effect: Allow
         Action:
           - cloudformation:CreateStack
+          - cloudformation:DeleteStack
           - cloudformation:ListStacks
+          - cloudformation:UpdateTerminationProtection
           - config:PutConfigRule
           - dynamodb:BatchWriteItem
           - dynamodb:DeleteTable

@@ -15,14 +15,12 @@ class Setup:
         # variables
         self.client = boto3.client("cloudformation")
 
-    def create_stacks(self, stack_sub_dir):
+    def create_stacks(self, stack_sub_dir, settings):
         """
         Parse a directory and create the CloudFormation Stacks it contains.
         """
         existing_stacks = self.get_current_stacks()
         path = f"auto_remediate_setup/data/{stack_sub_dir}"
-
-        print(existing_stacks)
 
         for file in os.listdir(path):
             if fnmatch.fnmatch(file, "*.json"):
@@ -33,29 +31,41 @@ class Setup:
                     template_body = str(stack.read())
 
                 if stack_name not in existing_stacks:
-                    # TODO Check if Stack deployment has been set to False
-                    try:
-                        self.client.create_stack(
-                            StackName=stack_name,
-                            TemplateBody=template_body,
-                            OnFailure="DELETE",
-                            EnableTerminationProtection=True,
-                        )
+                    if settings.get("rules").get(stack_name).get("deploy"):
+                        try:
+                            self.client.create_stack(
+                                StackName=stack_name,
+                                TemplateBody=template_body,
+                                OnFailure="DELETE",
+                                EnableTerminationProtection=True,
+                            )
 
+                            self.logging.info(
+                                f"Creating AWS Config Rule '{stack_name}'."
+                            )
+                        except:
+                            self.logging.error(
+                                f"Could not create AWS Config Rule '{stack_name}'."
+                            )
+                            self.logging.error(sys.exc_info()[1])
+                            continue
+                    else:
                         self.logging.info(
-                            f"Creating CloudFormation Stack '{stack_name}'."
+                            f"AWS Config Rule '{stack_name}' deployement was skipped due to user preferences."
                         )
-                    except:
-                        self.logging.error(
-                            f"Could not create CloudFormation Stack '{stack_name}'."
-                        )
-                        self.logging.error(sys.exc_info()[1])
-                        continue
                 else:
-                    # TODO If Stack deployment has been set to False, delete stack
-                    self.logging.debug(
-                        f"Cloud Formation Stack '{stack_name}' already exists."
-                    )
+                    if not settings.get("rules").get(stack_name).get("deploy"):
+                        client.update_termination_protection(
+                            EnableTerminationProtection=False, StackName=stack_name
+                        )
+                        client.delete_stack(StackName=stack_name)
+                        self.logging.info(
+                            f"AWS Config Rule '{stack_name}' was deleted."
+                        )
+                    else:
+                        self.logging.debug(
+                            f"AWS Config Rule '{stack_name}' already exists."
+                        )
 
     def get_current_stacks(self):
         """
@@ -132,6 +142,7 @@ class Setup:
                         continue
 
             settings_data.close()
+            return settings_json
         except:
             self.logging.error(sys.exc_info()[1])
 
@@ -158,6 +169,6 @@ def lambda_handler(event, context):
     setup = Setup(logging)
 
     # run functions
-    setup.setup_dynamodb()
-    setup.create_stacks("config_rules")
-    setup.create_stacks("custom_rules")
+    settings = setup.setup_dynamodb()
+    setup.create_stacks("config_rules", settings)
+    setup.create_stacks("custom_rules", settings)
