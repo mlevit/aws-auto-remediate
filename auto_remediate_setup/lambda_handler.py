@@ -91,6 +91,27 @@ class Setup:
 
         return existing_stacks
 
+    def get_settings(self):
+        """Return the DynamoDB aws-auto-remediate-settings table in a Python dict format
+        
+        Returns:
+            dict -- aws-auto-remediate-settings table
+        """
+        settings = {}
+        try:
+            for record in self.client_dynamodb.scan(
+                TableName=os.environ["SETTINGSTABLE"]
+            )["Items"]:
+                record_json = dynamodb_json.loads(record, True)
+                settings[record_json.get("key")] = record_json.get("value")
+        except:
+            self.logging.error(
+                f"Could not read DynamoDB table '{os.environ['SETTINGSTABLE']}'."
+            )
+            self.logging.error(sys.exc_info()[1])
+
+        return settings
+
     def setup_dynamodb(self):
         """Inserts all the default settings into a DynamoDB table.
         """
@@ -148,27 +169,6 @@ class Setup:
             settings_data.close()
         except:
             self.logging.error(sys.exc_info()[1])
-
-    def get_settings(self):
-        """Return the DynamoDB aws-auto-remediate-settings table in a Python dict format
-        
-        Returns:
-            dict -- aws-auto-remediate-settings table
-        """
-        settings = {}
-        try:
-            for record in self.client_dynamodb.scan(
-                TableName=os.environ["SETTINGSTABLE"]
-            )["Items"]:
-                record_json = dynamodb_json.loads(record, True)
-                settings[record_json.get("key")] = record_json.get("value")
-        except:
-            self.logging.error(
-                f"Could not read DynamoDB table '{os.environ['SETTINGSTABLE']}'."
-            )
-            self.logging.error(sys.exc_info()[1])
-
-        return settings
 
 
 def lambda_handler(event, context):
