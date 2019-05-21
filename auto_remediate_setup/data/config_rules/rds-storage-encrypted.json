@@ -1,0 +1,78 @@
+{
+  "Resources": {
+    "AWSConfigRule": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "ConfigRuleName": {
+          "Ref": "ConfigRuleName"
+        },
+        "Description": "Checks whether storage encryption is enabled for your RDS DB instances.",
+        "InputParameters": {
+          "kmsKeyId": {
+            "Fn::If": [
+              "kmsKeyId",
+              {
+                "Ref": "kmsKeyId"
+              },
+              {
+                "Ref": "AWS::NoValue"
+              }
+            ]
+          }
+        },
+        "Scope": {
+          "ComplianceResourceTypes": ["AWS::RDS::DBInstance"]
+        },
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "RDS_STORAGE_ENCRYPTED"
+        }
+      }
+    }
+  },
+  "Parameters": {
+    "ConfigRuleName": {
+      "Type": "String",
+      "Default": "rds-storage-encrypted",
+      "Description": "The name that you assign to the AWS Config rule.",
+      "MinLength": "1",
+      "ConstraintDescription": "This parameter is required."
+    },
+    "kmsKeyId": {
+      "Type": "String",
+      "Default": ""
+    }
+  },
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": {
+            "default": "Required"
+          },
+          "Parameters": []
+        },
+        {
+          "Label": {
+            "default": "Optional"
+          },
+          "Parameters": ["kmsKeyId"]
+        }
+      ]
+    }
+  },
+  "Conditions": {
+    "kmsKeyId": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            "",
+            {
+              "Ref": "kmsKeyId"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

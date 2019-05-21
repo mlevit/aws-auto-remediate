@@ -1,0 +1,139 @@
+{
+  "Resources": {
+    "AWSConfigRule": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "ConfigRuleName": {
+          "Ref": "ConfigRuleName"
+        },
+        "Description": "Checks whether RDS DB instances have backups enabled.",
+        "InputParameters": {
+          "backupRetentionPeriod": {
+            "Fn::If": [
+              "backupRetentionPeriod",
+              {
+                "Ref": "backupRetentionPeriod"
+              },
+              {
+                "Ref": "AWS::NoValue"
+              }
+            ]
+          },
+          "preferredBackupWindow": {
+            "Fn::If": [
+              "preferredBackupWindow",
+              {
+                "Ref": "preferredBackupWindow"
+              },
+              {
+                "Ref": "AWS::NoValue"
+              }
+            ]
+          },
+          "checkReadReplicas": {
+            "Fn::If": [
+              "checkReadReplicas",
+              {
+                "Ref": "checkReadReplicas"
+              },
+              {
+                "Ref": "AWS::NoValue"
+              }
+            ]
+          }
+        },
+        "Scope": {
+          "ComplianceResourceTypes": ["AWS::RDS::DBInstance"]
+        },
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "DB_INSTANCE_BACKUP_ENABLED"
+        }
+      }
+    }
+  },
+  "Parameters": {
+    "ConfigRuleName": {
+      "Type": "String",
+      "Default": "db-instance-backup-enabled",
+      "Description": "The name that you assign to the AWS Config rule.",
+      "MinLength": "1",
+      "ConstraintDescription": "This parameter is required."
+    },
+    "backupRetentionPeriod": {
+      "Type": "String",
+      "Default": "",
+      "Description": "Retention period for backups."
+    },
+    "preferredBackupWindow": {
+      "Type": "String",
+      "Default": "",
+      "Description": "Time range in which backups are created."
+    },
+    "checkReadReplicas": {
+      "Type": "String",
+      "Default": "",
+      "Description": "Checks whether RDS DB instances have backups enabled for read replicas."
+    }
+  },
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": {
+            "default": "Required"
+          },
+          "Parameters": []
+        },
+        {
+          "Label": {
+            "default": "Optional"
+          },
+          "Parameters": [
+            "backupRetentionPeriod",
+            "preferredBackupWindow",
+            "checkReadReplicas"
+          ]
+        }
+      ]
+    }
+  },
+  "Conditions": {
+    "backupRetentionPeriod": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            "",
+            {
+              "Ref": "backupRetentionPeriod"
+            }
+          ]
+        }
+      ]
+    },
+    "preferredBackupWindow": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            "",
+            {
+              "Ref": "preferredBackupWindow"
+            }
+          ]
+        }
+      ]
+    },
+    "checkReadReplicas": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            "",
+            {
+              "Ref": "checkReadReplicas"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

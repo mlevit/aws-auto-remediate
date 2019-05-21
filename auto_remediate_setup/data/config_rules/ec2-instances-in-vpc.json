@@ -1,0 +1,79 @@
+{
+  "Resources": {
+    "AWSConfigRule": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "ConfigRuleName": {
+          "Ref": "ConfigRuleName"
+        },
+        "Description": "Checks whether your EC2 instances belong to a virtual private cloud (VPC).",
+        "InputParameters": {
+          "vpcId": {
+            "Fn::If": [
+              "vpcId",
+              {
+                "Ref": "vpcId"
+              },
+              {
+                "Ref": "AWS::NoValue"
+              }
+            ]
+          }
+        },
+        "Scope": {
+          "ComplianceResourceTypes": ["AWS::EC2::Instance"]
+        },
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "INSTANCES_IN_VPC"
+        }
+      }
+    }
+  },
+  "Parameters": {
+    "ConfigRuleName": {
+      "Type": "String",
+      "Default": "ec2-instances-in-vpc",
+      "Description": "The name that you assign to the AWS Config rule.",
+      "MinLength": "1",
+      "ConstraintDescription": "This parameter is required."
+    },
+    "vpcId": {
+      "Type": "String",
+      "Default": "",
+      "Description": "VPC ID that contains these EC2 instances."
+    }
+  },
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": {
+            "default": "Required"
+          },
+          "Parameters": []
+        },
+        {
+          "Label": {
+            "default": "Optional"
+          },
+          "Parameters": ["vpcId"]
+        }
+      ]
+    }
+  },
+  "Conditions": {
+    "vpcId": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            "",
+            {
+              "Ref": "vpcId"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

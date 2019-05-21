@@ -25,7 +25,127 @@
     },
     "value": {
       "M": {
+        "cloudtrail-enabled": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            },
+            "deploy": {
+              "BOOL": true
+            }
+          }
+        },
+        "db-instance-backup-enabled": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            },
+            "deploy": {
+              "BOOL": true
+            }
+          }
+        },
+        "dynamodb-table-encryption-enabled": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            },
+            "deploy": {
+              "BOOL": true
+            }
+          }
+        },
+        "ec2-instances-in-vpc": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            },
+            "deploy": {
+              "BOOL": true
+            }
+          }
+        },
+        "encrypted-volumes": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            },
+            "deploy": {
+              "BOOL": true
+            }
+          }
+        },
+        "guardduty-enabled-centralized": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            },
+            "deploy": {
+              "BOOL": true
+            }
+          }
+        },
+        "lambda-function-public-access-prohibited": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            },
+            "deploy": {
+              "BOOL": true
+            }
+          }
+        },
         "rds-instance-public-access-check": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            },
+            "deploy": {
+              "BOOL": true
+            }
+          }
+        },
+        "rds-multi-az-support": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            },
+            "deploy": {
+              "BOOL": true
+            }
+          }
+        },
+        "rds-snapshots-public-prohibited": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            },
+            "deploy": {
+              "BOOL": true
+            }
+          }
+        },
+        "rds-storage-encrypted": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            },
+            "deploy": {
+              "BOOL": true
+            }
+          }
+        },
+        "s3-bucket-server-side-encryption-enabled": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            },
+            "deploy": {
+              "BOOL": true
+            }
+          }
+        },
+        "s3-bucket-ssl-requests-only": {
           "M": {
             "remediate": {
               "BOOL": true
