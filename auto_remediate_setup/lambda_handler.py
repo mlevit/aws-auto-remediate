@@ -5,6 +5,7 @@ import os
 import sys
 
 import boto3
+from dynamodb_json import json_util as dynamodb_json
 
 
 class Setup:
@@ -13,7 +14,8 @@ class Setup:
         self.logging = logging
 
         # variables
-        self.client = boto3.client("cloudformation")
+        self.client_cloudformation = boto3.client("cloudformation")
+        self.client_dynamodb = boto3.client("dynamodb")
 
     def create_stacks(self, stack_sub_dir, settings):
         """
@@ -33,7 +35,7 @@ class Setup:
                 if stack_name not in existing_stacks:
                     if settings.get("rules").get(stack_name).get("deploy"):
                         try:
-                            self.client.create_stack(
+                            self.client_cloudformation.create_stack(
                                 StackName=stack_name,
                                 TemplateBody=template_body,
                                 OnFailure="DELETE",
@@ -55,10 +57,10 @@ class Setup:
                         )
                 else:
                     if not settings.get("rules").get(stack_name).get("deploy"):
-                        client.update_termination_protection(
+                        self.client_cloudformation.update_termination_protection(
                             EnableTerminationProtection=False, StackName=stack_name
                         )
-                        client.delete_stack(StackName=stack_name)
+                        self.client_cloudformation.delete_stack(StackName=stack_name)
                         self.logging.info(
                             f"AWS Config Rule '{stack_name}' was deleted."
                         )
@@ -73,7 +75,7 @@ class Setup:
         currently deployed your AWS accont and region.
         """
         try:
-            resources = self.client.list_stacks().get("StackSummaries")
+            resources = self.client_cloudformation.list_stacks().get("StackSummaries")
         except:
             self.logging.error(sys.exc_info()[1])
             return None
@@ -90,7 +92,6 @@ class Setup:
         Inserts all the default settings into a DynamoDB table.
         """
         try:
-            client = boto3.client("dynamodb")
             settings_data = open(
                 "auto_remediate_setup/data/auto-remediate-settings.json"
             )
@@ -99,7 +100,7 @@ class Setup:
             update_settings = False
 
             # get current settings version
-            current_version = client.get_item(
+            current_version = self.client_dynamodb.get_item(
                 TableName=os.environ["SETTINGSTABLE"],
                 Key={"key": {"S": "version"}},
                 ConsistentRead=True,
@@ -134,7 +135,7 @@ class Setup:
             if update_settings:
                 for setting in settings_json:
                     try:
-                        client.put_item(
+                        self.client_dynamodb.put_item(
                             TableName=os.environ["SETTINGSTABLE"], Item=setting
                         )
                     except:
@@ -145,6 +146,27 @@ class Setup:
             return settings_json
         except:
             self.logging.error(sys.exc_info()[1])
+
+    def get_settings(self):
+        """Return the DynamoDB aws-auto-remediate-settings table in a Python dict format
+        
+        Returns:
+            dict -- aws-auto-remediate-settings table
+        """
+        settings = {}
+        try:
+            for record in self.client_dynamodb.scan(
+                TableName=os.environ["SETTINGSTABLE"]
+            )["Items"]:
+                record_json = dynamodb_json.loads(record, True)
+                settings[record_json.get("key")] = record_json.get("value")
+        except:
+            self.logging.error(
+                f"Could not read DynamoDB table '{os.environ['SETTINGSTABLE']}'."
+            )
+            self.logging.error(sys.exc_info()[1])
+
+        return settings
 
 
 def lambda_handler(event, context):
@@ -169,6 +191,9 @@ def lambda_handler(event, context):
     setup = Setup(logging)
 
     # run functions
-    settings = setup.setup_dynamodb()
+    setup.setup_dynamodb()
+
+    settings = setup.get_settings()
+
     setup.create_stacks("config_rules", settings)
     setup.create_stacks("custom_rules", settings)

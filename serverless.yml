@@ -146,6 +146,8 @@ functions:
     iamRoleStatements:
       - Effect: Allow
         Action:
+          - dynamodb:GetItem
+          - dynamodb:Scan
           - cloudformation:CreateStack
           - cloudformation:DeleteStack
           - cloudformation:ListStacks
