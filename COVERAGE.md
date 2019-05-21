@@ -11,7 +11,7 @@ Test coverage: **10 of 24**
 | Rule                                                   | Development Status | Testing Status  |
 | ------------------------------------------------------ | ------------------ | --------------- |
 | securityhub-access-keys-rotated                        | Done               | Done            |
-| securityhub-cloud-trail-cloud-watch-logs-enabled       | Done ​              | No Moto support |
+| securityhub-cloud-trail-cloud-watch-logs-enabled       | Done ​             | No Moto support |
 | securityhub-cloud-trail-encryption-enabled             | Done               | No Moto support |
 | securityhub-cloud-trail-log-file-validation            | Done               | No Moto support |
 | securityhub-cmk-backing-key-rotation-enabled           | Done               | Done            |
@@ -44,88 +44,88 @@ Development coverage: **1 of 40**
 
 Test coverage: **0 of 40**
 
-| Rule                                                    | Development Status | Testing Status |
-| ------------------------------------------------------- | ------------------ | -------------- |
-| access-keys-rotated                                     | Security Hub       |                |
-| cloudtrail-enabled                                      |                    |                |
-| db-instance-backup-enabled                              |                    |                |
-| dynamodb-table-encryption-enabled                       |                    |                |
-| ec2-instances-in-vpc                                    |                    |                |
-| cloud-trail-cloud-watch-logs-enabled                    | Security Hub       |                |
-| cloud-trail-encryption-enabled                          | Security Hub       |                |
-| cloud-trail-log-file-validation-enabled                 |                    |                |
-| encrypted-volumes                                       |                    |                |
-| guardduty-enabled-centralized                           |                    |                |
-| lambda-function-public-access-prohibited                |                    |                |
-| rds-multi-az-support                                    |                    |                |
-| rds-snapshots-public-prohibited                         |                    |                |
-| rds-storage-encrypted                                   |                    |                |
-| cmk-backing-key-rotation-enabled                        | Security Hub       |                |
-| s3-bucket-server-side-encryption-enabled                |                    |                |
-| s3-bucket-ssl-requests-only                             |                    |                |
-| dynamodb-autoscaling-enabled                            |                    |                |
-| ec2-instance-detailed-monitoring-enabled                |                    |                |
-| ec2-volume-inuse-check                                  |                    |                |
-| eip-attached                                            |                    |                |
-| elb-logging-enabled                                     |                    |                |
-| acm-certificate-expiration-check                        |                    |                |
-| approved-amis-by-id                                     |                    |                |
-| approved-amis-by-tag                                    |                    |                |
-| autoscaling-group-elb-healthcheck-required              |                    |                |
-| cloudformation-stack-drift-detection-check              |                    |                |
-| cloudformation-stack-notification-check                 |                    |                |
-| cloudwatch-alarm-action-check                           |                    |                |
-| cloudwatch-alarm-resource-check                         |                    |                |
-| rds-instance-public-access-check                        | Done               |                |
-| cloudwatch-alarm-settings-check                         |                    |                |
-| codebuild-project-envvar-awscred-check                  |                    |                |
-| codebuild-project-source-repo-url-check                 |                    |                |
-| codepipeline-deployment-count-check                     |                    |                |
-| codepipeline-region-fanout-check                        |                    |                |
-| desired-instance-tenancy                                |                    |                |
-| desired-instance-type                                   |                    |                |
-| dynamodb-throughput-limit-check                         |                    |                |
-| ebs-optimized-instance                                  |                    |                |
-| ec2-instance-managed-by-systems-manager                 |                    |                |
-| ec2-managedinstance-applications-blacklisted            |                    |                |
-| ec2-managedinstance-applications-required               |                    |                |
-| ec2-managedinstance-association-compliance-status-check |                    |                |
-| ec2-managedinstance-inventory-blacklisted               |                    |                |
-| ec2-managedinstance-patch-compliance-status-check       |                    |                |
-| ec2-managedinstance-platform-check                      |                    |                |
-| elb-acm-certificate-required                            |                    |                |
-| iam-password-policy                                     | Security Hub       |                |
-| elb-custom-security-policy-ssl-check                    |                    |                |
-| iam-policy-no-statements-with-admin-access              | Security Hub       |                |
-| elb-predefined-security-policy-ssl-check                |                    |                |
-| iam-root-access-key-check                               | Security Hub       |                |
-| fms-shield-resource-policy-check                        |                    |                |
-| iam-user-mfa-enabled                                    | Security Hub       |                |
-| iam-user-no-policies-check                              | Security Hub       |                |
-| iam-user-unused-credentials-check                       | Security Hub       |                |
-| fms-webacl-resource-policy-check                        |                    |                |
-| fms-webacl-rulegroup-association-check                  |                    |                |
-| mfa-enabled-for-iam-console-access                      | Security Hub       |                |
-| multi-region-cloud-trail-enabled                        | Security Hub       |                |
-| iam-group-has-users-check                               |                    |                |
-| iam-policy-blacklisted-check                            |                    |                |
-| iam-role-managed-policy-check                           |                    |                |
-| iam-user-group-membership-check                         |                    |                |
-| lambda-function-settings-check                          |                    |                |
-| redshift-cluster-configuration-check                    |                    |                |
-| redshift-cluster-maintenancesettings-check              |                    |                |
-| restricted-ssh                                          | Security Hub       |                |
-| root-account-hardware-mfa-enabled                       | Security Hub       |                |
-| root-account-mfa-enabled                                | Security Hub       |                |
-| required-tags                                           |                    |                |
-| s3-bucket-logging-enabled                               | Security Hub       |                |
-| restricted-common-ports                                 |                    |                |
-| s3-blacklisted-actions-prohibited                       |                    |                |
-| s3-bucket-public-read-prohibited                        | Security Hub       |                |
-| s3-bucket-public-write-prohibited                       | Security Hub       |                |
-| s3-bucket-policy-grantee-check                          |                    |                |
-| s3-bucket-policy-not-more-permissive                    |                    |                |
-| s3-bucket-replication-enabled                           |                    |                |
-| s3-bucket-versioning-enabled                            |                    |                |
-| vpc-default-security-group-closed                       | Security Hub       |                |
-| vpc-flow-logs-enabled                                   | Security Hub       |                |
+| Rule                                                                                                                                                                             | Priority | Development Status | Testing Status |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------ | -------------- |
+| [access-keys-rotated](https://docs.aws.amazon.com/config/latest/developerguide/access-keys-rotated.html)                                                                         |          | Security Hub       |                |
+| [acm-certificate-expiration-check](https://docs.aws.amazon.com/config/latest/developerguide/acm-certificate-expiration-check.html)                                               |          | No payload         |                |
+| [approved-amis-by-id](https://docs.aws.amazon.com/config/latest/developerguide/approved-amis-by-id.html)                                                                         |          | No payload         |                |
+| [approved-amis-by-tag](https://docs.aws.amazon.com/config/latest/developerguide/approved-amis-by-tag.html)                                                                       |          | No payload         |                |
+| [autoscaling-group-elb-healthcheck-required](https://docs.aws.amazon.com/config/latest/developerguide/autoscaling-group-elb-healthcheck-required.html)                           |          | No payload         |                |
+| [cloud-trail-cloud-watch-logs-enabled](https://docs.aws.amazon.com/config/latest/developerguide/cloud-trail-cloud-watch-logs-enabled.html)                                       |          | Security Hub       |                |
+| [cloud-trail-encryption-enabled](https://docs.aws.amazon.com/config/latest/developerguide/cloud-trail-encryption-enabled.html)                                                   |          | Security Hub       |                |
+| [cloud-trail-log-file-validation-enabled](https://docs.aws.amazon.com/config/latest/developerguide/cloud-trail-log-file-validation-enabled.html)                                 |          | No payload         |                |
+| [cloudformation-stack-drift-detection-check](https://docs.aws.amazon.com/config/latest/developerguide/cloudformation-stack-drift-detection-check.html)                           |          | No payload         |                |
+| [cloudformation-stack-notification-check](https://docs.aws.amazon.com/config/latest/developerguide/cloudformation-stack-notification-check.html)                                 |          | No payload         |                |
+| [cloudtrail-enabled](https://docs.aws.amazon.com/config/latest/developerguide/cloudtrail-enabled.html)                                                                           | 1        | No payload         |                |
+| [cloudwatch-alarm-action-check](https://docs.aws.amazon.com/config/latest/developerguide/cloudwatch-alarm-action-check.html)                                                     |          | No payload         |                |
+| [cloudwatch-alarm-resource-check](https://docs.aws.amazon.com/config/latest/developerguide/cloudwatch-alarm-resource-check.html)                                                 |          | No payload         |                |
+| [cloudwatch-alarm-settings-check](https://docs.aws.amazon.com/config/latest/developerguide/cloudwatch-alarm-settings-check.html)                                                 |          | No payload         |                |
+| [cmk-backing-key-rotation-enabled](https://docs.aws.amazon.com/config/latest/developerguide/cmk-backing-key-rotation-enabled.html)                                               |          | Security Hub       |                |
+| [codebuild-project-envvar-awscred-check](https://docs.aws.amazon.com/config/latest/developerguide/codebuild-project-envvar-awscred-check.html)                                   |          | No payload         |                |
+| [codebuild-project-source-repo-url-check](https://docs.aws.amazon.com/config/latest/developerguide/codebuild-project-source-repo-url-check.html)                                 |          | No payload         |                |
+| [codepipeline-deployment-count-check](https://docs.aws.amazon.com/config/latest/developerguide/codepipeline-deployment-count-check.html)                                         |          | No payload         |                |
+| [codepipeline-region-fanout-check](https://docs.aws.amazon.com/config/latest/developerguide/codepipeline-region-fanout-check.html)                                               |          | No payload         |                |
+| [db-instance-backup-enabled](https://docs.aws.amazon.com/config/latest/developerguide/db-instance-backup-enabled.html)                                                           | 1        | No payload         |                |
+| [desired-instance-tenancy](https://docs.aws.amazon.com/config/latest/developerguide/desired-instance-tenancy.html)                                                               |          | No payload         |                |
+| [desired-instance-type](https://docs.aws.amazon.com/config/latest/developerguide/desired-instance-type.html)                                                                     |          | No payload         |                |
+| [dynamodb-autoscaling-enabled](https://docs.aws.amazon.com/config/latest/developerguide/dynamodb-autoscaling-enabled.html)                                                       | 2        | No payload         |                |
+| [dynamodb-table-encryption-enabled](https://docs.aws.amazon.com/config/latest/developerguide/dynamodb-table-encryption-enabled.html)                                             | 1        | No payload         |                |
+| [dynamodb-throughput-limit-check](https://docs.aws.amazon.com/config/latest/developerguide/dynamodb-throughput-limit-check.html)                                                 |          | No payload         |                |
+| [ebs-optimized-instance](https://docs.aws.amazon.com/config/latest/developerguide/ebs-optimized-instance.html)                                                                   |          | No payload         |                |
+| [ec2-instance-detailed-monitoring-enabled](https://docs.aws.amazon.com/config/latest/developerguide/ec2-instance-detailed-monitoring-enabled.html)                               | 2        | No payload         |                |
+| [ec2-instance-managed-by-systems-manager](https://docs.aws.amazon.com/config/latest/developerguide/ec2-instance-managed-by-systems-manager.html)                                 |          | No payload         |                |
+| [ec2-instances-in-vpc](https://docs.aws.amazon.com/config/latest/developerguide/ec2-instances-in-vpc.html)                                                                       | 1        | No payload         |                |
+| [ec2-managedinstance-applications-blacklisted](https://docs.aws.amazon.com/config/latest/developerguide/ec2-managedinstance-applications-blacklisted.html)                       |          | No payload         |                |
+| [ec2-managedinstance-applications-required](https://docs.aws.amazon.com/config/latest/developerguide/ec2-managedinstance-applications-required.html)                             |          | No payload         |                |
+| [ec2-managedinstance-association-compliance-status-check](https://docs.aws.amazon.com/config/latest/developerguide/ec2-managedinstance-association-compliance-status-check.html) |          | No payload         |                |
+| [ec2-managedinstance-inventory-blacklisted](https://docs.aws.amazon.com/config/latest/developerguide/ec2-managedinstance-inventory-blacklisted.html)                             |          | No payload         |                |
+| [ec2-managedinstance-patch-compliance-status-check](https://docs.aws.amazon.com/config/latest/developerguide/ec2-managedinstance-patch-compliance-status-check.html)             |          | No payload         |                |
+| [ec2-managedinstance-platform-check](https://docs.aws.amazon.com/config/latest/developerguide/ec2-managedinstance-platform-check.html)                                           |          | No payload         |                |
+| [ec2-volume-inuse-check](https://docs.aws.amazon.com/config/latest/developerguide/ec2-volume-inuse-check.html)                                                                   | 2        | No payload         |                |
+| [eip-attached](https://docs.aws.amazon.com/config/latest/developerguide/eip-attached.html)                                                                                       | 2        | No payload         |                |
+| [elb-acm-certificate-required](https://docs.aws.amazon.com/config/latest/developerguide/elb-acm-certificate-required.html)                                                       |          | No payload         |                |
+| [elb-custom-security-policy-ssl-check](https://docs.aws.amazon.com/config/latest/developerguide/elb-custom-security-policy-ssl-check.html)                                       |          | No payload         |                |
+| [elb-logging-enabled](https://docs.aws.amazon.com/config/latest/developerguide/elb-logging-enabled.html)                                                                         | 2        | No payload         |                |
+| [elb-predefined-security-policy-ssl-check](https://docs.aws.amazon.com/config/latest/developerguide/elb-predefined-security-policy-ssl-check.html)                               |          | No payload         |                |
+| [encrypted-volumes](https://docs.aws.amazon.com/config/latest/developerguide/encrypted-volumes.html)                                                                             | 1        | No payload         |                |
+| [fms-shield-resource-policy-check](https://docs.aws.amazon.com/config/latest/developerguide/fms-shield-resource-policy-check.html)                                               |          | No payload         |                |
+| [fms-webacl-resource-policy-check](https://docs.aws.amazon.com/config/latest/developerguide/fms-webacl-resource-policy-check.html)                                               |          | No payload         |                |
+| [fms-webacl-rulegroup-association-check](https://docs.aws.amazon.com/config/latest/developerguide/fms-webacl-rulegroup-association-check.html)                                   |          | No payload         |                |
+| [guardduty-enabled-centralized](https://docs.aws.amazon.com/config/latest/developerguide/guardduty-enabled-centralized.html)                                                     | 1        | No payload         |                |
+| [iam-group-has-users-check](https://docs.aws.amazon.com/config/latest/developerguide/iam-group-has-users-check.html)                                                             |          | No payload         |                |
+| [iam-password-policy](https://docs.aws.amazon.com/config/latest/developerguide/iam-password-policy.html)                                                                         |          | No payload         |                |
+| [iam-policy-blacklisted-check](https://docs.aws.amazon.com/config/latest/developerguide/iam-policy-blacklisted-check.html)                                                       |          | No payload         |                |
+| [iam-policy-no-statements-with-admin-access](https://docs.aws.amazon.com/config/latest/developerguide/iam-policy-no-statements-with-admin-access.html)                           |          | Security Hub       |                |
+| [iam-role-managed-policy-check](https://docs.aws.amazon.com/config/latest/developerguide/iam-role-managed-policy-check.html)                                                     |          | No payload         |                |
+| [iam-root-access-key-check](https://docs.aws.amazon.com/config/latest/developerguide/iam-root-access-key-check.html)                                                             |          | Security Hub       |                |
+| [iam-user-group-membership-check](https://docs.aws.amazon.com/config/latest/developerguide/iam-user-group-membership-check.html)                                                 |          | No payload         |                |
+| [iam-user-mfa-enabled](https://docs.aws.amazon.com/config/latest/developerguide/iam-user-mfa-enabled.html)                                                                       |          | No payload         |                |
+| [iam-user-no-policies-check](https://docs.aws.amazon.com/config/latest/developerguide/iam-user-no-policies-check.html)                                                           |          | Security Hub       |                |
+| [iam-user-unused-credentials-check](https://docs.aws.amazon.com/config/latest/developerguide/iam-user-unused-credentials-check.html)                                             |          | Security Hub       |                |
+| [lambda-function-public-access-prohibited](https://docs.aws.amazon.com/config/latest/developerguide/lambda-function-public-access-prohibited.html)                               | 1        | No payload         |                |
+| [lambda-function-settings-check](https://docs.aws.amazon.com/config/latest/developerguide/lambda-function-settings-check.html)                                                   |          | No payload         |                |
+| [mfa-enabled-for-iam-console-access](https://docs.aws.amazon.com/config/latest/developerguide/mfa-enabled-for-iam-console-access.html)                                           |          | Security Hub       |                |
+| [multi-region-cloud-trail-enabled](https://docs.aws.amazon.com/config/latest/developerguide/multi-region-cloud-trail-enabled.html)                                               |          | Security Hub       |                |
+| [rds-instance-public-access-check](https://docs.aws.amazon.com/config/latest/developerguide/rds-instance-public-access-check.html)                                               |          | Done               |                |
+| [rds-multi-az-support](https://docs.aws.amazon.com/config/latest/developerguide/rds-multi-az-support.html)                                                                       | 1        | No payload         |                |
+| [rds-snapshots-public-prohibited](https://docs.aws.amazon.com/config/latest/developerguide/rds-snapshots-public-prohibited.html)                                                 | 1        | No payload         |                |
+| [rds-storage-encrypted](https://docs.aws.amazon.com/config/latest/developerguide/rds-storage-encrypted.html)                                                                     | 1        | No payload         |                |
+| [redshift-cluster-configuration-check](https://docs.aws.amazon.com/config/latest/developerguide/redshift-cluster-configuration-check.html)                                       |          | No payload         |                |
+| [redshift-cluster-maintenancesettings-check](https://docs.aws.amazon.com/config/latest/developerguide/redshift-cluster-maintenancesettings-check.html)                           |          | No payload         |                |
+| [required-tags](https://docs.aws.amazon.com/config/latest/developerguide/required-tags.html)                                                                                     |          | No payload         |                |
+| [restricted-common-ports](https://docs.aws.amazon.com/config/latest/developerguide/restricted-common-ports.html)                                                                 |          | No payload         |                |
+| [restricted-ssh](https://docs.aws.amazon.com/config/latest/developerguide/restricted-ssh.html)                                                                                   |          | Security Hub       |                |
+| [root-account-hardware-mfa-enabled](https://docs.aws.amazon.com/config/latest/developerguide/root-account-hardware-mfa-enabled.html)                                             |          | Security Hub       |                |
+| [root-account-mfa-enabled](https://docs.aws.amazon.com/config/latest/developerguide/root-account-mfa-enabled.html)                                                               |          | Security Hub       |                |
+| [s3-blacklisted-actions-prohibited](https://docs.aws.amazon.com/config/latest/developerguide/s3-blacklisted-actions-prohibited.html)                                             |          | No payload         |                |
+| [s3-bucket-logging-enabled](https://docs.aws.amazon.com/config/latest/developerguide/s3-bucket-logging-enabled.html)                                                             |          | Security Hub       |                |
+| [s3-bucket-policy-grantee-check](https://docs.aws.amazon.com/config/latest/developerguide/s3-bucket-policy-grantee-check.html)                                                   |          | No payload         |                |
+| [s3-bucket-policy-not-more-permissive](https://docs.aws.amazon.com/config/latest/developerguide/s3-bucket-policy-not-more-permissive.html)                                       |          | No payload         |                |
+| [s3-bucket-public-read-prohibited](https://docs.aws.amazon.com/config/latest/developerguide/s3-bucket-public-read-prohibited.html)                                               |          | Security Hub       |                |
+| [s3-bucket-public-write-prohibited](https://docs.aws.amazon.com/config/latest/developerguide/s3-bucket-public-write-prohibited.html)                                             |          | Security Hub       |                |
+| [s3-bucket-replication-enabled](https://docs.aws.amazon.com/config/latest/developerguide/s3-bucket-replication-enabled.html)                                                     |          | No payload         |                |
+| [s3-bucket-server-side-encryption-enabled](https://docs.aws.amazon.com/config/latest/developerguide/s3-bucket-server-side-encryption-enabled.html)                               | 1        | No payload         |                |
+| [s3-bucket-ssl-requests-only](https://docs.aws.amazon.com/config/latest/developerguide/s3-bucket-ssl-requests-only.html)                                                         | 1        | No payload         |                |
+| [s3-bucket-versioning-enabled](https://docs.aws.amazon.com/config/latest/developerguide/s3-bucket-versioning-enabled.html)                                                       |          | No payload         |                |
+| [vpc-default-security-group-closed](https://docs.aws.amazon.com/config/latest/developerguide/vpc-default-security-group-closed.html)                                             |          | Security Hub       |                |
+| [vpc-flow-logs-enabled](https://docs.aws.amazon.com/config/latest/developerguide/vpc-flow-logs-enabled.html)                                                                     |          | Security Hub       |                |
