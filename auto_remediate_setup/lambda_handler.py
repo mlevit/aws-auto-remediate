@@ -18,8 +18,11 @@ class Setup:
         self.client_dynamodb = boto3.client("dynamodb")
 
     def create_stacks(self, stack_sub_dir, settings):
-        """
-        Parse a directory and create the CloudFormation Stacks it contains.
+        """Parse a directory and and deploy all the AWS Config Rules it contains
+        
+        Arguments:
+            stack_sub_dir {string} -- Sub-directory that houses AWS Config Rules
+            settings {dictionary} -- Dictionary of settings
         """
         existing_stacks = self.get_current_stacks()
         path = f"auto_remediate_setup/data/{stack_sub_dir}"
@@ -70,9 +73,10 @@ class Setup:
                         )
 
     def get_current_stacks(self):
-        """
-        Retrieve a list of all CloudFormation Stacks
-        currently deployed your AWS accont and region.
+        """Retrieve a list of all CloudFormation Stacks currently deployed your AWS accont and region
+        
+        Returns:
+            list -- List of currently deployed AWS Config Rules
         """
         try:
             resources = self.client_cloudformation.list_stacks().get("StackSummaries")
@@ -88,8 +92,7 @@ class Setup:
         return existing_stacks
 
     def setup_dynamodb(self):
-        """
-        Inserts all the default settings into a DynamoDB table.
+        """Inserts all the default settings into a DynamoDB table.
         """
         try:
             settings_data = open(
@@ -143,7 +146,6 @@ class Setup:
                         continue
 
             settings_data.close()
-            return settings_json
         except:
             self.logging.error(sys.exc_info()[1])
 

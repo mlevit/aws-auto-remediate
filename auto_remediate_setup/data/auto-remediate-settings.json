@@ -4,7 +4,7 @@
       "S": "version"
     },
     "value": {
-      "N": "0.2"
+      "N": "1.0"
     }
   },
   {
@@ -25,7 +25,7 @@
     },
     "value": {
       "M": {
-        "auto-remediate-rds-instance-public-access-check": {
+        "rds-instance-public-access-check": {
           "M": {
             "remediate": {
               "BOOL": true
