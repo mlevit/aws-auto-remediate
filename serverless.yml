@@ -152,6 +152,7 @@ functions:
           - cloudformation:DeleteStack
           - cloudformation:ListStacks
           - cloudformation:UpdateTerminationProtection
+          - config:DeleteConfigRule
           - config:PutConfigRule
           - dynamodb:BatchWriteItem
           - dynamodb:DeleteTable
