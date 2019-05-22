@@ -1,0 +1,79 @@
+{
+  "Resources": {
+    "AWSConfigRule": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "ConfigRuleName": {
+          "Ref": "ConfigRuleName"
+        },
+        "Description": "Checks whether EBS volumes that are in an attached state are encrypted.",
+        "InputParameters": {
+          "kmsId": {
+            "Fn::If": [
+              "kmsId",
+              {
+                "Ref": "kmsId"
+              },
+              {
+                "Ref": "AWS::NoValue"
+              }
+            ]
+          }
+        },
+        "Scope": {
+          "ComplianceResourceTypes": ["AWS::EC2::Volume"]
+        },
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "ENCRYPTED_VOLUMES"
+        }
+      }
+    }
+  },
+  "Parameters": {
+    "ConfigRuleName": {
+      "Type": "String",
+      "Default": "encrypted-volumes",
+      "Description": "The name that you assign to the AWS Config rule.",
+      "MinLength": "1",
+      "ConstraintDescription": "This parameter is required."
+    },
+    "kmsId": {
+      "Type": "String",
+      "Default": "",
+      "Description": "ID or ARN of the KMS key that is used to encrypt the volume."
+    }
+  },
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": {
+            "default": "Required"
+          },
+          "Parameters": []
+        },
+        {
+          "Label": {
+            "default": "Optional"
+          },
+          "Parameters": ["kmsId"]
+        }
+      ]
+    }
+  },
+  "Conditions": {
+    "kmsId": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            "",
+            {
+              "Ref": "kmsId"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

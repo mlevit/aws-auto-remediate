@@ -1,0 +1,154 @@
+{
+  "Resources": {
+    "AWSConfigRule": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "ConfigRuleName": {
+          "Ref": "ConfigRuleName"
+        },
+        "Description": "Checks whether AWS CloudTrail is enabled in your AWS account.",
+        "InputParameters": {
+          "s3BucketName": {
+            "Fn::If": [
+              "s3BucketName",
+              {
+                "Ref": "s3BucketName"
+              },
+              {
+                "Ref": "AWS::NoValue"
+              }
+            ]
+          },
+          "snsTopicArn": {
+            "Fn::If": [
+              "snsTopicArn",
+              {
+                "Ref": "snsTopicArn"
+              },
+              {
+                "Ref": "AWS::NoValue"
+              }
+            ]
+          },
+          "cloudWatchLogsLogGroupArn": {
+            "Fn::If": [
+              "cloudWatchLogsLogGroupArn",
+              {
+                "Ref": "cloudWatchLogsLogGroupArn"
+              },
+              {
+                "Ref": "AWS::NoValue"
+              }
+            ]
+          }
+        },
+        "Scope": {},
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "CLOUD_TRAIL_ENABLED"
+        },
+        "MaximumExecutionFrequency": {
+          "Ref": "MaximumExecutionFrequency"
+        }
+      }
+    }
+  },
+  "Parameters": {
+    "ConfigRuleName": {
+      "Type": "String",
+      "Default": "cloudtrail-enabled",
+      "Description": "The name that you assign to the AWS Config rule.",
+      "MinLength": "1",
+      "ConstraintDescription": "This parameter is required."
+    },
+    "MaximumExecutionFrequency": {
+      "Type": "String",
+      "Default": "TwentyFour_Hours",
+      "Description": "The frequency that you want AWS Config to run evaluations for the rule.",
+      "MinLength": "1",
+      "ConstraintDescription": "This parameter is required.",
+      "AllowedValues": [
+        "One_Hour",
+        "Three_Hours",
+        "Six_Hours",
+        "Twelve_Hours",
+        "TwentyFour_Hours"
+      ]
+    },
+    "s3BucketName": {
+      "Type": "String",
+      "Default": "",
+      "Description": "Name of S3 bucket for CloudTrail to deliver log files to."
+    },
+    "snsTopicArn": {
+      "Type": "String",
+      "Default": "",
+      "Description": "SNS topic ARN for CloudTrail to use for notifications."
+    },
+    "cloudWatchLogsLogGroupArn": {
+      "Type": "String",
+      "Default": "",
+      "Description": "CloudWatch log group ARN for CloudTrail to send data to."
+    }
+  },
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": {
+            "default": "Required"
+          },
+          "Parameters": []
+        },
+        {
+          "Label": {
+            "default": "Optional"
+          },
+          "Parameters": [
+            "s3BucketName",
+            "snsTopicArn",
+            "cloudWatchLogsLogGroupArn"
+          ]
+        }
+      ]
+    }
+  },
+  "Conditions": {
+    "s3BucketName": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            "",
+            {
+              "Ref": "s3BucketName"
+            }
+          ]
+        }
+      ]
+    },
+    "snsTopicArn": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            "",
+            {
+              "Ref": "snsTopicArn"
+            }
+          ]
+        }
+      ]
+    },
+    "cloudWatchLogsLogGroupArn": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            "",
+            {
+              "Ref": "cloudWatchLogsLogGroupArn"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

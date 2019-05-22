@@ -1,0 +1,94 @@
+{
+  "Resources": {
+    "AWSConfigRule": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "ConfigRuleName": {
+          "Ref": "ConfigRuleName"
+        },
+        "Description": "Checks whether GuardDuty is enabled. You can optionally verify that the results are centralized in a specific AWS Account.",
+        "InputParameters": {
+          "CentralMonitoringAccount": {
+            "Fn::If": [
+              "CentralMonitoringAccount",
+              {
+                "Ref": "CentralMonitoringAccount"
+              },
+              {
+                "Ref": "AWS::NoValue"
+              }
+            ]
+          }
+        },
+        "Scope": {},
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "GUARDDUTY_ENABLED_CENTRALIZED"
+        },
+        "MaximumExecutionFrequency": {
+          "Ref": "MaximumExecutionFrequency"
+        }
+      }
+    }
+  },
+  "Parameters": {
+    "ConfigRuleName": {
+      "Type": "String",
+      "Default": "guardduty-enabled-centralized",
+      "Description": "The name that you assign to the AWS Config rule.",
+      "MinLength": "1",
+      "ConstraintDescription": "This parameter is required."
+    },
+    "MaximumExecutionFrequency": {
+      "Type": "String",
+      "Default": "TwentyFour_Hours",
+      "Description": "The frequency that you want AWS Config to run evaluations for the rule.",
+      "MinLength": "1",
+      "ConstraintDescription": "This parameter is required.",
+      "AllowedValues": [
+        "One_Hour",
+        "Three_Hours",
+        "Six_Hours",
+        "Twelve_Hours",
+        "TwentyFour_Hours"
+      ]
+    },
+    "CentralMonitoringAccount": {
+      "Type": "String",
+      "Default": "",
+      "Description": "Specify the AWS Account (12-digit) where the GuardDuty results should be centralized."
+    }
+  },
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": {
+            "default": "Required"
+          },
+          "Parameters": []
+        },
+        {
+          "Label": {
+            "default": "Optional"
+          },
+          "Parameters": ["CentralMonitoringAccount"]
+        }
+      ]
+    }
+  },
+  "Conditions": {
+    "CentralMonitoringAccount": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            "",
+            {
+              "Ref": "CentralMonitoringAccount"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
