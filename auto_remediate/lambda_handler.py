@@ -33,6 +33,7 @@ class Remediate:
             # config
             "rds-instance-public-access-check": self.config.rds_instance_public_access_check,
             "s3-bucket-server-side-encryption-enabled": self.config.s3_bucket_server_side_encryption_enabled,
+            "s3-bucket-ssl-requests-only": self.config.s3_bucket_ssl_requests_only,
             # security hub
             "securityhub-access-keys-rotated": self.security_hub.access_keys_rotated,
             "securityhub-cloud-trail-cloud-watch-logs-enabled": self.security_hub.cloud_trail_cloud_watch_logs_enabled,

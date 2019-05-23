@@ -168,9 +168,10 @@ The tables below detail the auto remediated rules and scenarios.
 
 #### Storage
 
-| Rule                                      | Description                                                                                                                                                                            | Remediation |
-| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| S3 Bucket Service Side Encryption Enabled | Checks that your Amazon S3 bucket either has Amazon S3 default encryption enabled or that the S3 bucket policy explicitly denies `put-object` requests without server side encryption. | Enables SSE |
+| Rule                                      | Description                                                                                                                                                                            | Remediation                                      |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| S3 Bucket Service Side Encryption Enabled | Checks that your Amazon S3 bucket either has Amazon S3 default encryption enabled or that the S3 bucket policy explicitly denies `put-object` requests without server side encryption. | Enables SSE                                      |
+| S3 Bucket SSL Requests Only               | Checks whether S3 buckets have policies that require requests to use Secure Socket Layer (SSL).                                                                                        | Adds Bucket Policy to force SSL only connections |
 
 ### AWS Security Hub Rules
 
