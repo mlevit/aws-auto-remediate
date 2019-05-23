@@ -231,8 +231,6 @@ class ConfigRules:
             return False
         else:
             existing_policy = json.loads(response.get["Policy"])
-
-            # insert SSL policy into existing policy
             existing_policy["Statement"].append(policy["Statement"][0])
 
             try:
