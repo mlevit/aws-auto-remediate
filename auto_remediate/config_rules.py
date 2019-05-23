@@ -44,11 +44,11 @@ class ConfigRules:
 
     @property
     def account_number(self):
-        return self.client_sts.get_caller_identity().get("Account")
+        return self.client_sts.get_caller_identity()["Account"]
 
     @property
     def account_arn(self):
-        return self.client_sts.get_caller_identity().get("Arn")
+        return self.client_sts.get_caller_identity()["Arn"]
 
     @property
     def region(self):
@@ -72,11 +72,11 @@ class ConfigRules:
             self.logging.error("Could not describe RDS DB Instances.")
             return False
         else:
-            for instance in response.get("DBInstances"):
-                if resource_id == instance.get("DbiResourceId"):
+            for instance in response["DBInstances"]:
+                if resource_id == instance["DbiResourceId"]:
                     try:
                         self.client_rds.modify_db_instance(
-                            DBInstanceIdentifier=instance.get("DBInstanceIdentifier"),
+                            DBInstanceIdentifier=instance["DBInstanceIdentifier"],
                             PubliclyAccessible=False,
                         )
                         self.logging.info(
@@ -124,6 +124,16 @@ class ConfigRules:
             return False
 
     def s3_bucket_ssl_requests_only(self, resource_id):
+        """Adds Bucket Policy to force SSL only connections
+        
+        Arguments:
+            resource_id {string} -- S3 Bucket name
+        
+        Returns:
+            boolean -- True if remediation was successful
+        """
+
+        # get SSL policy
         policy_file = "auto_remediate/data/s3_bucket_ssl_requests_only_policy.json"
         with open(policy_file, "r") as file:
             policy = file.read()
@@ -133,6 +143,8 @@ class ConfigRules:
         block_public_policy = None
         restrict_public_buckets = None
 
+        # get existing Public Access Block
+        # without disabling this, Bucket Policies cannot be modified
         try:
             response = self.client_s3.get_public_access_block(Bucket=resource_id)
         except ClientError as error:
@@ -154,18 +166,18 @@ class ConfigRules:
             self.logging.error(sys.exc_info()[1])
             return False
         else:
-            block_public_acls = response.get("PublicAccessBlockConfiguration").get(
+            block_public_acls = response["PublicAccessBlockConfiguration"][
                 "BlockPublicAcls"
-            )
-            ignore_public_acls = response.get("PublicAccessBlockConfiguration").get(
+            ]
+            ignore_public_acls = response["PublicAccessBlockConfiguration"][
                 "IgnorePublicAcls"
-            )
-            block_public_policy = response.get("PublicAccessBlockConfiguration").get(
+            ]
+            block_public_policy = response["PublicAccessBlockConfiguration"][
                 "BlockPublicPolicy"
-            )
-            restrict_public_buckets = response.get(
-                "PublicAccessBlockConfiguration"
-            ).get("RestrictPublicBuckets")
+            ]
+            restrict_public_buckets = response["PublicAccessBlockConfiguration"][
+                "RestrictPublicBuckets"
+            ]
 
             if block_public_policy or restrict_public_buckets:
                 # remove Bucket Policy restriction
@@ -187,6 +199,9 @@ class ConfigRules:
                     self.logging.error(sys.exc_info()[1])
                     return False
 
+        # get Bucket Policy
+        # if exists, add SSL policy to existing policy
+        # otherwise just insert SSL policy
         try:
             response = self.client_s3.get_bucket_policy(Bucket=resource_id)
         except ClientError as error:
@@ -215,10 +230,10 @@ class ConfigRules:
             self.logging.error(sys.exc_info()[1])
             return False
         else:
-            existing_policy = json.loads(response.get("Policy"))
+            existing_policy = json.loads(response.get["Policy"])
 
-            # insert SSL policy
-            existing_policy.get("Statement").append(policy.get("Statement")[0])
+            # insert SSL policy into existing policy
+            existing_policy["Statement"].append(policy["Statement"][0])
 
             try:
                 self.client_s3.put_bucket_policy(
@@ -234,7 +249,7 @@ class ConfigRules:
                 self.logging.error(sys.exc_info()[1])
                 return False
 
-        # add Bucket Policy restriction
+        # add Bucket Policy restriction back to their original state
         if block_public_policy or restrict_public_buckets:
             try:
                 self.client_s3.put_public_access_block(
