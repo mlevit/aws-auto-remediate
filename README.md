@@ -166,6 +166,12 @@ The tables below detail the auto remediated rules and scenarios.
 | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
 | RDS Instance Public Access Check | Check whether the Amazon Relational Database Service instances are not publicly accessible.<br />The rule is NON_COMPLIANT if the `publiclyAccessible` field is true in the instance configuration item. | :warning: Sets `publiclyAccessible` field to `False` |
 
+#### Storage
+
+| Rule                                      | Description                                                                                                                                                                            | Remediation |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| S3 Bucket Service Side Encryption Enabled | Checks that your Amazon S3 bucket either has Amazon S3 default encryption enabled or that the S3 bucket policy explicitly denies `put-object` requests without server side encryption. | Enables SSE |
+
 ### AWS Security Hub Rules
 
 #### Compute

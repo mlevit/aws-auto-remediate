@@ -87,6 +87,7 @@ functions:
           - s3:CreateBucket
           - s3:PutBucketAcl
           - s3:PutBucketLogging
+          - s3:PutEncryptionConfiguration
           - sns:Publish
           - sqs:GetQueueUrl
           - sqs:SendMessage
