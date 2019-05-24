@@ -4,6 +4,16 @@ custom:
   log_level: INFO # DEBUG for dev | INFO for prod
   region: ${opt:region, "ap-southeast-2"} # AWS deployment region
   pythonRequirements:
+    noDeploy:
+      [
+        "docutils",
+        "jmespath",
+        "python-dateutil",
+        "s3transfer",
+        "six",
+        "pip",
+        "setuptools",
+      ]
     slim: true
     useStaticCache: true
     useDownloadCache: true
@@ -85,8 +95,12 @@ functions:
           - rds:DescribeDBInstances
           - rds:ModifyDBInstance
           - s3:CreateBucket
+          - s3:GetBucketPolicy
+          - s3:GetBucketPublicAccessBlock
           - s3:PutBucketAcl
           - s3:PutBucketLogging
+          - s3:PutBucketPolicy
+          - s3:PutBucketPublicAccessBlock
           - s3:PutEncryptionConfiguration
           - sns:Publish
           - sqs:GetQueueUrl

@@ -46,7 +46,7 @@ Proceed to the [Deployment](#deployment) section below.
 
 ### Existing Account
 
-Auto Remediate utilises the compliance event triggers made by AWS Config. Due to the fact that AWS Config will trigger a compliance event **only** when the compliance status of a resource changes state (i.e., COMPLIANT to NON_COMPLIANT or vice versa) it is advised that you **disabled** the `CIS AWS Foundations` compliance standards within AWS Security Hub (and ensure all AWS Config rules starting with `securityhub` are removed from your account) before proceeding.
+Auto Remediate utilises the compliance event triggers made by AWS Config. Due to the fact that AWS Config will trigger a compliance event **only** when the compliance status of a resource changes state (i.e., COMPLIANT to NON_COMPLIANT or vice versa) it is advised that you **disable** the `CIS AWS Foundations` compliance standards within AWS Security Hub (and ensure all AWS Config rules starting with `securityhub` are removed from your account) before proceeding.
 
 Once AWS Config is cleared of all AWS Security Hub related rules, you may proceed to deploy Auto Remediate and enable the `CIS AWS Foundations` compliance standards within AWS Security Hub.
 
@@ -168,9 +168,10 @@ The tables below detail the auto remediated rules and scenarios.
 
 #### Storage
 
-| Rule                                      | Description                                                                                                                                                                            | Remediation |
-| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| S3 Bucket Service Side Encryption Enabled | Checks that your Amazon S3 bucket either has Amazon S3 default encryption enabled or that the S3 bucket policy explicitly denies `put-object` requests without server side encryption. | Enables SSE |
+| Rule                                      | Description                                                                                                                                                                            | Remediation                                      |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| S3 Bucket Service Side Encryption Enabled | Checks that your Amazon S3 bucket either has Amazon S3 default encryption enabled or that the S3 bucket policy explicitly denies `put-object` requests without server side encryption. | Enables SSE                                      |
+| S3 Bucket SSL Requests Only               | Checks whether S3 buckets have policies that require requests to use Secure Socket Layer (SSL).                                                                                        | Adds Bucket Policy to force SSL only connections |
 
 ### AWS Security Hub Rules
 

@@ -33,6 +33,7 @@ class Remediate:
             # config
             "rds-instance-public-access-check": self.config.rds_instance_public_access_check,
             "s3-bucket-server-side-encryption-enabled": self.config.s3_bucket_server_side_encryption_enabled,
+            "s3-bucket-ssl-requests-only": self.config.s3_bucket_ssl_requests_only,
             # security hub
             "securityhub-access-keys-rotated": self.security_hub.access_keys_rotated,
             "securityhub-cloud-trail-cloud-watch-logs-enabled": self.security_hub.cloud_trail_cloud_watch_logs_enabled,
@@ -62,8 +63,8 @@ class Remediate:
         }
 
     def remediate(self):
-        for record in self.event.get("Records"):
-            config_payload = json.loads(record.get("body"))
+        for record in self.event["Records"]:
+            config_payload = json.loads(record["body"])
             config_rule_name = Remediate.get_config_rule_name(config_payload)
             config_rule_compliance = Remediate.get_config_rule_compliance(
                 config_payload
@@ -110,11 +111,7 @@ class Remediate:
         Returns:
             string -- COMPLIANT | NON_COMPLIANT
         """
-        return (
-            config_payload.get("detail")
-            .get("newEvaluationResult")
-            .get("complianceType")
-        )
+        return config_payload["detail"]["newEvaluationResult"]["complianceType"]
 
     @staticmethod
     def get_config_rule_name(config_payload):
@@ -127,7 +124,7 @@ class Remediate:
         Returns:
             string -- AWS Config rule name
         """
-        config_rule_name = config_payload.get("detail").get("configRuleName")
+        config_rule_name = config_payload["detail"]["configRuleName"]
         if "securityhub" in config_rule_name:
             # remove random alphanumeric string suffixed to each
             # Security Hub rule
@@ -145,7 +142,7 @@ class Remediate:
         Returns:
             string -- Resource ID relating to the AWS Resource that triggered the AWS Config Rule
         """
-        return config_payload.get("detail").get("resourceId")
+        return config_payload["detail"]["resourceId"]
 
     def get_settings(self):
         """Return the DynamoDB aws-auto-remediate-settings table in a Python dict format
@@ -159,7 +156,7 @@ class Remediate:
                 TableName=os.environ["SETTINGSTABLE"]
             )["Items"]:
                 record_json = dynamodb_json.loads(record, True)
-                settings[record_json.get("key")] = record_json.get("value")
+                settings[record_json["key"]] = record_json["value"]
         except:
             self.logging.error(
                 f"Could not read DynamoDB table '{os.environ['SETTINGSTABLE']}'."
@@ -214,7 +211,7 @@ class Remediate:
         if try_count < int(os.environ.get("RETRYCOUNT", 3)):
             try:
                 client.send_message(
-                    QueueUrl=os.environ.get("DEADLETTERQUEUE"),
+                    QueueUrl=os.environ["DEADLETTERQUEUE"],
                     MessageBody=json.dumps(config_payload),
                     MessageAttributes={
                         "try_count": {
@@ -225,11 +222,11 @@ class Remediate:
                 )
 
                 self.logging.debug(
-                    f"Remediation failed. Payload has been sent to SQS DLQ '{os.environ.get('DEADLETTERQUEUE')}'."
+                    f"Remediation failed. Payload has been sent to SQS DLQ '{os.environ['DEADLETTERQUEUE']}'."
                 )
             except:
                 self.logging.error(
-                    f"Could not send payload to SQS DLQ '{os.environ.get('DEADLETTERQUEUE')}'."
+                    f"Could not send payload to SQS DLQ '{os.environ['DEADLETTERQUEUE']}'."
                 )
                 self.logging.error(sys.exc_info()[1])
         else:
@@ -247,7 +244,7 @@ class Remediate:
             config_payload {dictionary} -- AWS Config Rule payload
         """
         client = boto3.client("sns")
-        topic_arn = os.environ.get("MISSINGREMEDIATIONTOPIC")
+        topic_arn = os.environ["MISSINGREMEDIATIONTOPIC"]
 
         try:
             client.publish(

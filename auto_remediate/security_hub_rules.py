@@ -63,11 +63,11 @@ class SecurityHubRules:
 
     @property
     def account_number(self):
-        return self.client_sts.get_caller_identity().get("Account")
+        return self.client_sts.get_caller_identity()["Account"]
 
     @property
     def account_arn(self):
-        return self.client_sts.get_caller_identity().get("Arn")
+        return self.client_sts.get_caller_identity()["Arn"]
 
     @property
     def region(self):
@@ -94,7 +94,7 @@ class SecurityHubRules:
             self.logging.error(sys.exc_info()[1])
             return False
         else:
-            user_name = response.get("UserName")
+            user_name = response["UserName"]
             self.logging.info(
                 f"Retrieved IAM User Name '{user_name}' for IAM Access Key '{resource_id}'."
             )
@@ -150,7 +150,7 @@ class SecurityHubRules:
                 self.delete_log_group(cloudwatch_log_group_name)
                 return False
             else:
-                cloudwatch_log_group_arn = response.get("logGroups")[0].get("arn")
+                cloudwatch_log_group_arn = response["logGroups"][0]["arn"]
                 self.logging.info(
                     f"Retrieved ARN '{cloudwatch_log_group_arn}' for CloudWatch Log Group '{cloudwatch_log_group_name}'."
                 )
@@ -175,7 +175,7 @@ class SecurityHubRules:
             self.delete_log_group(cloudwatch_log_group_name)
             return False
         else:
-            iam_role_arn = response.get("Role").get("Arn")
+            iam_role_arn = response["Role"]["Arn"]
             iam_policy_name = f"CloudTrail-CloudWatch-{resource_id}"
 
             # create policy
@@ -272,7 +272,7 @@ class SecurityHubRules:
             self.logging.error(sys.exc_info()[1])
             return False
         else:
-            kms_key_id = response.get("KeyMetadata").get("KeyId")
+            kms_key_id = response["KeyMetadata"]["KeyId"]
             self.logging.info(
                 f"Created new KMS Customer Managed Key '{kms_key_id}' for CloudTrail '{resource_id}'."
             )
@@ -437,7 +437,7 @@ class SecurityHubRules:
                 self.logging.error(sys.exc_info()[1])
                 return False
 
-            default_version = response.get("Policy").get("DefaultVersionId")
+            default_version = response["Policy"]["DefaultVersionId"]
 
             # get default policy
             try:
@@ -452,14 +452,14 @@ class SecurityHubRules:
                 return False
 
             # remove admin statements from policy
-            policy = response.get("PolicyVersion").get("Document")
-            for statement in policy.get("Statement"):
+            policy = response["PolicyVersion"]["Document"]
+            for statement in policy["Statement"]:
                 if (
-                    statement.get("Action") == "*"
-                    and statement.get("Effect") == "Allow"
-                    and statement.get("Resource") == "*"
+                    statement["Action"] == "*"
+                    and statement["Effect"] == "Allow"
+                    and statement["Resource"] == "*"
                 ):
-                    policy.get("Statement").remove(statement)
+                    policy["Statement"].remove(statement)
                     self.logging.info(
                         f"Removed Statement '{statement}' from IAM Policy '{policy_arn}'."
                     )
@@ -546,7 +546,7 @@ class SecurityHubRules:
                 )
                 self.logging.error(sys.exc_info()[1])
             else:
-                login_profile_date = login_profile.get("LoginProfile").get("CreateDate")
+                login_profile_date = login_profile["LoginProfile"]["CreateDate"]
                 if SecurityHubRules.get_day_delta(login_profile_date) > 90:
                     try:
                         self.client_iam.delete_login_profile(UserName=user_name)
@@ -570,10 +570,10 @@ class SecurityHubRules:
                 self.logging.error(sys.exc_info()[1])
                 return False
 
-            for access_key in list_access_keys.get("AccessKeyMetadata"):
-                access_key_id = access_key.get("AccessKeyId")
-                access_key_date = access_key.get("CreateDate")
-                access_key_status = access_key.get("Status")
+            for access_key in list_access_keys["AccessKeyMetadata"]:
+                access_key_id = access_key["AccessKeyId"]
+                access_key_date = access_key["CreateDate"]
+                access_key_status = access_key["Status"]
 
                 if (
                     access_key_status == "Active"
@@ -849,12 +849,12 @@ class SecurityHubRules:
             self.logging.error(sys.exc_info()[1])
             return False
 
-        for security_group in response.get("SecurityGroups"):
+        for security_group in response["SecurityGroups"]:
             # revoke egress rule
             try:
                 self.client_ec2.revoke_security_group_egress(
                     GroupId=resource_id,
-                    IpPermissions=security_group.get("IpPermissionsEgress"),
+                    IpPermissions=security_group["IpPermissionsEgress"],
                 )
                 self.logging.info(
                     f"Revoked all egress rules for default Security Group '{resource_id}'."
@@ -870,7 +870,7 @@ class SecurityHubRules:
             try:
                 self.client_ec2.revoke_security_group_ingress(
                     GroupId=resource_id,
-                    IpPermissions=security_group.get("IpPermissions"),
+                    IpPermissions=security_group["IpPermissions"],
                 )
                 self.logging.info(
                     f"Revoked all ingress rules for default Security Group '{resource_id}'."
