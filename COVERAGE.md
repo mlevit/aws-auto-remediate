@@ -40,7 +40,7 @@ Test coverage: **10 of 24**
 
 ## AWS Config Managed Rules
 
-Development coverage: **1 of 40**
+Development coverage: **3 of 40**
 
 Test coverage: **0 of 40**
 
