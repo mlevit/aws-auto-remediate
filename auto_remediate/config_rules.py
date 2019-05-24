@@ -56,28 +56,28 @@ class ConfigRules:
             boolean -- True if remediation was successful
         """
         try:
-            response = self.client_rds.describe_db_instances()
+            paginator = self.client_rds.get_paginator("describe_db_instances")
+            response = paginator.paginate(DBInstanceIdentifier=resource_id)
         except:
             self.logging.error("Could not describe RDS DB Instances.")
             return False
         else:
             for instance in response["DBInstances"]:
-                if resource_id == instance["DbiResourceId"]:
-                    try:
-                        self.client_rds.modify_db_instance(
-                            DBInstanceIdentifier=instance["DBInstanceIdentifier"],
-                            PubliclyAccessible=False,
-                        )
-                        self.logging.info(
-                            f"Disabled Public Accessibility for RDS Instance '{resource_id}'."
-                        )
-                        return True
-                    except:
-                        self.logging.error(
-                            f"Could not disable Public Accessibility for RDS Instance '{resource_id}'."
-                        )
-                        self.logging.error(sys.exc_info()[1])
-                        return False
+                try:
+                    self.client_rds.modify_db_instance(
+                        DBInstanceIdentifier=instance["DBInstanceIdentifier"],
+                        PubliclyAccessible=False,
+                    )
+                    self.logging.info(
+                        f"Disabled Public Accessibility for RDS Instance '{resource_id}'."
+                    )
+                    return True
+                except:
+                    self.logging.error(
+                        f"Could not disable Public Accessibility for RDS Instance '{resource_id}'."
+                    )
+                    self.logging.error(sys.exc_info()[1])
+                    return False
 
     def s3_bucket_server_side_encryption_enabled(self, resource_id):
         """Enables Server-side Encryption for an S3 Bucket
