@@ -3,7 +3,7 @@ import logging
 import boto3
 
 
-class SNSLoggingHandler(logging.Handler):
+class SNSHandler(logging.Handler):
     def __init__(self, topic_arn):
         logging.Handler.__init__(self)
         self.client = boto3.client("sns")

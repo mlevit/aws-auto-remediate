@@ -9,7 +9,7 @@ from dynamodb_json import json_util as dynamodb_json
 from config_rules import *
 from custom_rules import *
 from security_hub_rules import *
-from sns_logging_handler import *
+from sns_handler import *
 
 
 class Remediate:
@@ -159,9 +159,9 @@ class Remediate:
                 settings[record_json["key"]] = record_json["value"]
         except:
             self.logging.error(
-                f"Could not read DynamoDB table '{os.environ['SETTINGSTABLE']}'."
-            , exc_info=True)
-            
+                f"Could not read DynamoDB table '{os.environ['SETTINGSTABLE']}'.",
+                exc_info=True,
+            )
 
         return settings
 
@@ -226,9 +226,10 @@ class Remediate:
                 )
             except:
                 self.logging.error(
-                    f"Could not send payload to SQS DLQ '{os.environ['DEADLETTERQUEUE']}'."
-                , exc_info=True)
-                
+                    f"Could not send payload to SQS DLQ '{os.environ['DEADLETTERQUEUE']}'.",
+                    exc_info=True,
+                )
+
         else:
             self.logging.warning(
                 f"Could not remediate Config change within an "
@@ -253,7 +254,9 @@ class Remediate:
                 Subject=f"No remediation available for Config Rule '{config_rule_name}'",
             )
         except:
-            self.logging.error(f"Could not publish to SNS Topic 'topic_arn'.", exc_info=True)
+            self.logging.error(
+                f"Could not publish to SNS Topic 'topic_arn'.", exc_info=True
+            )
 
 
 def lambda_handler(event, context):
@@ -271,13 +274,20 @@ def lambda_handler(event, context):
     # set logging format
     logging.basicConfig(
         format="[%(levelname)s] %(message)s (%(filename)s, %(funcName)s(), line %(lineno)d)",
-        level=os.environ.get("LOGLEVEL", "WARNING"),
+        level=os.environ.get("LOGLEVEL", "INFO"),
     )
 
+    # add console logger
+    console_logger = logging.StreamHandler()
+    console_logger.setLevel(os.environ.get("LOGLEVEL", "INFO"))
+
     # add SNS logger
-    # sns_logger = SNSLoggingHandler(os.environ.get('LOGTOPIC'))
-    # sns_logger.setLevel(logging.INFO)
-    # loggger.addHandler(sns_logger)
+    sns_logger = SNSHandler(os.environ.get("LOGTOPIC"))
+    sns_logger.setLevel(logging.INFO)
+
+    # add the handlers to the root logger
+    loggger.addHandler(console_logger)
+    loggger.addHandler(sns_logger)
 
     # instantiate class
     remediate = Remediate(logging, event)
