@@ -141,74 +141,126 @@ class ConfigRules:
         policy = json.loads(policy.replace("_BUCKET_", resource_id))
 
         try:
-            self.client_s3.put_bucket_policy(Bucket=resource_id, Policy=policy)
-            self.logging.info(
-                f"Set SSL requests only policy to S3 Bucket '{resource_id}'."
-            )
-            return True
+            response = self.client_s3.get_bucket_policy(Bucket=resource_id)
         except ClientError as error:
-            if error.response["Error"]["Code"] == "AccessDenied":
-                # disable Public Access Block
+            if error.response["Error"]["Code"] == "NoSuchBucketPolicy":
                 try:
-                    self.client_s3.put_public_access_block(
-                        Bucket=resource_id,
-                        PublicAccessBlockConfiguration={
-                            "BlockPublicPolicy": False,
-                            "RestrictPublicBuckets": False,
-                        },
+                    self.client_s3.put_bucket_policy(
+                        Bucket=resource_id, Policy=json.dumps(policy)
                     )
-                    self.logging.info(
-                        f"Disabled public access block for S3 Bucket '{resource_id}'."
-                    )
-                except:
-                    self.logging.error(
-                        f"Could not disable public access block for S3 Bucket '{resource_id}'."
-                    )
-                    self.logging.error(sys.exc_info()[1])
-                    return False
-
-                # put Bucket Policy
-                try:
-                    self.client_s3.put_bucket_policy(Bucket=resource_id, Policy=policy)
                     self.logging.info(
                         f"Set SSL requests only policy to S3 Bucket '{resource_id}'."
                     )
+                    return True
+                except ClientError as error:
+                    if error.response["Error"]["Code"] == "AccessDenied":
+                        try:
+                            # disable Public Access Block
+                            self.client_s3.put_public_access_block(
+                                Bucket=resource_id,
+                                PublicAccessBlockConfiguration={
+                                    "BlockPublicPolicy": False,
+                                    "RestrictPublicBuckets": False,
+                                },
+                            )
+
+                            # put Bucket Policy
+                            self.client_s3.put_bucket_policy(
+                                Bucket=resource_id, Policy=policy
+                            )
+
+                            # enable Public Access Block
+                            self.client_s3.put_public_access_block(
+                                Bucket=resource_id,
+                                PublicAccessBlockConfiguration={
+                                    "BlockPublicPolicy": True,
+                                    "RestrictPublicBuckets": True,
+                                },
+                            )
+
+                            self.logging.info(
+                                f"Set SSL requests only policy to S3 Bucket '{resource_id}'."
+                            )
+                            return True
+                        except:
+                            self.logging.error(
+                                f"Could not set SSL requests only policy to S3 Bucket '{resource_id}'."
+                            )
+                            self.logging.error(sys.exc_info()[1])
+                            return False
+                    else:
+                        self.logging.error(
+                            f"Could not set SSL requests only policy to S3 Bucket '{resource_id}'."
+                        )
+                        self.logging.error(sys.exc_info()[1])
+                        return False
                 except:
                     self.logging.error(
                         f"Could not set SSL requests only policy to S3 Bucket '{resource_id}'."
                     )
                     self.logging.error(sys.exc_info()[1])
                     return False
+        except:
+            self.logging.error(
+                f"Could not retrieve existing policy to S3 Bucket '{resource_id}'."
+            )
+        else:
+            existing_policy = json.loads(response["Policy"])
+            existing_policy["Statement"].append(policy["Statement"][0])
 
-                    # enable Public Access Block
-                try:
-                    self.client_s3.put_public_access_block(
-                        Bucket=resource_id,
-                        PublicAccessBlockConfiguration={
-                            "BlockPublicPolicy": True,
-                            "RestrictPublicBuckets": True,
-                        },
-                    )
-                    self.logging.info(
-                        f"Enabled public access block for S3 Bucket '{resource_id}'."
-                    )
-                except:
+            try:
+                self.client_s3.put_bucket_policy(
+                    Bucket=resource_id, Policy=json.dumps(existing_policy)
+                )
+                self.logging.info(
+                    f"Set SSL requests only policy to S3 Bucket '{resource_id}'."
+                )
+                return True
+            except ClientError as error:
+                if error.response["Error"]["Code"] == "AccessDenied":
+                    try:
+                        # disable Public Access Block
+                        self.client_s3.put_public_access_block(
+                            Bucket=resource_id,
+                            PublicAccessBlockConfiguration={
+                                "BlockPublicPolicy": False,
+                                "RestrictPublicBuckets": False,
+                            },
+                        )
+
+                        # put Bucket Policy
+                        self.client_s3.put_bucket_policy(
+                            Bucket=resource_id, Policy=json.dumps(existing_policy)
+                        )
+
+                        # enable Public Access Block
+                        self.client_s3.put_public_access_block(
+                            Bucket=resource_id,
+                            PublicAccessBlockConfiguration={
+                                "BlockPublicPolicy": True,
+                                "RestrictPublicBuckets": True,
+                            },
+                        )
+
+                        self.logging.info(
+                            f"Set SSL requests only policy to S3 Bucket '{resource_id}'."
+                        )
+                        return True
+                    except:
+                        self.logging.error(
+                            f"Could not set SSL requests only policy to S3 Bucket '{resource_id}'."
+                        )
+                        self.logging.error(sys.exc_info()[1])
+                        return False
+                else:
                     self.logging.error(
-                        f"Could not enable public access block for S3 Bucket '{resource_id}'."
+                        f"Could not set SSL requests only policy to S3 Bucket '{resource_id}'."
                     )
                     self.logging.error(sys.exc_info()[1])
                     return False
-
-                return True
-            else:
+            except:
                 self.logging.error(
                     f"Could not set SSL requests only policy to S3 Bucket '{resource_id}'."
                 )
                 self.logging.error(sys.exc_info()[1])
                 return False
-        except:
-            self.logging.error(
-                f"Could not set SSL requests only policy to S3 Bucket '{resource_id}'."
-            )
-            self.logging.error(sys.exc_info()[1])
-            return False
