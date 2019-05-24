@@ -11,6 +11,7 @@ class ConfigRules:
 
         self._client_rds = None
         self._client_s3 = None
+        self._client_sts = None
 
     @property
     def client_rds(self):
