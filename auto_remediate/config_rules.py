@@ -80,7 +80,7 @@ class ConfigRules:
                         return False
 
     def s3_bucket_server_side_encryption_enabled(self, resource_id):
-        """Enables Service Side Encruption for an S3 Bucket
+        """Enables Server-side Encryption for an S3 Bucket
         
         Arguments:
             resource_id {string} -- S3 Bucket name
@@ -102,12 +102,12 @@ class ConfigRules:
                 },
             )
             self.logging.info(
-                f"Enabled Service Side Encryption for S3 Bucket '{resource_id}'."
+                f"Enabled Server-side Encryption for S3 Bucket '{resource_id}'."
             )
             return True
         except:
             self.logging.info(
-                f"Could not enable Service Side Encryption for S3 Bucket '{resource_id}'."
+                f"Could not enable Server-side Encryption for S3 Bucket '{resource_id}'."
             )
             self.logging.error(sys.exc_info()[1])
             return False
