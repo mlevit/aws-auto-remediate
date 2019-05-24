@@ -132,7 +132,14 @@ class ConfigRules:
         try:
             response = self.client_s3.get_bucket_policy(Bucket=resource_id)
         except ClientError as error:
-            return self.set_bucket_policy(resource_id, json.dumps(policy))
+            if error.response["Error"]["Code"] == "NoSuchBucketPolicy":
+                return self.set_bucket_policy(resource_id, json.dumps(policy))
+            else:
+                self.logging.error(
+                    f"Could not set SSL requests only policy to S3 Bucket '{resource_id}'."
+                )
+                self.logging.error(sys.exc_info()[1])
+                return False
         except:
             self.logging.error(
                 f"Could not retrieve existing policy to S3 Bucket '{resource_id}'."
