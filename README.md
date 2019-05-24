@@ -46,7 +46,7 @@ Proceed to the [Deployment](#deployment) section below.
 
 ### Existing Account
 
-Auto Remediate utilises the compliance event triggers made by AWS Config. Due to the fact that AWS Config will trigger a compliance event **only** when the compliance status of a resource changes state (i.e., COMPLIANT to NON_COMPLIANT or vice versa) it is advised that you **disabled** the `CIS AWS Foundations` compliance standards within AWS Security Hub (and ensure all AWS Config rules starting with `securityhub` are removed from your account) before proceeding.
+Auto Remediate utilises the compliance event triggers made by AWS Config. Due to the fact that AWS Config will trigger a compliance event **only** when the compliance status of a resource changes state (i.e., COMPLIANT to NON_COMPLIANT or vice versa) it is advised that you **disable** the `CIS AWS Foundations` compliance standards within AWS Security Hub (and ensure all AWS Config rules starting with `securityhub` are removed from your account) before proceeding.
 
 Once AWS Config is cleared of all AWS Security Hub related rules, you may proceed to deploy Auto Remediate and enable the `CIS AWS Foundations` compliance standards within AWS Security Hub.
 
