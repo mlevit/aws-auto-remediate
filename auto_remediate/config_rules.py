@@ -59,7 +59,7 @@ class ConfigRules:
             paginator = self.client_rds.get_paginator("describe_db_instances")
             response = paginator.paginate(DBInstanceIdentifier=resource_id)
         except:
-            self.logging.error("Could not describe RDS DB Instances.")
+            self.logging.error("Could not describe RDS DB Instances.", exc_info=True)
             return False
         else:
             for instance in response["DBInstances"]:
@@ -74,9 +74,9 @@ class ConfigRules:
                     return True
                 except:
                     self.logging.error(
-                        f"Could not disable Public Accessibility for RDS Instance '{resource_id}'."
+                        f"Could not disable Public Accessibility for RDS Instance '{resource_id}'.",
+                        exc_info=True,
                     )
-                    self.logging.error(sys.exc_info()[1])
                     return False
 
     def s3_bucket_server_side_encryption_enabled(self, resource_id):
@@ -106,10 +106,10 @@ class ConfigRules:
             )
             return True
         except:
-            self.logging.info(
-                f"Could not enable Server-side Encryption for S3 Bucket '{resource_id}'."
+            self.logging.error(
+                f"Could not enable Server-side Encryption for S3 Bucket '{resource_id}'.",
+                exc_info=True,
             )
-            self.logging.error(sys.exc_info()[1])
             return False
 
     def s3_bucket_ssl_requests_only(self, resource_id):
@@ -136,18 +136,18 @@ class ConfigRules:
                 return self.set_bucket_policy(resource_id, json.dumps(policy))
             else:
                 self.logging.error(
-                    f"Could not set SSL requests only policy to S3 Bucket '{resource_id}'."
+                    f"Could not set SSL requests only policy to S3 Bucket '{resource_id}'.",
+                    exc_info=True,
                 )
-                self.logging.error(sys.exc_info()[1])
                 return False
         except:
             self.logging.error(
-                f"Could not retrieve existing policy to S3 Bucket '{resource_id}'."
+                f"Could not retrieve existing policy to S3 Bucket '{resource_id}'.",
+                exc_info=True,
             )
         else:
             existing_policy = json.loads(response["Policy"])
             existing_policy["Statement"].append(policy["Statement"][0])
-
             return self.set_bucket_policy(resource_id, json.dumps(existing_policy))
 
     def set_bucket_policy(self, bucket, policy):
@@ -195,19 +195,19 @@ class ConfigRules:
                     return True
                 except:
                     self.logging.error(
-                        f"Could not set SSL requests only policy to S3 Bucket '{bucket}'."
+                        f"Could not set SSL requests only policy to S3 Bucket '{bucket}'.",
+                        exc_info=True,
                     )
-                    self.logging.error(sys.exc_info()[1])
                     return False
             else:
                 self.logging.error(
-                    f"Could not set SSL requests only policy to S3 Bucket '{bucket}'."
+                    f"Could not set SSL requests only policy to S3 Bucket '{bucket}'.",
+                    exc_info=True,
                 )
-                self.logging.error(sys.exc_info()[1])
                 return False
         except:
             self.logging.error(
-                f"Could not set SSL requests only policy to S3 Bucket '{bucket}'."
+                f"Could not set SSL requests only policy to S3 Bucket '{bucket}'.",
+                exc_info=True,
             )
-            self.logging.error(sys.exc_info()[1])
             return False

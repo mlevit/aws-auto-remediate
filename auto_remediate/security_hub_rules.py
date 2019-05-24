@@ -89,9 +89,9 @@ class SecurityHubRules:
             response = self.client_iam.get_access_key_last_used(AccessKeyId=resource_id)
         except:
             self.logging.error(
-                f"Could not retrieve IAM User Name for IAM Access Key '{resource_id}'."
+                f"Could not retrieve IAM User Name for IAM Access Key '{resource_id}'.",
+                exc_info=True,
             )
-            self.logging.error(sys.exc_info()[1])
             return False
         else:
             user_name = response["UserName"]
@@ -109,9 +109,9 @@ class SecurityHubRules:
             return True
         except:
             self.logging.error(
-                f"Could not delete unrotated IAM Access Key '{resource_id}' for IAM User Name '{user_name}'."
+                f"Could not delete unrotated IAM Access Key '{resource_id}' for IAM User Name '{user_name}'.",
+                exc_info=True,
             )
-            self.logging.error(sys.exc_info()[1])
             return False
 
     def cloud_trail_cloud_watch_logs_enabled(self, resource_id):
@@ -133,9 +133,9 @@ class SecurityHubRules:
             )
         except:
             self.logging.error(
-                f"Could not create new CloudWatch Log Group '{cloudwatch_log_group_name}'."
+                f"Could not create new CloudWatch Log Group '{cloudwatch_log_group_name}'.",
+                exc_info=True,
             )
-            self.logging.error(sys.exc_info()[1])
             return False
         else:
             try:
@@ -144,9 +144,9 @@ class SecurityHubRules:
                 )
             except:
                 self.logging.error(
-                    f"Could not describe CloudWatch Log Group '{cloudwatch_log_group_name}'."
+                    f"Could not describe CloudWatch Log Group '{cloudwatch_log_group_name}'.",
+                    exc_info=True,
                 )
-                self.logging.error(sys.exc_info()[1])
                 self.delete_log_group(cloudwatch_log_group_name)
                 return False
             else:
@@ -170,8 +170,10 @@ class SecurityHubRules:
             )
             self.logging.info(f"Created new IAM Role '{iam_role_name}'.")
         except:
-            self.logging.error(f"Could not create new IAM Role '{iam_role_name}'.")
-            self.logging.error(sys.exc_info()[1])
+            self.logging.error(
+                f"Could not create new IAM Role '{iam_role_name}'.", exc_info=True
+            )
+
             self.delete_log_group(cloudwatch_log_group_name)
             return False
         else:
@@ -201,9 +203,10 @@ class SecurityHubRules:
                 )
             except:
                 self.logging.error(
-                    f"Could not add IAM Policy '{iam_policy_name}' to IAM Role '{iam_role_name}'."
+                    f"Could not add IAM Policy '{iam_policy_name}' to IAM Role '{iam_role_name}'.",
+                    exc_info=True,
                 )
-                self.logging.error(sys.exc_info()[1])
+
                 self.delete_role(iam_role_name)
                 self.delete_log_group(cloudwatch_log_group_name)
                 return False
@@ -231,8 +234,10 @@ class SecurityHubRules:
                     f"Waiting for CloudWatch Log Group '{cloudwatch_log_group_name}' to be created. Sleeping for {backoff} second(s)."
                 )
             except:
-                self.logging.error(f"Could not update CloudTrail '{resource_id}'.")
-                self.logging.error(sys.exc_info()[1])
+                self.logging.error(
+                    f"Could not update CloudTrail '{resource_id}'.", exc_info=True
+                )
+
                 self.delete_role_policy(iam_role_name, iam_policy_name)
                 self.delete_role(iam_role_name)
                 self.delete_log_group(cloudwatch_log_group_name)
@@ -267,9 +272,9 @@ class SecurityHubRules:
             )
         except:
             self.logging.error(
-                f"Could not create new KMS Customer Managed Key for CloudTrail '{resource_id}'."
+                f"Could not create new KMS Customer Managed Key for CloudTrail '{resource_id}'.",
+                exc_info=True,
             )
-            self.logging.error(sys.exc_info()[1])
             return False
         else:
             kms_key_id = response["KeyMetadata"]["KeyId"]
@@ -290,9 +295,9 @@ class SecurityHubRules:
             self.logging.info(f"KMS Alias '{kms_alias_name}' already exists.")
         except:
             self.logging.error(
-                f"Could not create KMS Alias '{kms_alias_name}' for KMS Key '{kms_key_id}'."
+                f"Could not create KMS Alias '{kms_alias_name}' for KMS Key '{kms_key_id}'.",
+                exc_info=True,
             )
-            self.logging.error(sys.exc_info()[1])
             self.schedule_key_deletion(kms_key_id)
             return False
 
@@ -305,15 +310,18 @@ class SecurityHubRules:
             return True
         except:
             self.logging.error(
-                f"Could not encrypt CloudTrail '{resource_id}' with new KMS Customer Managed Key '{kms_key_id}'."
+                f"Could not encrypt CloudTrail '{resource_id}' with new KMS Customer Managed Key '{kms_key_id}'.",
+                exc_info=True,
             )
-            self.logging.error(sys.exc_info()[1])
+
             try:
                 self.client_kms.delete_alias(AliasName=kms_alias_name)
                 self.logging.info(f"Deleted KMS Alias '{kms_alias_name}'.")
             except:
-                self.logging.error(f"Could not delete KMS Alias '{kms_alias_name}'.")
-                self.logging.error(sys.exc_info()[1])
+                self.logging.error(
+                    f"Could not delete KMS Alias '{kms_alias_name}'.", exc_info=True
+                )
+
             self.schedule_key_deletion(kms_key_id)
             return False
 
@@ -336,9 +344,9 @@ class SecurityHubRules:
             return True
         except:
             self.logging.error(
-                f"Could not enable Log File Validation for CloudTrail '{resource_id}'."
+                f"Could not enable Log File Validation for CloudTrail '{resource_id}'.",
+                exc_info=True,
             )
-            self.logging.error(sys.exc_info()[1])
             return False
 
     def cmk_backing_key_rotation_enabled(self, resource_id):
@@ -364,9 +372,9 @@ class SecurityHubRules:
             return False
         except:
             self.logging.error(
-                f"Could not enable key rotation for KMS Customer Managed Key '{resource_id}'."
+                f"Could not enable key rotation for KMS Customer Managed Key '{resource_id}'.",
+                exc_info=True,
             )
-            self.logging.error(sys.exc_info()[1])
             return False
 
     def iam_password_policy(self, resource_id):
@@ -404,9 +412,9 @@ class SecurityHubRules:
             return True
         except:
             self.logging.error(
-                f"Could not update IAM password policy for Account '{resource_id}'."
+                f"Could not update IAM password policy for Account '{resource_id}'.",
+                exc_info=True,
             )
-            self.logging.error(sys.exc_info()[1])
             return False
 
     def iam_policy_no_statements_with_admin_access(self, resource_id):
@@ -422,8 +430,9 @@ class SecurityHubRules:
         try:
             paginator = self.client_iam.get_paginator("list_policies").paginate()
         except:
-            self.logging.error("Could not get a paginator to list all IAM Policies.")
-            self.logging.error(sys.exc_info()[1])
+            self.logging.error(
+                "Could not get a paginator to list all IAM Policies.", exc_info=True
+            )
             return False
 
         for policy_arn in paginator.search(
@@ -433,8 +442,9 @@ class SecurityHubRules:
             try:
                 response = self.client_iam.get_policy(PolicyArn=policy_arn)
             except:
-                self.logging.error(f"Could not get IAM Policy '{policy_arn}' details.")
-                self.logging.error(sys.exc_info()[1])
+                self.logging.error(
+                    f"Could not get IAM Policy '{policy_arn}' details.", exc_info=True
+                )
                 return False
 
             default_version = response["Policy"]["DefaultVersionId"]
@@ -446,9 +456,9 @@ class SecurityHubRules:
                 )
             except:
                 self.logging.error(
-                    f"Could not get Policy Version for IAM Policy '{policy_arn}'."
+                    f"Could not get Policy Version for IAM Policy '{policy_arn}'.",
+                    exc_info=True,
                 )
-                self.logging.error(sys.exc_info()[1])
                 return False
 
             # remove admin statements from policy
@@ -476,9 +486,9 @@ class SecurityHubRules:
                 )
             except:
                 self.logging.error(
-                    f"Could not create a new Policy Version '{policy}' for IAM Policy '{policy_arn}'."
+                    f"Could not create a new Policy Version '{policy}' for IAM Policy '{policy_arn}'.",
+                    exc_info=True,
                 )
-                self.logging.error(sys.exc_info()[1])
                 return False
         return True
 
@@ -509,9 +519,9 @@ class SecurityHubRules:
                     return True
         except:
             self.logging.error(
-                f"Could not detach IAM Policy '{policy_arn}' from IAM User '{username}'."
+                f"Could not detach IAM Policy '{policy_arn}' from IAM User '{username}'.",
+                exc_info=True,
             )
-            self.logging.error(sys.exc_info()[1])
             return False
 
     def iam_user_unused_credentials_check(self, resource_id):
@@ -526,8 +536,9 @@ class SecurityHubRules:
         try:
             paginator = self.client_iam.get_paginator("list_users").paginate()
         except:
-            self.logging.error("Could not get a paginator to list all IAM users.")
-            self.logging.error(sys.exc_info()[1])
+            self.logging.error(
+                "Could not get a paginator to list all IAM users.", exc_info=True
+            )
             return False
 
         for user_name in paginator.search(
@@ -542,9 +553,9 @@ class SecurityHubRules:
                 )
             except:
                 self.logging.error(
-                    f"Could not retrieve IAM Login Profile for User '{user_name}'."
+                    f"Could not retrieve IAM Login Profile for User '{user_name}'.",
+                    exc_info=True,
                 )
-                self.logging.error(sys.exc_info()[1])
             else:
                 login_profile_date = login_profile["LoginProfile"]["CreateDate"]
                 if SecurityHubRules.get_day_delta(login_profile_date) > 90:
@@ -555,9 +566,9 @@ class SecurityHubRules:
                         )
                     except:
                         self.logging.error(
-                            f"Could not delete IAM Login Profile for User '{user_name}'."
+                            f"Could not delete IAM Login Profile for User '{user_name}'.",
+                            exc_info=True,
                         )
-                        self.logging.error(sys.exc_info()[1])
                         return False
 
             # check access keys usage
@@ -565,9 +576,9 @@ class SecurityHubRules:
                 list_access_keys = self.client_iam.list_access_keys(UserName=user_name)
             except:
                 self.logging.error(
-                    f"Could not list IAM Access Keys for User '{user_name}'."
+                    f"Could not list IAM Access Keys for User '{user_name}'.",
+                    exc_info=True,
                 )
-                self.logging.error(sys.exc_info()[1])
                 return False
 
             for access_key in list_access_keys["AccessKeyMetadata"]:
@@ -588,11 +599,10 @@ class SecurityHubRules:
                         )
                     except:
                         self.logging.error(
-                            f"Could not delete IAM Access Key for User '{user_name}'."
+                            f"Could not delete IAM Access Key for User '{user_name}'.",
+                            exc_info=True,
                         )
-                        self.logging.error(sys.exc_info()[1])
                         return False
-
             return True
 
     def mfa_enabled_for_iam_console_access(self, resource_id):
@@ -614,9 +624,9 @@ class SecurityHubRules:
                 return True
         except:
             self.logging.error(
-                f"Could not delete login profile for IAM User '{resource_id}'."
+                f"Could not delete login profile for IAM User '{resource_id}'.",
+                exc_info=True,
             )
-            self.logging.error(sys.exc_info()[1])
             return False
 
     def multi_region_cloud_trail_enabled(self, resource_id):
@@ -638,9 +648,9 @@ class SecurityHubRules:
             return True
         except:
             self.logging.error(
-                f"Could not enable multi region trail for CloudTrail '{resource_id}'."
+                f"Could not enable multi region trail for CloudTrail '{resource_id}'.",
+                exc_info=True,
             )
-            self.logging.error(sys.exc_info()[1])
             return False
 
     def restricted_rdp(self, resource_id):
@@ -681,9 +691,9 @@ class SecurityHubRules:
             return True
         except:
             self.logging.error(
-                f"Could not revoke public port 3389 ingress rule for Security Group '{resource_id}'."
+                f"Could not revoke public port 3389 ingress rule for Security Group '{resource_id}'.",
+                exc_info=True,
             )
-            self.logging.error(sys.exc_info()[1])
             return False
 
     def restricted_ssh(self, resource_id):
@@ -723,9 +733,9 @@ class SecurityHubRules:
             return True
         except:
             self.logging.error(
-                f"Could not revoke public port 22 ingress rule for Security Group '{resource_id}'."
+                f"Could not revoke public port 22 ingress rule for Security Group '{resource_id}'.",
+                exc_info=True,
             )
-            self.logging.error(sys.exc_info()[1])
             return False
 
     def s3_bucket_logging_enabled(self, resource_id):
@@ -747,7 +757,6 @@ class SecurityHubRules:
                 Bucket=log_bucket,
                 CreateBucketConfiguration={"LocationConstraint": self.region},
             )
-
             self.logging.info(
                 f"Created new S3 Bucket '{log_bucket}' "
                 f"for storing server access logs for S3 Bucket '{resource_id}'."
@@ -761,7 +770,6 @@ class SecurityHubRules:
                 f"Could not create new S3 Bucket '{log_bucket}' "
                 f"for storing server access logs for S3 Bucket '{resource_id}'."
             )
-            self.logging.error(sys.exc_info()[1])
             return False
 
         # add original Bucket logging into the log Bucket
@@ -775,7 +783,6 @@ class SecurityHubRules:
                     }
                 },
             )
-
             self.logging.info(
                 f"Server access logging enabled for "
                 f"S3 Bucket '{resource_id}' to S3 Bucket '{log_bucket}/{resource_id}'."
@@ -786,7 +793,6 @@ class SecurityHubRules:
                 f"Could not enable server access logging enabled for "
                 f"S3 Bucket '{resource_id}' to S3 Bucket '{log_bucket}/{resource_id}'."
             )
-            self.logging.error(sys.exc_info()[1])
             return False
 
     def s3_bucket_public_read_prohibited(self, resource_id):
@@ -805,9 +811,9 @@ class SecurityHubRules:
             return True
         except:
             self.logging.error(
-                f"Could not set ACL set to 'private' for S3 Bucket '{resource_id}'."
+                f"Could not set ACL set to 'private' for S3 Bucket '{resource_id}'.",
+                exc_info=True,
             )
-            self.logging.error(sys.exc_info()[1])
             return False
 
     def s3_bucket_public_write_prohibited(self, resource_id):
@@ -826,9 +832,9 @@ class SecurityHubRules:
             return True
         except:
             self.logging.error(
-                f"Could not set ACL set to 'private' for S3 Bucket '{resource_id}'."
+                f"Could not set ACL set to 'private' for S3 Bucket '{resource_id}'.",
+                exc_info=True,
             )
-            self.logging.error(sys.exc_info()[1])
             return False
 
     def vpc_default_security_group_closed(self, resource_id):
@@ -844,9 +850,9 @@ class SecurityHubRules:
             response = self.client_ec2.describe_security_groups(GroupIds=[resource_id])
         except:
             self.logging.error(
-                f"Could not describe default Security Group '{resource_id}'."
+                f"Could not describe default Security Group '{resource_id}'.",
+                exc_info=True,
             )
-            self.logging.error(sys.exc_info()[1])
             return False
 
         for security_group in response["SecurityGroups"]:
@@ -861,27 +867,25 @@ class SecurityHubRules:
                 )
             except:
                 self.logging.error(
-                    f"Could not revoke egress rules for default Security Group '{resource_id}'."
+                    f"Could not revoke egress rules for default Security Group '{resource_id}'.",
+                    exc_info=True,
                 )
-                self.logging.error(sys.exc_info()[1])
                 return False
 
             # revoke ingress rules
             try:
                 self.client_ec2.revoke_security_group_ingress(
-                    GroupId=resource_id,
-                    IpPermissions=security_group["IpPermissions"],
+                    GroupId=resource_id, IpPermissions=security_group["IpPermissions"]
                 )
                 self.logging.info(
                     f"Revoked all ingress rules for default Security Group '{resource_id}'."
                 )
             except:
                 self.logging.error(
-                    f"Could not revoke ingress rules for default Security Group '{resource_id}'."
+                    f"Could not revoke ingress rules for default Security Group '{resource_id}'.",
+                    exc_info=True,
                 )
-                self.logging.error(sys.exc_info()[1])
                 return False
-
             return True
 
     def vpc_flow_logs_enabled(self, resource_id):
@@ -916,7 +920,6 @@ class SecurityHubRules:
                 f"Could not create new S3 Bucket '{log_bucket}' "
                 f"for storing VPC Flow Logs for VPC '{resource_id}'."
             )
-            self.logging.error(sys.exc_info()[1])
             return False
 
         # add VPC flow logs
@@ -939,7 +942,6 @@ class SecurityHubRules:
                 f"Could not enable VPC Flow Logs for "
                 f"VPC '{resource_id}' to S3 Bucket '{log_bucket}/{resource_id}'."
             )
-            self.logging.error(sys.exc_info()[1])
             return False
 
     # ROLLBACK METHODS
@@ -951,17 +953,18 @@ class SecurityHubRules:
             self.logging.info(f"Deleted CloudWatch Log Group '{log_group_name}'.")
         except:
             self.logging.error(
-                f"Could not delete CloudWatch Log Group '{log_group_name}'."
+                f"Could not delete CloudWatch Log Group '{log_group_name}'.",
+                exc_info=True,
             )
-            self.logging.error(sys.exc_info()[1])
 
     def delete_role(self, role_name):
         try:
             self.client_iam.delete_role(RoleName=role_name)
             self.logging.info(f"Deleted IAM Role '{role_name}'.")
         except:
-            self.logging.error(f"Could not delete IAM Role '{role_name}'.")
-            self.logging.error(sys.exc_info()[1])
+            self.logging.error(
+                f"Could not delete IAM Role '{role_name}'.", exc_info=True
+            )
 
     def delete_role_policy(self, role_name, iam_policy_name):
         try:
@@ -973,9 +976,9 @@ class SecurityHubRules:
             )
         except:
             self.logging.error(
-                f"Could not delete IAM Policy '{iam_policy_name}' from IAM Role '{role_name}'."
+                f"Could not delete IAM Policy '{iam_policy_name}' from IAM Role '{role_name}'.",
+                exc_info=True,
             )
-            self.logging.error(sys.exc_info()[1])
 
     # KMS
     def schedule_key_deletion(self, key_id):
@@ -985,7 +988,9 @@ class SecurityHubRules:
                 f"Scheduled KMS Customer Managed Key '{key_id}' for deletion."
             )
         except:
-            self.logging.error(f"Could not delete KMS Customer Managed Key '{key_id}'.")
+            self.logging.error(
+                f"Could not delete KMS Customer Managed Key '{key_id}'.", exc_info=True
+            )
 
     # S3
     def delete_bucket(self, bucket):
@@ -993,7 +998,7 @@ class SecurityHubRules:
             self.client_s3.delete_bucket(Bucket=bucket)
             self.logging.info(f"Deleted S3 Bucket '{bucket}'.")
         except:
-            self.logging.error(f"Could not delete S3 Bucket '{bucket}'.")
+            self.logging.error(f"Could not delete S3 Bucket '{bucket}'.", exc_info=True)
 
     # STATIC METHODS
 

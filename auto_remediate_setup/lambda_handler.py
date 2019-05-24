@@ -50,9 +50,10 @@ class Setup:
                             )
                         except:
                             self.logging.error(
-                                f"Could not create AWS Config Rule '{stack_name}'."
+                                f"Could not create AWS Config Rule '{stack_name}'.",
+                                exc_info=True,
                             )
-                            self.logging.error(sys.exc_info()[1])
+
                             continue
                     else:
                         self.logging.info(
@@ -81,7 +82,9 @@ class Setup:
         try:
             resources = self.client_cloudformation.list_stacks().get("StackSummaries")
         except:
-            self.logging.error(sys.exc_info()[1])
+            self.logging.error(
+                f"Could not list existing CloudFormation Stacks.", exc_info=True
+            )
             return None
 
         existing_stacks = []
@@ -106,9 +109,9 @@ class Setup:
                 settings[record_json.get("key")] = record_json.get("value")
         except:
             self.logging.error(
-                f"Could not read DynamoDB table '{os.environ['SETTINGSTABLE']}'."
+                f"Could not read DynamoDB table '{os.environ['SETTINGSTABLE']}'.",
+                exc_info=True,
             )
-            self.logging.error(sys.exc_info()[1])
 
         return settings
 
@@ -116,12 +119,12 @@ class Setup:
         """Inserts all the default settings into a DynamoDB table.
         """
         try:
+            update_settings = False
+
             settings_data = open(
                 "auto_remediate_setup/data/auto-remediate-settings.json"
             )
             settings_json = json.loads(settings_data.read())
-
-            update_settings = False
 
             # get current settings version
             current_version = self.client_dynamodb.get_item(
@@ -163,7 +166,10 @@ class Setup:
                             TableName=os.environ["SETTINGSTABLE"], Item=setting
                         )
                     except:
-                        self.logging.error(sys.exc_info()[1])
+                        self.logging.error(
+                            f"Could not Put Item '{setting}' into DynamoDB Table '{os.environ['SETTINGSTABLE']}'.",
+                            exc_info=True,
+                        )
                         continue
 
             settings_data.close()

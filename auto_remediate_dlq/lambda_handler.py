@@ -27,9 +27,9 @@ class Retry:
             self.logging.debug(f"SQS payload: {response}")
         except:
             self.logging.error(
-                f"Could not retrieve Messages from SQS Queue URL '{queue_url}'."
+                f"Could not retrieve Messages from SQS Queue URL '{queue_url}'.",
+                exc_info=True,
             )
-            self.logging.error(sys.exc_info()[1])
 
         while "Messages" in response:
             for message in response.get("Messages"):
@@ -53,9 +53,9 @@ class Retry:
                 )
             except:
                 self.logging.error(
-                    f"Could not retrieve Messages from SQS Queue URL '{queue_url}'."
+                    f"Could not retrieve Messages from SQS Queue URL '{queue_url}'.",
+                    exc_info=True,
                 )
-                self.logging.error(sys.exc_info()[1])
 
     def delete_from_queue(self, queue_url, receipt_handle):
         """Delete a Message from an SQS Queue.
@@ -73,9 +73,9 @@ class Retry:
             )
         except:
             self.logging.error(
-                f"Could not delete Message '{receipt_handle}' from SQS Queue URL '{queue_url}'."
+                f"Could not delete Message '{receipt_handle}' from SQS Queue URL '{queue_url}'.",
+                exc_info=True,
             )
-            self.logging.error(sys.exc_info()[1])
 
     @staticmethod
     def get_config_rule_compliance(record):
@@ -127,8 +127,9 @@ class Retry:
             self.logging.debug(f"Message payload sent to SQS Queue '{queue_url}'.")
             return True
         except:
-            self.logging.error(f"Could not send payload to SQS Queue '{queue_url}'.")
-            self.logging.error(sys.exc_info()[1])
+            self.logging.error(
+                f"Could not send payload to SQS Queue '{queue_url}'.", exc_info=True
+            )
             return False
 
 

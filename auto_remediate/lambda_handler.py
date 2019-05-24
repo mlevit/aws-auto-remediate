@@ -160,8 +160,8 @@ class Remediate:
         except:
             self.logging.error(
                 f"Could not read DynamoDB table '{os.environ['SETTINGSTABLE']}'."
-            )
-            self.logging.error(sys.exc_info()[1])
+            , exc_info=True)
+            
 
         return settings
 
@@ -227,8 +227,8 @@ class Remediate:
             except:
                 self.logging.error(
                     f"Could not send payload to SQS DLQ '{os.environ['DEADLETTERQUEUE']}'."
-                )
-                self.logging.error(sys.exc_info()[1])
+                , exc_info=True)
+                
         else:
             self.logging.warning(
                 f"Could not remediate Config change within an "
@@ -253,7 +253,7 @@ class Remediate:
                 Subject=f"No remediation available for Config Rule '{config_rule_name}'",
             )
         except:
-            self.logging.error(f"Could not publish to SNS Topic 'topic_arn'.")
+            self.logging.error(f"Could not publish to SNS Topic 'topic_arn'.", exc_info=True)
 
 
 def lambda_handler(event, context):
