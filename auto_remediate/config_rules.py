@@ -64,7 +64,7 @@ class ConfigRules:
                         return False
 
     def s3_bucket_server_side_encryption_enabled(self, resource_id):
-        """Enables Service Side Encruption for an S3 Bucket
+        """Enables Service Side Encryption for an S3 Bucket
         
         Arguments:
             resource_id {string} -- S3 Bucket name
