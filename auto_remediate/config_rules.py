@@ -18,29 +18,17 @@ class ConfigRules:
             self._client_rds = boto3.client("rds")
         return self._client_rds
 
-    @client_rds.setter
-    def client_rds(self, client):
-        self._client_rds = client
-
     @property
     def client_s3(self):
         if not self._client_s3:
             self._client_s3 = boto3.client("s3")
         return self._client_s3
 
-    @client_s3.setter
-    def client_s3(self, client):
-        self._client_s3 = client
-
     @property
     def client_sts(self):
         if not self._client_sts:
             self._client_sts = boto3.client("sts")
         return self._client_sts
-
-    @client_sts.setter
-    def client_sts(self, client):
-        self._client_sts = client
 
     @property
     def account_number(self):

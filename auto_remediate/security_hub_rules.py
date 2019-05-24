@@ -25,19 +25,11 @@ class SecurityHubRules:
             self._client_cloudtrail = boto3.client("cloudtrail")
         return self._client_cloudtrail
 
-    @client_cloudtrail.setter
-    def client_cloudtrail(self, client):
-        self._client_cloudtrail = client
-
     @property
     def client_ec2(self):
         if not self._client_ec2:
             self._client_ec2 = boto3.client("ec2", self.region)
         return self._client_ec2
-
-    @client_ec2.setter
-    def client_ec2(self, client):
-        self._client_ec2 = client
 
     @property
     def client_iam(self):
@@ -45,19 +37,11 @@ class SecurityHubRules:
             self._client_iam = boto3.client("iam")
         return self._client_iam
 
-    @client_iam.setter
-    def client_iam(self, client):
-        self._client_iam = client
-
     @property
     def client_logs(self):
         if not self._client_kms:
             self._client_logs = boto3.client("logs")
         return self._client_logs
-
-    @client_logs.setter
-    def client_logs(self, client):
-        self._client_logs = client
 
     @property
     def client_kms(self):
@@ -65,29 +49,17 @@ class SecurityHubRules:
             self._client_kms = boto3.client("kms", self.region)
         return self._client_kms
 
-    @client_kms.setter
-    def client_kms(self, client):
-        self._client_kms = client
-
     @property
     def client_s3(self):
         if not self._client_s3:
             self._client_s3 = boto3.client("s3")
         return self._client_s3
 
-    @client_s3.setter
-    def client_s3(self, client):
-        self._client_s3 = client
-
     @property
     def client_sts(self):
         if not self._client_sts:
             self._client_sts = boto3.client("sts")
         return self._client_sts
-
-    @client_sts.setter
-    def client_sts(self, client):
-        self._client_sts = client
 
     @property
     def account_number(self):
