@@ -78,12 +78,12 @@ class ConfigRules:
                 },
             )
             self.logging.info(
-                f"Enabled Service Side Encryption for S3 Bucket '{resource_id}'."
+                f"Enabled Server-side Encryption for S3 Bucket '{resource_id}'."
             )
             return True
         except:
             self.logging.info(
-                f"Could not enable Service Side Encryption for S3 Bucket '{resource_id}'."
+                f"Could not enable Server-side Encryption for S3 Bucket '{resource_id}'."
             )
             self.logging.error(sys.exc_info()[1])
             return False
