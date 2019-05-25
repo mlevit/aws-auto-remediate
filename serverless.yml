@@ -122,6 +122,7 @@ functions:
     timeout: 60
     package:
       exclude:
+        - auto_remediate_dlq/test/**
         - auto_remediate/**
         - auto_remediate_setup/**
     environment:
@@ -151,6 +152,7 @@ functions:
     timeout: 60
     package:
       exclude:
+        - auto_remediate_setup/test/**
         - auto_remediate/**
         - auto_remediate_dlq/**
     environment:
