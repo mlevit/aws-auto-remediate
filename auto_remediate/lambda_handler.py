@@ -271,22 +271,21 @@ def lambda_handler(event, context):
     logging.getLogger("botocore").setLevel(logging.ERROR)
     logging.getLogger("urllib3").setLevel(logging.ERROR)
 
-    # set logging format
-    logging.basicConfig(
-        format="[%(levelname)s] %(message)s (%(filename)s, %(funcName)s(), line %(lineno)d)",
-        level=os.environ.get("LOGLEVEL", "INFO"),
+    # create formatter and add it to the handlers
+    formatter = logging.Formatter(
+        "[%(levelname)s] %(message)s (%(filename)s, %(funcName)s(), line %(lineno)d)"
     )
 
     # add console logger
     console_logger = logging.StreamHandler()
     console_logger.setLevel(os.environ.get("LOGLEVEL", "INFO"))
+    console_logger.setFormatter(formatter)
+    loggger.addHandler(console_logger)
 
     # add SNS logger
     sns_logger = SNSHandler(os.environ.get("LOGTOPIC"))
     sns_logger.setLevel(logging.INFO)
-
-    # add the handlers to the root logger
-    loggger.addHandler(console_logger)
+    sns_logger.setFormatter(formatter)
     loggger.addHandler(sns_logger)
 
     # instantiate class
