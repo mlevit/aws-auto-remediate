@@ -267,3 +267,14 @@ class TestSecurityHubVPCDefaultSecurityGroupClosedCheck:
 
     def test_invalid_security_group_id(self, sh):
         assert not sh.vpc_default_security_group_closed("test")
+
+
+class TestSecurityHubVpcFlowLogsEnabled:
+    @pytest.fixture
+    def sh(self):
+        with moto.mock_ec2(), moto.mock_sts():
+            sh = security_hub_rules.SecurityHubRules(logging)
+            yield sh
+
+    def test_invalid_vpc(self, sh):
+        assert not sh.vpc_flow_logs_enabled("test")

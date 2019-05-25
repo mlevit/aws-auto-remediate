@@ -40,6 +40,21 @@ class TestSecurityHubS3BucketPublicReadProhibited:
         assert not sh.s3_bucket_public_read_prohibited("test123")
 
 
+class TestSecurityHubS3BucketLoggingEnabled:
+    @pytest.fixture
+    def sh(self):
+        with moto.mock_s3(), moto.mock_sts():
+            sh = security_hub_rules.SecurityHubRules(logging)
+            yield sh
+
+    def test_invalid_bucket(self, sh):
+        # create bucket
+        sh.client_s3.create_bucket(ACL="public-read", Bucket="test")
+
+        # validate test
+        assert not sh.s3_bucket_logging_enabled("test")
+
+
 class TestSecurityHubS3BucketPublicWriteProhibited:
     @pytest.fixture
     def sh(self):
