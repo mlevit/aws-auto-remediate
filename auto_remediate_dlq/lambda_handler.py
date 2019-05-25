@@ -10,15 +10,44 @@ class Retry:
         # parameters
         self.logging = logging
 
+        self._client_sts = None
+        self._client_sqs = None
+
+    @property
+    def client_sts(self):
+        if not self._client_sts:
+            self._client_sts = boto3.client("sts")
+        return self._client_sts
+
+    @property
+    def account_number(self):
+        return self.client_sts.get_caller_identity()["Account"]
+
+    @property
+    def account_arn(self):
+        return self.client_sts.get_caller_identity()["Arn"]
+
+    @property
+    def region(self):
+        if self.client_sts.meta.region_name != "aws-global":
+            return self.client_sts.meta.region_name
+        else:
+            return "us-east-1"
+
+    @property
+    def client_sqs(self):
+        if not self._client_sqs:
+            self._client_sqs = boto3.client("sqs", self.region)
+        return self._client_sqs
+
     def retry_security_events(self):
         """Retrieves messages from the DLQ and sends them back into the 
         compliance SQS Queue for reprocessing.
         """
-        client = boto3.client("sqs")
         queue_url = os.environ.get("DEADLETTERQUEUE")
 
         try:
-            response = client.receive_message(
+            response = self.client_sqs.receive_message(
                 QueueUrl=queue_url,
                 MessageAttributeNames=["try_count"],
                 MaxNumberOfMessages=10,
@@ -46,7 +75,7 @@ class Retry:
 
             # get the next 10 messages
             try:
-                response = client.receive_message(
+                response = self.client_sqs.receive_message(
                     QueueUrl=queue_url,
                     MessageAttributeNames=["try_count"],
                     MaxNumberOfMessages=10,
@@ -64,9 +93,10 @@ class Retry:
             queue_url {string} -- URL of an SQS Queue
             receipt_handle {string} -- The receipt handle associated with the message to delete
         """
-        client = boto3.client("sqs")
         try:
-            client.delete_message(QueueUrl=queue_url, ReceiptHandle=receipt_handle)
+            self.client_sqs.delete_message(
+                QueueUrl=queue_url, ReceiptHandle=receipt_handle
+            )
 
             self.logging.info(
                 f"Deleted Message '{receipt_handle}' from SQS Queue URL '{queue_url}'."
@@ -112,11 +142,10 @@ class Retry:
         Returns:
             boolean -- True if sending message to SQS was successful
         """
-        client = boto3.client("sqs")
         queue_url = os.environ.get("COMPLIANCEQUEUE")
 
         try:
-            client.send_message(
+            self.client_sqs.send_message(
                 QueueUrl=queue_url,
                 MessageBody=config_payload,
                 MessageAttributes={

@@ -1,0 +1,149 @@
+import datetime
+import json
+import logging
+import os
+import py
+
+import moto
+import pytest
+
+from .. import lambda_handler
+
+
+class TestStaticMethods:
+    @pytest.fixture
+    def retry(self):
+        retry = lambda_handler.Retry(logging)
+        yield retry
+
+    @pytest.fixture
+    def test_config_payload(self):
+        config_payload_file = "auto_remediate_dlq/test/data/config_payload.json"
+        with open(config_payload_file, "r") as file:
+            config_payload = file.read()
+
+        yield json.loads(config_payload)
+
+    def test_get_config_rule_compliance(self, retry, test_config_payload):
+        """Tests retrieval of Config Rule compliance
+        
+        Arguments:
+            retry {class} -- Instance of Retry class
+            test_config_payload {dictionary} -- AWS Config Payload
+        """
+        # validate test
+        assert retry.get_config_rule_compliance(test_config_payload) == "NON_COMPLIANT"
+
+    def test_get_config_rule_name(self, retry, test_config_payload):
+        """Tests retrieval of Config Rule name
+        
+        Arguments:
+            retry {class} -- Instance of Retry class
+            test_config_payload {dictionary} -- AWS Config Payload
+        """
+        # validate test
+        assert (
+            retry.get_config_rule_name(test_config_payload)
+            == "securityhub-vpc-flow-logs-enabled-l6dseq"
+        )
+
+
+class TestSendToComplianceQueue:
+    @pytest.fixture
+    def retry(self):
+        with moto.mock_sqs():
+            retry = lambda_handler.Retry(logging)
+            yield retry
+
+    @pytest.fixture
+    def test_config_payload(self):
+        config_payload_file = "auto_remediate_dlq/test/data/config_payload.json"
+        with open(config_payload_file, "r") as file:
+            config_payload = file.read()
+
+        yield json.loads(config_payload)
+
+    def test_delete_from_queue(self, retry):
+        # create queue
+        retry.client_sqs.create_queue(QueueName="DEADLETTERQUEUE")
+
+        # get queue url
+        response = retry.client_sqs.get_queue_url(QueueName="DEADLETTERQUEUE")
+        queue_url = response["QueueUrl"]
+
+        # send message to queue
+        retry.client_sqs.send_message(QueueUrl=queue_url, MessageBody="payload")
+
+        # test message in queue
+        response = retry.client_sqs.receive_message(QueueUrl=queue_url)
+        assert len(response["Messages"]) == 1
+
+        # test delete_from_queue function
+        retry.delete_from_queue(queue_url, response["Messages"][0]["ReceiptHandle"])
+
+        response = retry.client_sqs.receive_message(QueueUrl=queue_url)
+
+        # test no messages in queue
+        assert "Messages" not in response
+
+    def test_retry_security_events(self, retry, test_config_payload):
+        # create queues
+        retry.client_sqs.create_queue(QueueName="COMPLIANCEQUEUE")
+        retry.client_sqs.create_queue(QueueName="DEADLETTERQUEUE")
+
+        # get COMPLIANCEQUEUE url
+        response = retry.client_sqs.get_queue_url(QueueName="COMPLIANCEQUEUE")
+        compliance_queue_url = response["QueueUrl"]
+        os.environ["COMPLIANCEQUEUE"] = compliance_queue_url
+
+        # get DEADLETTERQUEUE url
+        response = retry.client_sqs.get_queue_url(QueueName="DEADLETTERQUEUE")
+        dlq_queue_url = response["QueueUrl"]
+        os.environ["DEADLETTERQUEUE"] = dlq_queue_url
+
+        retry.client_sqs.send_message(
+            QueueUrl=dlq_queue_url,
+            MessageBody=json.dumps(test_config_payload),
+            MessageAttributes={"try_count": {"StringValue": "1", "DataType": "Number"}},
+        )
+
+        # test retry_security_events function
+        retry.retry_security_events()
+
+        # assert 0 messages in queue
+        response = retry.client_sqs.receive_message(QueueUrl=dlq_queue_url)
+        assert "Messages" not in response
+
+        # assert 1 message in queue
+        response = retry.client_sqs.receive_message(QueueUrl=compliance_queue_url)
+        assert len(response["Messages"]) == 1
+
+    def test_send_to_compliance_queue(self, retry):
+        # create queue
+        retry.client_sqs.create_queue(QueueName="COMPLIANCEQUEUE")
+
+        # get queue url
+        response = retry.client_sqs.get_queue_url(QueueName="COMPLIANCEQUEUE")
+        queue_url = response["QueueUrl"]
+
+        # set environment variable
+        os.environ["COMPLIANCEQUEUE"] = queue_url
+
+        # test send_to_compliance_queue function
+        retry.send_to_compliance_queue("payload", "1")
+        response = retry.client_sqs.receive_message(
+            QueueUrl=os.environ["COMPLIANCEQUEUE"]
+        )
+
+        # assert 1 message in queue
+        assert len(response["Messages"]) == 1
+
+        # assert payload
+        assert response["Messages"][0]["Body"] == "payload"
+
+        # assert try_count
+        assert (
+            response["Messages"][0]["MessageAttributes"]["try_count"]["StringValue"]
+            == "1"
+        )
+
