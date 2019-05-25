@@ -19,6 +19,7 @@ Open source application to instantly remediate common security issues through th
   - [AWS Security Hub Rules](#aws-security-hub-rules)
 - [Resources](#resources)
 - [Coverage](#coverage)
+- [Contributing](CONTRIBUTING.md)
 
 ## About
 
