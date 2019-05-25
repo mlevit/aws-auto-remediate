@@ -7,7 +7,7 @@ import pytest
 from .. import security_hub_rules
 
 
-class TestSecurityHubAccessKeysRotatedCheck:
+class TestSecurityHubAccessKeysRotated:
     @pytest.fixture
     def sh(self):
         with moto.mock_iam():
@@ -40,7 +40,84 @@ class TestSecurityHubAccessKeysRotatedCheck:
         assert not sh.access_keys_rotated("FAKE_KEY_ID")
 
 
-class TestSecurityHubIamPolicyNoStatementsWithAdminAccessCheck:
+class TestSecurityHubIAMPasswordPolicyEnsureExpires:
+    @pytest.fixture
+    def sh(self):
+        with moto.mock_iam():
+            sh = security_hub_rules.SecurityHubRules(logging)
+            yield sh
+
+    def test_invalid_iam(self, sh):
+        assert not sh.iam_password_policy("test")
+
+
+class TestSecurityHubIAMPasswordPolicyLowercaseLetterCheck:
+    @pytest.fixture
+    def sh(self):
+        with moto.mock_iam():
+            sh = security_hub_rules.SecurityHubRules(logging)
+            yield sh
+
+    def test_invalid_iam(self, sh):
+        assert not sh.iam_password_policy("test")
+
+
+class TestSecurityHubIAMPasswordPolicyMinimumLengthCheck:
+    @pytest.fixture
+    def sh(self):
+        with moto.mock_iam():
+            sh = security_hub_rules.SecurityHubRules(logging)
+            yield sh
+
+    def test_invalid_iam(self, sh):
+        assert not sh.iam_password_policy("test")
+
+
+class TestSecurityHubIAMPasswordPolicyNumberCheck:
+    @pytest.fixture
+    def sh(self):
+        with moto.mock_iam():
+            sh = security_hub_rules.SecurityHubRules(logging)
+            yield sh
+
+    def test_invalid_iam(self, sh):
+        assert not sh.iam_password_policy("test")
+
+
+class TestSecurityHubIAMPasswordPolicyPreventReuseCheck:
+    @pytest.fixture
+    def sh(self):
+        with moto.mock_iam():
+            sh = security_hub_rules.SecurityHubRules(logging)
+            yield sh
+
+    def test_invalid_iam(self, sh):
+        assert not sh.iam_password_policy("test")
+
+
+class TestSecurityHubIAMPasswordPolicySymbolCheck:
+    @pytest.fixture
+    def sh(self):
+        with moto.mock_iam():
+            sh = security_hub_rules.SecurityHubRules(logging)
+            yield sh
+
+    def test_invalid_iam(self, sh):
+        assert not sh.iam_password_policy("test")
+
+
+class TestSecurityHubIAMPasswordPolicyUppercaseLetterCheck:
+    @pytest.fixture
+    def sh(self):
+        with moto.mock_iam():
+            sh = security_hub_rules.SecurityHubRules(logging)
+            yield sh
+
+    def test_invalid_iam(self, sh):
+        assert not sh.iam_password_policy("test")
+
+
+class TestSecurityHubIamPolicyNoStatementsWithAdminAccess:
     @pytest.fixture
     def sh(self):
         with moto.mock_iam():
