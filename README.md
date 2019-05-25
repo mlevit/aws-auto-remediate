@@ -1,6 +1,10 @@
 # AWS Auto Remediate
 
-[![Build Status](https://travis-ci.org/servian/aws-auto-remediate.svg?branch=master)](https://travis-ci.org/servian/aws-auto-remediate) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5bce55175d32494c89f0648b27719f43)](https://www.codacy.com/app/servian/aws-auto-remediate?utm_source=github.com&utm_medium=referral&utm_content=servian/aws-auto-remediate&utm_campaign=Badge_Grade) ![Release](https://img.shields.io/github/release/servian/aws-auto-remediate.svg) ![Pre-release Date](https://img.shields.io/github/release-date-pre/servian/aws-auto-remediate.svg) ![Language](https://img.shields.io/github/languages/top/servian/aws-auto-remediate.svg) [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com) [![Python Black](https://img.shields.io/badge/code%20style-black-000000.svg?label=Python%20code%20style)](https://github.com/python/black) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?label=Markdown%2FYAML%20code%20style)](https://github.com/prettier/prettier)
+[![Build Status](https://travis-ci.org/servian/aws-auto-remediate.svg?branch=master)](https://travis-ci.org/servian/aws-auto-remediate) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5bce55175d32494c89f0648b27719f43)](https://www.codacy.com/app/servian/aws-auto-remediate?utm_source=github.com&utm_medium=referral&utm_content=servian/aws-auto-remediate&utm_campaign=Badge_Grade) [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/5bce55175d32494c89f0648b27719f43)](https://www.codacy.com/app/servian/aws-auto-remediate?utm_source=github.com&utm_medium=referral&utm_content=servian/aws-auto-remediate&utm_campaign=Badge_Coverage)
+
+![Release](https://img.shields.io/github/release/servian/aws-auto-remediate.svg) ![Pre-release Date](https://img.shields.io/github/release-date-pre/servian/aws-auto-remediate.svg)
+
+![Language](https://img.shields.io/github/languages/top/servian/aws-auto-remediate.svg) [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com) [![Python Black](https://img.shields.io/badge/code%20style-black-000000.svg?label=Python%20code%20style)](https://github.com/python/black) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?label=Markdown%2FYAML%20code%20style)](https://github.com/prettier/prettier)
 
 Open source application to instantly remediate common security issues through the use of AWS Config.
 
@@ -19,6 +23,7 @@ Open source application to instantly remediate common security issues through th
   - [AWS Security Hub Rules](#aws-security-hub-rules)
 - [Resources](#resources)
 - [Coverage](#coverage)
+- [Contributing](CONTRIBUTING.md)
 
 ## About
 
