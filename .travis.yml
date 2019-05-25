@@ -6,6 +6,7 @@ install:
   - pip install awscli --upgrade
   - pip install coverage --upgrade
   - pip install codacy-coverage --upgrade
+  - pip install dynamodb-json --upgrade
   - pip install moto
   - npm install serverless --global
   - npm install serverless-iam-roles-per-function
