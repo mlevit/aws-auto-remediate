@@ -13,9 +13,42 @@ class Setup:
         # parameters
         self.logging = logging
 
-        # variables
-        self.client_cloudformation = boto3.client("cloudformation")
-        self.client_dynamodb = boto3.client("dynamodb")
+        self._client_cloudformation = None
+        self._client_dynamodb = None
+        self._client_sts = None
+
+    @property
+    def client_sts(self):
+        if not self._client_sts:
+            self._client_sts = boto3.client("sts")
+        return self._client_sts
+
+    @property
+    def account_number(self):
+        return self.client_sts.get_caller_identity()["Account"]
+
+    @property
+    def account_arn(self):
+        return self.client_sts.get_caller_identity()["Arn"]
+
+    @property
+    def region(self):
+        if self.client_sts.meta.region_name != "aws-global":
+            return self.client_sts.meta.region_name
+        else:
+            return "us-east-1"
+
+    @property
+    def client_cloudformation(self):
+        if not self._client_cloudformation:
+            self._client_cloudformation = boto3.client("cloudformation", self.region)
+        return self._client_cloudformation
+
+    @property
+    def client_dynamodb(self):
+        if not self._client_dynamodb:
+            self._client_dynamodb = boto3.client("dynamodb", self.region)
+        return self._client_dynamodb
 
     def create_stacks(self, stack_sub_dir, settings):
         """Parse a directory and and deploy all the AWS Config Rules it contains
