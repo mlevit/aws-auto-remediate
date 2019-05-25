@@ -24,14 +24,6 @@ class Setup:
         return self._client_sts
 
     @property
-    def account_number(self):
-        return self.client_sts.get_caller_identity()["Account"]
-
-    @property
-    def account_arn(self):
-        return self.client_sts.get_caller_identity()["Arn"]
-
-    @property
     def region(self):
         if self.client_sts.meta.region_name != "aws-global":
             return self.client_sts.meta.region_name
@@ -136,7 +128,9 @@ class Setup:
                 TableName=os.environ["SETTINGSTABLE"]
             )["Items"]:
                 record_json = dynamodb_json.loads(record, True)
-                settings[record_json.get("key")] = record_json.get("value")
+
+                if "key" in record_json and "value" in record_json:
+                    settings[record_json.get("key")] = record_json.get("value")
         except:
             self.logging.error(
                 f"Could not read DynamoDB table '{os.environ['SETTINGSTABLE']}'."
