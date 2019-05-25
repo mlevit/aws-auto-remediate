@@ -18,10 +18,19 @@ class TestDeleteFromQueue:
             yield retry
 
     def test_invalid_queue_url(self, retry):
-        # test delete_from_queue function
+        """Tests sending message to queue with invalid queue URL
+        
+        Arguments:
+            retry {class} -- Instance of Retry class
+        """
         assert not retry.delete_from_queue("http://invalid_queue_url.com", "12345")
 
     def test_delete_from_queue(self, retry):
+        """Tests deletion of a message from a queue
+        
+        Arguments:
+            retry {class} -- Instance of Retry class
+        """
         # create queue
         retry.client_sqs.create_queue(QueueName="DEADLETTERQUEUE")
 
@@ -61,6 +70,11 @@ class TestRetrySecurityEvents:
         yield json.loads(config_payload)
 
     def test_invalid_queue_url(self, retry):
+        """Tests sending message to queue with invalid queue URL
+        
+        Arguments:
+            retry {class} -- Instance of Retry class
+        """
         # create queue
         retry.client_sqs.create_queue(QueueName="DEADLETTERQUEUE")
         os.environ["DEADLETTERQUEUE"] = "http://invalid_queue_url.com"
@@ -69,6 +83,14 @@ class TestRetrySecurityEvents:
         assert not retry.retry_security_events()
 
     def test_retry_security_events(self, retry, test_config_payload):
+        """Tests a "retry" of a security event. The test will retrieve a message from the DEADLETTERQUEUE
+        and send that message to the COMPLIANCEQUEUE afterwich it'll delete the message
+        from the DEADLETTERQUEUE
+        
+        Arguments:
+            retry {class} -- Instance of Retry class
+            test_config_payload {dictionary} -- Mock AWS Config payload
+        """
         # create queues
         retry.client_sqs.create_queue(QueueName="COMPLIANCEQUEUE")
         retry.client_sqs.create_queue(QueueName="DEADLETTERQUEUE")
@@ -109,6 +131,11 @@ class TestSendToComplianceQueue:
             yield retry
 
     def test_invalid_queue_url(self, retry):
+        """Tests sending message to queue with invalid queue URL
+        
+        Arguments:
+            retry {class} -- Instance of Retry class
+        """
         # create queue
         retry.client_sqs.create_queue(QueueName="COMPLIANCEQUEUE")
         os.environ["COMPLIANCEQUEUE"] = "http://invalid_queue_url.com"
@@ -117,6 +144,11 @@ class TestSendToComplianceQueue:
         assert not retry.send_to_compliance_queue("payload", "1")
 
     def test_send_to_compliance_queue(self, retry):
+        """Tests sending message to queue
+        
+        Arguments:
+            retry {class} -- Instance of Retry class
+        """
         # create queue
         retry.client_sqs.create_queue(QueueName="COMPLIANCEQUEUE")
 
