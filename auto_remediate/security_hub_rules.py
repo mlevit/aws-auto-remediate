@@ -869,8 +869,7 @@ class SecurityHubRules:
             # revoke ingress rules
             try:
                 self.client_ec2.revoke_security_group_ingress(
-                    GroupId=resource_id,
-                    IpPermissions=security_group["IpPermissions"],
+                    GroupId=resource_id, IpPermissions=security_group["IpPermissions"]
                 )
                 self.logging.info(
                     f"Revoked all ingress rules for default Security Group '{resource_id}'."
