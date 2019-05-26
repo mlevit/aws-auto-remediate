@@ -10,6 +10,17 @@ import pytest
 from .. import lambda_handler
 
 
+class TestCreateStacks:
+    @pytest.fixture
+    def setup(self):
+        with moto.mock_cloudformation():
+            setup = lambda_handler.Setup(logging)
+            yield setup
+
+    def test_create_stacks(self, setup):
+        setup.create_stacks("config_rules", {})
+
+
 class TestGetSettings:
     @pytest.fixture
     def setup(self):

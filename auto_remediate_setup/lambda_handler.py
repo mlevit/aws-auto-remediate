@@ -61,7 +61,11 @@ class Setup:
                     template_body = str(stack.read())
 
                 if stack_name not in existing_stacks:
-                    if settings.get("rules").get(stack_name).get("deploy"):
+                    if (
+                        settings.get("rules", {})
+                        .get(stack_name, {})
+                        .get("deploy", True)
+                    ):
                         try:
                             self.client_cloudformation.create_stack(
                                 StackName=stack_name,
@@ -84,7 +88,11 @@ class Setup:
                             f"AWS Config Rule '{stack_name}' deployement was skipped due to user preferences."
                         )
                 else:
-                    if not settings.get("rules").get(stack_name).get("deploy"):
+                    if (
+                        not settings.get("rules", {})
+                        .get(stack_name, {})
+                        .get("deploy", True)
+                    ):
                         self.client_cloudformation.update_termination_protection(
                             EnableTerminationProtection=False, StackName=stack_name
                         )
