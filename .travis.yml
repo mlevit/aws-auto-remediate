@@ -14,8 +14,8 @@ install:
 before_script:
   - export BOTO_CONFIG=/dev/null
 script:
-  - coverage run -m pytest --disable-warnings
+  - coverage run --module pytest --disable-warnings
   - coverage xml
-  - python-codacy-coverage -r coverage.xml
+  - python-codacy-coverage --report coverage.xml
   - serverless deploy --stage $TRAVIS_BUILD_NUMBER --region ap-southeast-2
   - serverless remove --stage $TRAVIS_BUILD_NUMBER --region ap-southeast-2
