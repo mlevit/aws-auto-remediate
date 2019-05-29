@@ -1,0 +1,29 @@
+[
+  {
+    "key": {
+      "S": "version"
+    },
+    "value": {
+      "N": "1.0"
+    }
+  },
+  {
+    "key": {
+      "S": "rules"
+    },
+    "value": {
+      "M": {
+        "cloudtrail-enabled": {
+          "M": {
+            "remediate": {
+              "BOOL": true
+            },
+            "deploy": {
+              "BOOL": true
+            }
+          }
+        }
+      }
+    }
+  }
+]

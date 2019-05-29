@@ -28,9 +28,49 @@ def s3_bucket_ssl_requests_only(self, resource_id):
 
 ### Testing
 
-AWS Auto Remediate utilises the [Moto Python library](https://github.com/spulec/moto/) for automated testing via [pytest](https://docs.pytest.org/en/latest/). For each new function written to remediate a security issue, please ensure a new test class is created within the `test` folder. This class should incorporate functions for both positive and negative tests. See [Moto's Implementation Coverage](https://github.com/spulec/moto/blob/master/IMPLEMENTATION_COVERAGE.md) page for all supported mock API calls.
+AWS Auto Remediate utilises the [Moto Python library](https://github.com/spulec/moto/) for automated testing via [pytest](https://docs.pytest.org/en/latest/). For each new function written to remediate a security issue, please ensure a new test class is created within the `test` directory. This class should incorporate functions for both positive and negative tests. See [Moto's Implementation Coverage](https://github.com/spulec/moto/blob/master/IMPLEMENTATION_COVERAGE.md) page for all supported mock API calls.
 
 If the API calls within your new remediation function are not covered by Moto, please ensure the [COVERAGE.md](COVERAGE.md) is updated with `No Moto support` for your particular remediation.
+
+#### Local testing
+
+1. Install `pytest`
+
+```bash
+pip install pytest --upgrade --user
+```
+
+2. Run `pytest`
+
+```bash
+pytest
+```
+
+#### Local testing with coverage
+
+1. Install `pytest`
+
+```bash
+pip install pytest --upgrade --user
+```
+
+2. Install `coverage`
+
+```bash
+pip install coverage --upgrade --user
+```
+
+4. Run `pytest` with `coverage`
+
+```bash
+coverage run --source . -m pytest
+```
+
+5. View coverage report
+
+```bash
+coverage report
+```
 
 ### Formatting
 
@@ -38,8 +78,8 @@ AWS Auto Remediate is using the [Python Black](https://github.com/python/black) 
 
 ## Submitting Changes
 
-When you think your code is ready for review create a pull request within GitHub. Maintainers of the repository will watch out for new PR‘s and review them in regular intervals.
+When you think your code is ready for review create a pull request within GitHub. Maintainers of the repository will watch out for new PR‘s and review them at regular intervals.
 
-By default, for each change in the PR will automatically trigger pytests, Serverless AWS deployment via [Travis CI](https://travis-ci.org/servian/aws-auto-remediate) as well as a code quality review via [Codacy](https://app.codacy.com/project/servian/aws-auto-remediate/dashboard). If either Travis CI or Codacy fails make sure to address the failures immediately.
+Each pull request will automatically trigger pytests, code coverage, and AWS deployment via [Travis CI](https://travis-ci.org/servian/aws-auto-remediate) as well as a code quality review and code coverage via [Codacy](https://app.codacy.com/project/servian/aws-auto-remediate/dashboard). If either Travis CI or Codacy fails make sure to address the failures immediately as the pull requests will be unmergeable.
 
 If comments have been given in a review, they have to get integrated. For those changes a separate commit should be created and pushed to your remote development branch. Don’t forget to add a comment in the PR afterward, so everyone gets notified by GitHub. Keep in mind that reviews can span multiple cycles until the maintainers are happy with the code.

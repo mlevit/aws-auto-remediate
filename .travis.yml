@@ -3,19 +3,19 @@ language: python
 python:
   - "3.7"
 install:
-  - pip install awscli --upgrade
-  - pip install codacy-coverage --upgrade
-  - pip install coverage --upgrade
-  - pip install moto --upgrade
-  - pip install --requirement requirements.txt --upgrade
+  - pip install awscli --upgrade --quiet
+  - pip install codacy-coverage --upgrade --quiet
+  - pip install coverage --upgrade --quiet
+  - pip install moto --upgrade --quiet
+  - pip install --requirement requirements.txt --upgrade --quiet
   - npm install serverless --global
   - npm install serverless-iam-roles-per-function
   - serverless plugin install --name serverless-python-requirements
 before_script:
   - export BOTO_CONFIG=/dev/null
 script:
-  - coverage run -m pytest --disable-warnings
+  - coverage run --module pytest --disable-warnings
   - coverage xml
-  - python-codacy-coverage -r coverage.xml
+  - python-codacy-coverage --report coverage.xml
   - serverless deploy --stage $TRAVIS_BUILD_NUMBER --region ap-southeast-2
   - serverless remove --stage $TRAVIS_BUILD_NUMBER --region ap-southeast-2

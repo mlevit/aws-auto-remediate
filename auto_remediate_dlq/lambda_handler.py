@@ -20,14 +20,6 @@ class Retry:
         return self._client_sts
 
     @property
-    def account_number(self):
-        return self.client_sts.get_caller_identity()["Account"]
-
-    @property
-    def account_arn(self):
-        return self.client_sts.get_caller_identity()["Arn"]
-
-    @property
     def region(self):
         if self.client_sts.meta.region_name != "aws-global":
             return self.client_sts.meta.region_name
@@ -45,20 +37,7 @@ class Retry:
         compliance SQS Queue for reprocessing.
         """
         queue_url = os.environ.get("DEADLETTERQUEUE")
-
-        try:
-            response = self.client_sqs.receive_message(
-                QueueUrl=queue_url,
-                MessageAttributeNames=["try_count"],
-                MaxNumberOfMessages=10,
-            )
-
-            self.logging.debug(f"SQS payload: {response}")
-        except:
-            self.logging.error(
-                f"Could not retrieve Messages from SQS Queue URL '{queue_url}'."
-            )
-            self.logging.error(sys.exc_info()[1])
+        response = self.receive_message(queue_url)
 
         while "Messages" in response:
             for message in response.get("Messages"):
@@ -73,18 +52,7 @@ class Retry:
                 if self.send_to_compliance_queue(body, try_count):
                     self.delete_from_queue(queue_url, receipt_handle)
 
-            # get the next 10 messages
-            try:
-                response = self.client_sqs.receive_message(
-                    QueueUrl=queue_url,
-                    MessageAttributeNames=["try_count"],
-                    MaxNumberOfMessages=10,
-                )
-            except:
-                self.logging.error(
-                    f"Could not retrieve Messages from SQS Queue URL '{queue_url}'."
-                )
-                self.logging.error(sys.exc_info()[1])
+                response = self.receive_message(queue_url)
 
     def delete_from_queue(self, queue_url, receipt_handle):
         """Delete a Message from an SQS Queue.
@@ -101,36 +69,35 @@ class Retry:
             self.logging.info(
                 f"Deleted Message '{receipt_handle}' from SQS Queue URL '{queue_url}'."
             )
+            return True
         except:
             self.logging.error(
                 f"Could not delete Message '{receipt_handle}' from SQS Queue URL '{queue_url}'."
             )
             self.logging.error(sys.exc_info()[1])
+            return False
 
-    @staticmethod
-    def get_config_rule_compliance(record):
-        """Retrieves the AWS Config rule compliance variable
+    def receive_message(self, queue_url):
+        """Retrieves 10 messeges from an SQS Queue
         
         Arguments:
-            config_payload {JSON} -- AWS Config payload
+            queue_url {string} -- SQS Queue URL
         
         Returns:
-            string -- COMPLIANT | NON_COMPLIANT
+            dictionary -- Dictionary of SQS messeges
         """
-        return record.get("detail").get("newEvaluationResult").get("complianceType")
-
-    @staticmethod
-    def get_config_rule_name(record):
-        """Retrieves the AWS Config rule name variable. For Security Hub rules, the random
-        suffixed alphanumeric characters will be removed.
-        
-        Arguments:
-            config_payload {JSON} -- AWS Config payload
-        
-        Returns:
-            string -- AWS Config rule name
-        """
-        return record.get("detail").get("configRuleName")
+        try:
+            return self.client_sqs.receive_message(
+                QueueUrl=queue_url,
+                MessageAttributeNames=["try_count"],
+                MaxNumberOfMessages=10,
+            )
+        except:
+            self.logging.error(
+                f"Could not retrieve Messages from SQS Queue URL '{queue_url}'."
+            )
+            self.logging.error(sys.exc_info()[1])
+            return {}
 
     def send_to_compliance_queue(self, config_payload, try_count):
         """Sends a message to the Config Compliance SQS Queue.
@@ -159,6 +126,31 @@ class Retry:
             self.logging.error(f"Could not send payload to SQS Queue '{queue_url}'.")
             self.logging.error(sys.exc_info()[1])
             return False
+
+    @staticmethod
+    def get_config_rule_compliance(record):
+        """Retrieves the AWS Config rule compliance variable
+        
+        Arguments:
+            config_payload {JSON} -- AWS Config payload
+        
+        Returns:
+            string -- COMPLIANT | NON_COMPLIANT
+        """
+        return record.get("detail").get("newEvaluationResult").get("complianceType")
+
+    @staticmethod
+    def get_config_rule_name(record):
+        """Retrieves the AWS Config rule name variable. For Security Hub rules, the random
+        suffixed alphanumeric characters will be removed.
+        
+        Arguments:
+            config_payload {JSON} -- AWS Config payload
+        
+        Returns:
+            string -- AWS Config rule name
+        """
+        return record.get("detail").get("configRuleName")
 
 
 def lambda_handler(event, context):
