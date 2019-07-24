@@ -464,6 +464,20 @@ class SecurityHubRules:
                         f"Removed Statement '{statement}' from IAM Policy '{policy_arn}'."
                     )
 
+            # add statement with zero probability of being true to empty Statement list
+            # to ensure validity of Policy
+            if policy["Statement"] == []:
+                policy["Statement"].append(
+                    {
+                        "Effect": "Allow",
+                        "Action": "*",
+                        "Resource": "*",
+                        "Condition": {
+                            "ForAnyValue:DateLessThan": {"aws:EpochTime": "0000000000"}
+                        },
+                    }
+                )
+
             # create new policy version with offending statement removed
             try:
                 self.client_iam.create_policy_version(
@@ -476,7 +490,7 @@ class SecurityHubRules:
                 )
             except:
                 self.logging.error(
-                    f"Could not create a new Policy Version '{policy}' for IAM Policy '{policy_arn}'."
+                    f"Could not create a new Policy Version '{json.dumps(policy)}' for IAM Policy '{policy_arn}'."
                 )
                 self.logging.error(sys.exc_info()[1])
                 return False

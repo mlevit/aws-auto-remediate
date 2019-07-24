@@ -170,7 +170,12 @@ class TestSecurityHubIamPolicyNoStatementsWithAdminAccess:
             PolicyArn=iam_test_policy_arn, VersionId=iam_test_policy_default_version
         )
 
-        assert len(response["PolicyVersion"]["Document"]["Statement"]) == 0
+        assert (
+            response["PolicyVersion"]["Document"]["Statement"][0]["Condition"][
+                "ForAnyValue:DateLessThan"
+            ]["aws:EpochTime"]
+            == "0000000000"
+        )
 
 
 class TestSecurityHubIamUserNoPoliciesCheck:
