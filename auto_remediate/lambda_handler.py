@@ -31,6 +31,7 @@ class Remediate:
         # remediation function dict
         self.remediation_functions = {
             # config
+            "dynamodb-table-encryption-enabled": pass,
             "rds-instance-public-access-check": self.config.rds_instance_public_access_check,
             "s3-bucket-server-side-encryption-enabled": self.config.s3_bucket_server_side_encryption_enabled,
             "s3-bucket-ssl-requests-only": self.config.s3_bucket_ssl_requests_only,
